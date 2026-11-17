@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Phase 1 fertig. Must-Punkte, Ziele, Mengen-Gewohnheiten und Mini-Version fertig. Nächstes: weitere Should-Features (Vorschlag: Statistik/Tages-Score). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Alle Must-Punkte fertig und auf iPhone + Mac getestet. Nächstes: Should-Features (Vorschlag: Wochen-/Monatsstatistik + Tages-Score). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -16,7 +16,7 @@ Status: Phase 1 fertig. Must-Punkte, Ziele, Mengen-Gewohnheiten und Mini-Version
 - [x] Streak mit Verzeihung (1 Freeze alle 10 Streak-Tage, max. 3)
 - [x] XP + Level mit Identitäts-Titeln (10 XP, Bonus 7/30/66 Tage; Gesamt-Level + Titel je Bereich)
 - [x] Verlauf: Heatmap (12 Wochen) pro Gewohnheit, Nachtragen per Tipp, Streak/Längste/Quote
-- [ ] Offline + Sync zwischen iPhone und Mac (Sync und Installation getestet; Offline im Browser geprüft: Service Worker, Laden ohne Server, Anlegen/Abhaken, Daten bleiben; offen: Flugmodus-Test auf dem iPhone durch Niklas)
+- [x] Offline + Sync zwischen iPhone und Mac (Browser-Test: Service Worker, Laden ohne Server, Anlegen/Abhaken; iPhone-Flugmodus-Test von Niklas bestätigt)
 - [x] JSON-Export/-Import (Zusammenführen, Neueres gewinnt; Teilen-Menü auf iPhone)
 
 ## Should
