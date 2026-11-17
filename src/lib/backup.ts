@@ -1,7 +1,7 @@
 import { dayKey, db } from './db'
 import { AREAS, TIMES } from './habits'
 import { scheduleSync } from './sync'
-import type { CheckIn, Goal, Habit } from './types'
+import type { CheckIn, Goal, Habit, Review } from './types'
 
 export const BACKUP_VERSION = 1
 
@@ -12,16 +12,26 @@ export interface BackupFile {
   habits: Habit[]
   checkIns: CheckIn[]
   goals: Goal[]
+  reviews?: Review[] // ältere Sicherungen haben keine Rückblicke
 }
 
 // Alles, auch Archiviertes und weich Gelöschtes (damit Löschungen beim Zusammenführen erhalten bleiben).
 export async function buildBackup(): Promise<BackupFile> {
-  const [habits, checkIns, goals] = await Promise.all([
+  const [habits, checkIns, goals, reviews] = await Promise.all([
     db.habits.toArray(),
     db.checkIns.toArray(),
     db.goals.toArray(),
+    db.reviews.toArray(),
   ])
-  return { app: 'habitat', version: BACKUP_VERSION, exportedAt: new Date().toISOString(), habits, checkIns, goals }
+  return {
+    app: 'habitat',
+    version: BACKUP_VERSION,
+    exportedAt: new Date().toISOString(),
+    habits,
+    checkIns,
+    goals,
+    reviews,
+  }
 }
 
 export const backupFileName = () => `habitat-backup-${dayKey()}.json`
@@ -96,6 +106,10 @@ function checkGoal(r: Row): string | null {
   )
 }
 
+function checkReview(r: Row): string | null {
+  return checkSync(r) ?? (!isDay(r.weekStart) ? 'weekStart ungültig' : null) ?? (typeof r.note !== 'string' ? 'note fehlt' : null)
+}
+
 // Wirft einen Error mit verständlicher Meldung; verändert nichts.
 export function parseBackup(text: string): BackupFile {
   let data: unknown
@@ -112,7 +126,9 @@ export function parseBackup(text: string): BackupFile {
     ['habits', checkHabit],
     ['checkIns', checkCheckIn],
     ['goals', checkGoal],
+    ['reviews', checkReview],
   ]
+  if (data.reviews === undefined) data.reviews = [] // ältere Sicherung ohne Rückblicke
   for (const [name, check] of tables) {
     const rows = data[name]
     if (!Array.isArray(rows)) throw new Error(`„${name}“ fehlt in der Datei.`)
@@ -130,16 +146,17 @@ export interface ImportResult {
   habits: number
   checkIns: number
   goals: number
+  reviews: number
   skipped: number
 }
 
 export async function mergeBackup(file: BackupFile): Promise<ImportResult> {
-  const result: ImportResult = { habits: 0, checkIns: 0, goals: 0, skipped: 0 }
+  const result: ImportResult = { habits: 0, checkIns: 0, goals: 0, reviews: 0, skipped: 0 }
 
-  await db.transaction('rw', db.habits, db.checkIns, db.goals, async () => {
-    for (const name of ['habits', 'checkIns', 'goals'] as const) {
+  await db.transaction('rw', db.habits, db.checkIns, db.goals, db.reviews, async () => {
+    for (const name of ['habits', 'checkIns', 'goals', 'reviews'] as const) {
       const tbl = db.table(name)
-      const rows = file[name] as { id: string; updatedAt: string }[]
+      const rows = (file[name] ?? []) as { id: string; updatedAt: string }[]
       const existing = await tbl.bulkGet(rows.map((r) => r.id))
       const toPut = rows.filter((r, i) => !existing[i] || Date.parse(r.updatedAt) > Date.parse(existing[i].updatedAt))
       if (toPut.length) await tbl.bulkPut(toPut)

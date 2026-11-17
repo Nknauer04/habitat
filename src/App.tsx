@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import UpdatePrompt from './components/UpdatePrompt'
 import Goals from './pages/Goals'
 import History from './pages/History'
+import Review from './pages/Review'
 import Settings from './pages/Settings'
 import Today from './pages/Today'
 import { requestPersistentStorage } from './lib/db'
@@ -23,6 +24,8 @@ export default function App() {
           <Route index element={<Today />} />
           <Route path="ziele" element={<Goals />} />
           <Route path="verlauf" element={<History />} />
+          <Route path="rueckblick" element={<Review />} />
+          <Route path="rueckblick/:week" element={<Review />} />
           <Route path="einstellungen" element={<Settings />} />
         </Route>
       </Routes>

@@ -9,6 +9,7 @@ const TABLES = [
   { local: 'habits', remote: 'habits' },
   { local: 'checkIns', remote: 'check_ins' },
   { local: 'goals', remote: 'goals' },
+  { local: 'reviews', remote: 'reviews' },
 ] as const
 
 const PAGE = 500
@@ -19,6 +20,7 @@ export interface SyncStatus {
   pulled: number
   pushed: number
   error?: string
+  warning?: string // z. B. Tabelle in Supabase noch nicht angelegt
 }
 
 let status: SyncStatus = { state: 'signedOut', pulled: 0, pushed: 0 }
@@ -100,6 +102,16 @@ async function push(t: (typeof TABLES)[number]) {
   return rows.length
 }
 
+// PostgREST: 42P01 / PGRST205 = Tabelle existiert nicht
+export function isMissingTable(e: unknown): boolean {
+  const err = e as { code?: string; message?: string }
+  return (
+    err?.code === '42P01' ||
+    err?.code === 'PGRST205' ||
+    /Could not find the table|does not exist/i.test(err?.message ?? '')
+  )
+}
+
 let running: Promise<void> | null = null
 
 export function syncNow(): Promise<void> {
@@ -119,9 +131,28 @@ async function run() {
   try {
     let pulled = 0
     let pushed = 0
-    for (const t of TABLES) pulled += await pull(t)
-    for (const t of TABLES) pushed += await push(t)
-    setStatus({ state: 'ok', pulled, pushed, lastSync: new Date().toISOString() })
+    const missing: string[] = []
+    // Fehlt eine Tabelle in Supabase (z. B. neu hinzugekommen), wird nur sie übersprungen – der Rest synchronisiert weiter.
+    const tolerant = async (t: (typeof TABLES)[number], fn: () => Promise<number>) => {
+      try {
+        return await fn()
+      } catch (e) {
+        if (!isMissingTable(e)) throw e
+        if (!missing.includes(t.remote)) missing.push(t.remote)
+        return 0
+      }
+    }
+    for (const t of TABLES) pulled += await tolerant(t, () => pull(t))
+    for (const t of TABLES) pushed += await tolerant(t, () => push(t))
+    setStatus({
+      state: 'ok',
+      pulled,
+      pushed,
+      lastSync: new Date().toISOString(),
+      warning: missing.length
+        ? `Tabelle „${missing.join('“, „')}“ fehlt in Supabase und wird noch nicht synchronisiert (siehe supabase/reviews.sql).`
+        : undefined,
+    })
   } catch (e) {
     const msg = e instanceof Error ? e.message : (e as { message?: string })?.message ?? String(e)
     setStatus({ state: 'error', error: msg })

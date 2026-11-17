@@ -53,3 +53,10 @@ export interface Goal extends Syncable {
   doneAt?: string // YYYY-MM-DD
   createdAt: string
 }
+
+// Wochenrückblick: eine Notiz pro Woche (weekStart = Montag, YYYY-MM-DD).
+// Die id ist aus weekStart abgeleitet, damit zwei Geräte dieselbe Woche zusammenführen (siehe lib/review.ts).
+export interface Review extends Syncable {
+  weekStart: string
+  note: string
+}

@@ -88,7 +88,7 @@ export default function Settings() {
       }
       setBackupMsg({
         ok: true,
-        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele.`,
+        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele, ${backup.reviews?.length ?? 0} Rückblicke.`,
       })
     } catch (e) {
       setBackupMsg({ ok: false, text: `Export fehlgeschlagen: ${e instanceof Error ? e.message : String(e)}` })
@@ -104,7 +104,7 @@ export default function Settings() {
       const r = await mergeBackup(parseBackup(await f.text()))
       setBackupMsg({
         ok: true,
-        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele übernommen, ${r.skipped} unverändert übersprungen.`,
+        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele, ${r.reviews} Rückblicke übernommen, ${r.skipped} unverändert übersprungen.`,
       })
     } catch (err) {
       setBackupMsg({ ok: false, text: `Import abgebrochen: ${err instanceof Error ? err.message : String(err)}` })
@@ -127,6 +127,7 @@ export default function Settings() {
           <div className="mt-2 text-sm">
             <p className="text-slate-300">Angemeldet als {session.user.email}</p>
             <p className="mt-2 text-slate-400">{syncText(sync)}</p>
+            {sync.warning && <p className="mt-2 text-amber-400">{sync.warning}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 onClick={() => void syncNow()}

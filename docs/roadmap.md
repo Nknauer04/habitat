@@ -31,12 +31,12 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik, Push-Erinnerun
 - [ ] App-Icon-Badge (offene Habits heute)
 - [x] Abzeichen/Meilensteine (Streak 7/30/66 Tage je Gewohnheit, Level 5/10/20, Ziele 1/5/10; Hinweis in Heute, Sammlung im Verlauf)
 - [x] Update-Hinweis in der App („Neue Version verfügbar“) + Versionsangabe in den Einstellungen
-- [ ] Wochenrückblick (Reflexion, 3 Fragen)
+- [x] Wochenrückblick (Auswertung der Woche + freie Notiz; Hinweis in Heute So/Mo; Tabelle `reviews`: supabase/reviews.sql in Supabase ausführen)
 - [ ] Schlaf-Logging (Zubettgeh-/Aufstehzeit) und Musik-Session-Timer
 - [ ] Widgets/Shortcuts-Anbindung (Apple Kurzbefehle)
-- [ ] Insights („an welchen Tagen klappt X nicht?“)
+- [x] Insights (Wochentage je Gewohnheit, Morgen vs Abend, Serien-Abbruchtage; Karte im Verlauf)
 
 ## Neu (Wunschliste Niklas, Stand 2026-11-17)
-- [ ] Wochenrückblick + Insights (als Nächstes, bewusst schlicht gehalten)
+- [x] Wochenrückblick + Insights (bewusst schlicht gehalten, Design folgt)
 - [ ] Design-Überarbeitung: „cooler“, weniger minimalistisch. Niklas schickt Screenshots als Vorlage, sobald Wochenrückblick + Insights fertig sind; danach in einem Zug umsetzen
 - [ ] KI-Coach (Claude API): Tipps für den Tag, Feedback zur Woche. Voraussetzungen klären: API-Key + Abrechnung bei Anthropic (laufende Kosten, nicht im Abo enthalten), Key nur serverseitig in einer Supabase Edge Function, Datenschutz (Gewohnheitsdaten gehen an die API), Ausgabenlimit setzen

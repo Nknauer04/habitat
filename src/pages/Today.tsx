@@ -1,5 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import HabitDialog from '../components/HabitDialog'
 import LevelCard from '../components/LevelCard'
 import QuantitySheet from '../components/QuantitySheet'
@@ -21,6 +22,7 @@ import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
 import { computeDayScores } from '../lib/stats'
 import { TIER_ICONS } from '../lib/badges'
+import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useToday } from '../lib/useToday'
 
@@ -38,6 +40,16 @@ export default function Today() {
   const [sheetId, setSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
   const { fresh: freshBadges, dismiss: dismissBadges } = useNewBadges(useBadges(today))
+  const reviewWeek = reviewWeekFor(today)
+  const reviewNote = useLiveQuery(async () => (await db.reviews.get(reviewId(reviewWeek)))?.note ?? '', [reviewWeek])
+  const [hintDismissed, setHintDismissed] = useState(() => {
+    try {
+      return localStorage.getItem('habitat:reviewHintDismissed') === reviewWeek
+    } catch {
+      return false
+    }
+  })
+  const showReviewHint = isReviewDay(today) && reviewNote !== undefined && reviewNote.trim() === '' && !hintDismissed
 
   const habits = useLiveQuery(
     () => db.habits.filter((h) => !h.deleted && !h.archived).sortBy('createdAt'),
@@ -88,6 +100,35 @@ export default function Today() {
           +
         </button>
       </div>
+
+      {showReviewHint && (
+        <div className="mt-5 flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+          <span className="text-2xl">📋</span>
+          <div className="min-w-0 flex-1 text-sm">
+            <div className="font-medium">Wochenrückblick bereit</div>
+            <div className="text-slate-300">KW {isoWeek(reviewWeek)} · wie lief deine Woche?</div>
+          </div>
+          <button
+            onClick={() => {
+              try {
+                localStorage.setItem('habitat:reviewHintDismissed', reviewWeek)
+              } catch {
+                /* Speicher nicht verfügbar */
+              }
+              setHintDismissed(true)
+            }}
+            className="shrink-0 rounded-lg px-2 py-1.5 text-sm text-slate-400 hover:bg-slate-800"
+          >
+            Später
+          </button>
+          <Link
+            to={`/rueckblick/${reviewWeek}`}
+            className="shrink-0 rounded-lg bg-emerald-500 px-3 py-1.5 text-sm font-medium text-slate-950"
+          >
+            Ansehen
+          </Link>
+        </div>
+      )}
 
       {freshBadges.length > 0 && (
         <div
