@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
+import UpdatePrompt from './components/UpdatePrompt'
 import Goals from './pages/Goals'
 import History from './pages/History'
 import Settings from './pages/Settings'
@@ -16,6 +17,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <UpdatePrompt />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Today />} />

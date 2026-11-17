@@ -221,6 +221,11 @@ export default function Settings() {
           <p className={`mt-3 text-sm ${backupMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{backupMsg.text}</p>
         )}
       </section>
+
+      <p className="mt-6 text-center text-xs text-slate-500">
+        Version vom{' '}
+        {new Date(__BUILD_TIME__).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}
+      </p>
     </div>
   )
 }

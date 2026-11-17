@@ -30,6 +30,7 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik, Push-Erinnerun
 ## Nice
 - [ ] App-Icon-Badge (offene Habits heute)
 - [x] Abzeichen/Meilensteine (Streak 7/30/66 Tage je Gewohnheit, Level 5/10/20, Ziele 1/5/10; Hinweis in Heute, Sammlung im Verlauf)
+- [x] Update-Hinweis in der App („Neue Version verfügbar“) + Versionsangabe in den Einstellungen
 - [ ] Wochenrückblick (Reflexion, 3 Fragen)
 - [ ] Schlaf-Logging (Zubettgeh-/Aufstehzeit) und Musik-Session-Timer
 - [ ] Widgets/Shortcuts-Anbindung (Apple Kurzbefehle)

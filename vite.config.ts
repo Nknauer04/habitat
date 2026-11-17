@@ -4,11 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt', // neue Version wartet, die App zeigt einen Hinweis (UpdatePrompt)
+      injectRegister: false, // Registrierung übernimmt virtual:pwa-register
       includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'Habitat',
