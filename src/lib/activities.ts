@@ -1,5 +1,5 @@
 import { db, newId, now } from './db'
-import type { Activity, ActivityEntry, Area } from './types'
+import type { Activity, ActivityEntry, Area, Goal } from './types'
 
 // Einheiten (z. B. Laufen in km): nur Ist-Werte je Tag. Das Soll steckt in Zielen der Art „Menge“ (siehe goals.ts).
 // Speicherung unter den Namen `plans` / `planEntries` (siehe types.ts).
@@ -20,12 +20,28 @@ export const isActivityDay = (a: Activity, date: string) => activityDays(a).incl
 
 // ---------- Speichern ----------
 
-export async function saveActivity(input: ActivityInput, id?: string) {
+export async function saveActivity(input: ActivityInput, id?: string): Promise<string> {
   const t = now()
-  if (id)
+  if (id) {
     // Altfelder der ersten Version entfernen
     await db.plans.update(id, { ...input, schedule: undefined, target: undefined, startDate: undefined, targetDate: undefined, updatedAt: t })
-  else await db.plans.add({ ...input, id: newId(), deleted: false, createdAt: t, updatedAt: t })
+    return id
+  }
+  const newActivityId = newId()
+  await db.plans.add({ ...input, id: newActivityId, deleted: false, createdAt: t, updatedAt: t })
+  return newActivityId
+}
+
+// Verknüpfung Einheit ↔ Mengen-Ziele setzen: nur Ziele, deren Zustand sich ändert, werden geschrieben.
+export async function setActivityGoalLinks(activityId: string, unit: string, linkedGoalIds: string[], goals: Goal[]) {
+  const t = now()
+  for (const g of goals) {
+    const has = (g.activityIds ?? []).includes(activityId)
+    const want = linkedGoalIds.includes(g.id)
+    if (has === want) continue
+    const ids = want ? [...(g.activityIds ?? []), activityId] : (g.activityIds ?? []).filter((x) => x !== activityId)
+    await db.goals.update(g.id, { activityIds: ids, unit: g.unit ?? (want ? unit : undefined), updatedAt: t })
+  }
 }
 
 // Einheit und alle ihre Einträge weich löschen (Sync zieht es nach). Ziele behalten ihre Verknüpfung, die ins Leere läuft.

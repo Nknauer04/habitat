@@ -1,5 +1,7 @@
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type FormEvent } from 'react'
-import { activityDays, deleteActivity, saveActivity } from '../lib/activities'
+import { activityDays, deleteActivity, saveActivity, setActivityGoalLinks } from '../lib/activities'
+import { db } from '../lib/db'
 import { AREAS, WEEKDAYS } from '../lib/habits'
 import type { Activity, Area } from '../lib/types'
 
@@ -20,8 +22,15 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
   const [area, setArea] = useState<Area>(activity?.area ?? 'sport')
   const [unit, setUnit] = useState(activity?.unit ?? 'km')
   const [days, setDays] = useState<number[]>(activity ? activityDays(activity) : [])
+  const [linked, setLinked] = useState<string[] | null>(null) // null = unverändert (aus den Zielen abgeleitet)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+
+  // Offene Mengen-Ziele, in die diese Einheit zählen kann (gleiche Einheit)
+  const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted && !g.done && g.kind === 'amount').sortBy('createdAt'), [])
+  const currentLinked = (goals ?? []).filter((g) => !!activity && (g.activityIds ?? []).includes(activity.id)).map((g) => g.id)
+  const effLinked = linked ?? currentLinked
+  const toggleGoal = (id: string) => setLinked(effLinked.includes(id) ? effLinked.filter((x) => x !== id) : [...effLinked, id])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -33,7 +42,8 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
     e.preventDefault()
     if (!name.trim()) return setError('Bitte einen Namen eingeben.')
     if (!unit.trim()) return setError('Bitte eine Einheit angeben.')
-    await saveActivity({ name: name.trim(), icon: icon.trim() || '🏃', area, unit: unit.trim(), days: [...days].sort() }, activity?.id)
+    const id = await saveActivity({ name: name.trim(), icon: icon.trim() || '🏃', area, unit: unit.trim(), days: [...days].sort() }, activity?.id)
+    if (linked !== null && goals) await setActivityGoalLinks(id, unit.trim(), linked, goals)
     onClose()
   }
 
@@ -96,6 +106,32 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
           ))}
         </div>
         <p className="mt-2 text-xs text-slate-500">An freien Tagen kannst du trotzdem jederzeit eintragen (Heute, oder nachträglich im Ziele-Tab).</p>
+
+        <span className={`${label} mt-5`}>Zählt für Ziel (optional)</span>
+        {goals && goals.length === 0 ? (
+          <p className="text-sm text-slate-400">Noch kein Mengen-Ziel. Lege im Ziele-Tab ein Ziel „Menge aus Einheiten“ an (oder später hier verknüpfen).</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(goals ?? []).map((g) => {
+              const on = effLinked.includes(g.id)
+              const blocked = !on && !!g.unit && g.unit !== unit.trim()
+              return (
+                <button
+                  type="button"
+                  key={g.id}
+                  onClick={() => toggleGoal(g.id)}
+                  disabled={blocked}
+                  aria-pressed={on}
+                  title={blocked ? `Das Ziel zählt in ${g.unit}` : undefined}
+                  className={`${chip(on)} disabled:opacity-40`}
+                >
+                  🎯 {g.title}
+                  {g.unit ? ` (${g.unit})` : ''}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {confirmDelete && (

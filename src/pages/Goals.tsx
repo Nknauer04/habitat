@@ -232,6 +232,17 @@ export default function Goals() {
                   </div>
                 </button>
 
+                {g.kind === 'amount' && (
+                  <p className="mt-3 text-xs text-slate-500">
+                    Zählt:{' '}
+                    {(g.activityIds ?? [])
+                      .map((id) => (activities ?? []).find((a) => a.id === id))
+                      .filter((a) => !!a)
+                      .map((a) => `${a!.icon} ${a!.name}`)
+                      .join(', ') || 'noch keine Einheit verknüpft'}
+                  </p>
+                )}
+
                 {states.length > 0 && (
                   <ul className="mt-4 flex flex-wrap gap-2" aria-label="Etappenziele">
                     {states.map(({ m, reached, overdue }) => (

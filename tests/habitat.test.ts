@@ -401,4 +401,7 @@ eq('Tipp Menge: ohne Rückstand kein Hinweis', coachAmt(amountGoal, at(TUE)).som
 const wkAct = weekSummary([lh], [], [], '2026-11-16', today, { activities: [act], entries: [ae('2026-11-10', 3), ae('2026-11-16', 5), ae('2026-11-17', 6)] })
 eq('Rückblick: Einheiten-XP der Woche', wkAct.xp, 20)
 eq('Rückblick: ohne Einheiten-Daten unverändert', weekSummary([lh], [], [], '2026-11-16', today).xp, 0)
+// Verknüpfung Einheit ↔ Ziel: setActivityGoalLinks nutzt db (IndexedDB), hier nur die Zählung über activityIds
+eq('Ziel ohne verknüpfte Einheit zählt 0', gp2({ ...amountGoal, activityIds: [] }, [], '2026-11-17', [], aEntries).value, 0)
+eq('Ziel zählt nur verknüpfte Einheiten', gp2({ ...amountGoal, activityIds: ['a1', 'a2'] }, [], '2026-11-17', [], [...aEntries, ae('2026-11-16', 7, { planId: 'a2' })]).value, 63.5)
 process.exit(fail ? 1 : 0)
