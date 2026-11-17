@@ -9,7 +9,7 @@ self.addEventListener('push', (event) => {
     data = { body: event.data ? event.data.text() : '' }
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Habitat', {
+    self.registration.showNotification(data.title || 'Be Happy', {
       body: data.body || '',
       icon: '/pwa-192x192.png',
       badge: '/pwa-64x64.png',

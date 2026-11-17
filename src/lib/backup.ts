@@ -40,7 +40,7 @@ export async function buildBackup(): Promise<BackupFile> {
   }
 }
 
-export const backupFileName = () => `habitat-backup-${dayKey()}.json`
+export const backupFileName = () => `be-happy-backup-${dayKey()}.json`
 
 // ---------- Validierung ----------
 
@@ -153,7 +153,7 @@ export function parseBackup(text: string): BackupFile {
   } catch {
     throw new Error('Die Datei ist kein gültiges JSON.')
   }
-  if (!isObj(data) || data.app !== 'habitat') throw new Error('Das ist keine Habitat-Sicherung.')
+  if (!isObj(data) || data.app !== 'habitat') throw new Error('Das ist keine Be-Happy-Sicherung.')
   if (data.version !== BACKUP_VERSION)
     throw new Error(`Nicht unterstützte Version (${String(data.version)}). Erwartet: ${BACKUP_VERSION}.`)
 

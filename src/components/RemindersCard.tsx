@@ -149,7 +149,7 @@ export default function RemindersCard() {
           {state?.permission === 'denied' && (
             <p className="mt-3 text-amber-400">
               Mitteilungen sind für diese App gesperrt. Erlaube sie in den iPhone-Einstellungen unter
-              Mitteilungen → Habitat.
+              Mitteilungen → Be Happy.
             </p>
           )}
         </div>

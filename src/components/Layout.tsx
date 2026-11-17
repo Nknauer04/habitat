@@ -18,7 +18,7 @@ export default function Layout() {
     <div className="flex h-full flex-col lg:flex-row">
       {/* Seitenleiste ab 1024 px */}
       <nav aria-label="Hauptnavigation" className="hidden w-64 shrink-0 flex-col gap-1 border-r border-slate-800 p-5 lg:flex">
-        <div className="mb-5 px-3 text-xl font-bold tracking-tight text-accent-400">Habitat</div>
+        <div className="mb-5 px-3 text-xl font-bold tracking-tight text-accent-400">Be Happy</div>
         {items.map(({ to, label, Icon, match }) => {
           const active = match(pathname)
           return (

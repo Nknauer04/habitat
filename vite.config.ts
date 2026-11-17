@@ -13,8 +13,8 @@ export default defineConfig({
       injectRegister: false, // Registrierung übernimmt virtual:pwa-register
       includeAssets: ['favicon.svg', 'apple-touch-icon-180x180.png'],
       manifest: {
-        name: 'Habitat',
-        short_name: 'Habitat',
+        name: 'Be Happy',
+        short_name: 'Be Happy',
         description: 'Gewohnheiten aufbauen, Ziele erreichen',
         lang: 'de',
         theme_color: '#000000',
