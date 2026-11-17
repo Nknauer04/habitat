@@ -2,7 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRightIcon, GearIcon, PersonIcon } from '../components/icons'
-import { IconGlyph, areaColor } from '../components/ItemIcon'
+import { IconGlyph } from '../components/ItemIcon'
+import { areaColor, areaDef } from '../lib/areas'
 import ProgressRing from '../components/widgets/ProgressRing'
 import { dayKey, db } from '../lib/db'
 import { areaLabel, isCheckInDone } from '../lib/habits'
@@ -110,7 +111,7 @@ export default function Profile() {
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {scores?.map((s) => {
+        {scores?.filter((s) => !areaDef(s.area).hidden).map((s) => {
           const level = progress ? levelFor(progress.areaXp[s.area] ?? 0).level : 1
           return (
             <div key={s.area} className="flex items-center gap-3 rounded-3xl border border-slate-800 bg-slate-900 p-4">
@@ -142,6 +143,7 @@ export default function Profile() {
           [
             ['/rueckblick', 'Wochenrückblick', 'Wie lief deine Woche?', 'pencil', 'var(--color-accent-500)'],
             ['/verlauf', 'Statistik, Insights und Abzeichen', 'Score, Heatmaps, Auffälligkeiten, Medaillen', 'trend', '#facc15'],
+            ['/bereiche', 'Bereiche', 'Farben, Namen, Symbole, ausblenden', 'target', 'var(--color-area-musik)'],
             ['/einstellungen', 'Einstellungen', 'Konto, Erinnerungen, Backup', 'bolt', 'var(--color-area-schlaf)'],
           ] as const
         ).map(([to, title, sub, glyph, color], i) => (

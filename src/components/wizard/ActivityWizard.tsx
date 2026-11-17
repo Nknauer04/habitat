@@ -6,12 +6,13 @@ import type { Area } from '../../lib/types'
 import { IconGlyph, areaColor } from '../ItemIcon'
 import Wizard, { type WizardStep } from './Wizard'
 import { AreaTiles, BigInput, Chip, IconGrid, PreviewIcon, Tile, Tiles, WeekdayChips } from './parts'
+import { getAreas } from '../../lib/areas'
 
 // Einheit anlegen: Name → Bereich → Symbol → Einheit → Erinnerungstage → Ziele
 export default function ActivityWizard({ onClose }: { onClose: () => void }) {
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted && !g.done && g.kind === 'amount').sortBy('createdAt'), [])
   const [name, setName] = useState('')
-  const [area, setArea] = useState<Area>('sport')
+  const [area, setArea] = useState<Area>(() => getAreas()[0]?.key ?? 'sonstiges')
   const [icon, setIcon] = useState('i:run')
   const [unit, setUnit] = useState('km')
   const [days, setDays] = useState<number[]>([])

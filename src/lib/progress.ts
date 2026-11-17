@@ -132,7 +132,7 @@ export function levelFor(xp: number) {
   return { level, into: xp - base, needed: next - base }
 }
 
-const TITLES: Record<Area, string[]> = {
+const TITLES: Record<string, string[]> = {
   sport: ['Starter', 'Aktiv', 'Athlet', 'Champion', 'Legende'],
   lernen: ['Neugierig', 'Schüler', 'Gelehrter', 'Experte', 'Meister'],
   schlaf: ['Nachteule', 'Ausgeruht', 'Schlafprofi', 'Erholungsprofi', 'Traumwandler'],
@@ -144,7 +144,7 @@ const TIER_FROM_LEVEL = [1, 3, 5, 8, 12]
 export function areaTitle(area: Area, level: number) {
   let tier = 0
   TIER_FROM_LEVEL.forEach((l, i) => level >= l && (tier = i))
-  return TITLES[area][tier]
+  return (TITLES[area] ?? TITLES.sonstiges)[tier] // eigene Bereiche nutzen die allgemeinen Titel
 }
 
 export interface Progress {
@@ -203,7 +203,7 @@ export function computeProgress(
   }
   if (activityData) {
     const px = activityXp(activityData.activities, activityData.entries, todayKey)
-    for (const [a, v] of Object.entries(px.areaXp)) areaXp[a as Area] = (areaXp[a as Area] ?? 0) + v
+    for (const [a, v] of Object.entries(px.areaXp)) areaXp[a] = (areaXp[a] ?? 0) + (v ?? 0)
     totalXp += px.total
   }
   return { byHabit, areaXp, totalXp, goalsDone }

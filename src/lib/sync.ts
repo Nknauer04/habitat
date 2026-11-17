@@ -12,6 +12,7 @@ const TABLES = [
   { local: 'reviews', remote: 'reviews' },
   { local: 'plans', remote: 'plans' },
   { local: 'planEntries', remote: 'plan_entries' },
+  { local: 'areas', remote: 'areas' },
 ] as const
 
 const PAGE = 500
@@ -152,7 +153,7 @@ async function run() {
       pushed,
       lastSync: new Date().toISOString(),
       warning: missing.length
-        ? `Tabelle „${missing.join('“, „')}“ fehlt in Supabase und wird noch nicht synchronisiert (siehe supabase/reviews.sql bzw. supabase/plans.sql).`
+        ? `Tabelle „${missing.join('“, „')}“ fehlt in Supabase und wird noch nicht synchronisiert (siehe supabase/reviews.sql, plans.sql bzw. areas.sql).`
         : undefined,
     })
   } catch (e) {

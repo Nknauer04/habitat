@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { areaColor } from '../lib/areas'
 import type { Area } from '../lib/types'
 
 // Symbol-Bibliothek: schlichte Linien-Icons (24×24, Strich in currentColor), gespeichert als `i:<key>` im Feld `icon`.
@@ -55,8 +56,7 @@ export const iconKey = (icon: string) => (icon.startsWith('i:') && ICON_SHAPES[i
 // Für reine Textstellen (z. B. <option>): Emoji wie gehabt, Linien-Icons haben dort keinen Text.
 export const iconText = (icon: string) => (icon.startsWith('i:') ? '' : icon)
 
-// Bereichsfarben (Tokens in index.css)
-export const areaColor = (area?: Area) => (area ? `var(--color-area-${area})` : 'var(--color-accent-500)')
+export { areaColor }
 
 export function IconGlyph({ name, size = 24, strokeWidth = 1.8 }: { name: string; size?: number; strokeWidth?: number }) {
   const shape = ICON_SHAPES[name]?.shape

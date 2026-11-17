@@ -1,5 +1,6 @@
 import { dayKey } from './db'
 import { isCheckInDone, isFull, isMini, weekRange, weekdayIndex } from './habits'
+import { areaKeys } from './areas'
 import type { Area, CheckIn, Habit } from './types'
 
 // Tages-Score = Summe der Anteile erledigter Fälligkeiten / Anzahl fälliger Gewohnheiten (0–100 %).
@@ -147,7 +148,6 @@ export interface AreaScore {
   days: number // Tage mit Score
 }
 
-const AREA_ORDER: Area[] = ['sport', 'lernen', 'schlaf', 'musik', 'sonstiges']
 const AREA_WINDOW = 30
 
 // "current": die letzten 30 abgeschlossenen Tage. "start": die ersten 30 Tage seit Anlegen der
@@ -155,7 +155,7 @@ const AREA_WINDOW = 30
 export function areaScores(habits: Habit[], checkIns: CheckIn[], today: Date, mode: ScoreMode): AreaScore[] {
   const yesterday = shift(today, -1)
   const out: AreaScore[] = []
-  for (const area of AREA_ORDER) {
+  for (const area of areaKeys()) {
     const hs = habits.filter(
       (h) => h.area === area && !h.deleted && !h.archived && (h.frequency.type === 'daily' || h.frequency.type === 'weekdays'),
     )

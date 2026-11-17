@@ -1,6 +1,5 @@
-import { AREAS } from '../../lib/habits'
+import { getAreas } from '../../lib/areas'
 import { areaTitle, levelFor, type Progress } from '../../lib/progress'
-import { areaColor } from '../ItemIcon'
 import ProgressRing from './ProgressRing'
 import { StreakChip } from './glyphs'
 
@@ -8,7 +7,7 @@ import { StreakChip } from './glyphs'
 export default function DayHero({ progress, done, total }: { progress: Progress; done: number; total: number }) {
   const lvl = levelFor(progress.totalXp)
   const pct = total > 0 ? (done / total) * 100 : null
-  const areas = AREAS.filter((a) => (progress.areaXp[a.value] ?? 0) > 0)
+  const areas = getAreas().filter((a) => (progress.areaXp[a.key] ?? 0) > 0)
   let best: { streak: number; unit: 'Tage' | 'Wochen'; freezes: number } | null = null
   for (const p of progress.byHabit.values()) if (p.streak > 0 && (!best || p.streak > best.streak)) best = p
 
@@ -41,16 +40,16 @@ export default function DayHero({ progress, done, total }: { progress: Progress;
       {areas.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {areas.map((a) => {
-            const l = levelFor(progress.areaXp[a.value]!).level
-            const c = areaColor(a.value)
+            const l = levelFor(progress.areaXp[a.key]!).level
+            const c = a.color
             return (
               <span
-                key={a.value}
+                key={a.key}
                 className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium"
                 style={{ color: c, background: `color-mix(in srgb, ${c} 14%, transparent)` }}
               >
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: c }} />
-                {a.label} · {areaTitle(a.value, l)} · Lv {l}
+                {a.label} · {areaTitle(a.key, l)} · Lv {l}
               </span>
             )
           })}

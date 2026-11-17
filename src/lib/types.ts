@@ -1,4 +1,5 @@
-export type Area = 'sport' | 'lernen' | 'schlaf' | 'musik' | 'sonstiges'
+// Bereich = Schlüssel: 'sport' | 'lernen' | 'schlaf' | 'musik' | 'sonstiges' (Standard) oder die ID eines eigenen Bereichs (siehe lib/areas.ts)
+export type Area = string
 export type TimeOfDay = 'morgen' | 'abend' | 'beliebig'
 
 export type Frequency =
@@ -38,6 +39,16 @@ export interface GoalStep {
   id: string
   text: string
   done: boolean
+}
+
+// Bereich (synchron): überschreibt einen Standard-Bereich (key = 'sport' …) oder ist ein eigener Bereich (key = id)
+export interface AreaRow extends Syncable {
+  key: string
+  name: string
+  color: string // #rrggbb
+  glyph: string // Icon-Name (siehe ItemIcon)
+  hidden: boolean // nicht mehr zur Auswahl anbieten
+  createdAt: string
 }
 
 // Etappenziel: Zwischenstand (kumuliert) bis zu einem Datum, z. B. 100 km bis 30.11.

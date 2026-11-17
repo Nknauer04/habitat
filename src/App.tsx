@@ -6,6 +6,7 @@ import Goals from './pages/Goals'
 import Profile from './pages/Profile'
 import History from './pages/History'
 import Review from './pages/Review'
+import Areas from './pages/Areas'
 import Settings from './pages/Settings'
 import Today from './pages/Today'
 import { requestPersistentStorage } from './lib/db'
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="rueckblick/:week" element={<Review />} />
           <Route path="profil" element={<Profile />} />
           <Route path="einstellungen" element={<Settings />} />
+          <Route path="bereiche" element={<Areas />} />
         </Route>
       </Routes>
     </BrowserRouter>

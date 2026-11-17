@@ -431,4 +431,18 @@ eq('Feier: Etappe erst bei Erreichen', [rm(40), rm(100)], [[], ['ms:g1:m1']])
 eq('Feier: beide Etappen erreicht', rm(300), ['ms:g1:m1', 'ms:g1:m2'])
 eq('Feier: Ziel ohne Etappen/erledigt/gelöscht feiert nichts', [reachedMilestones([{ ...amountGoal, milestones: undefined }], [ae('2026-11-17', 300)], '2026-11-17').length, reachedMilestones([{ ...amountGoal, done: true }], [ae('2026-11-17', 300)], '2026-11-17').length, reachedMilestones([{ ...amountGoal, deleted: true }], [ae('2026-11-17', 300)], '2026-11-17').length], [0, 0, 0])
 eq('Feier: höchstes gefeiertes Level', [highestSeenLevel(new Set(['level:2', 'level:5', 'ms:x'])), highestSeenLevel(new Set())], [5, 0])
+// Bereiche
+import { areaColor as areaColorR, areaLabel as areaLabelR, buildAreaDefs, builtinAreaId, DEFAULT_AREAS, getAreas, pickableAreas, setAreaRows } from '../src/lib/areas'
+import type { AreaRow } from '../src/lib/types'
+const arow = (key: string, extra: Partial<AreaRow> = {}): AreaRow => ({ id: 'id-' + key, key, name: key, color: '#112233', glyph: 'star', hidden: false, createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false, ...extra })
+eq('Bereiche: ohne Zeilen die fünf Standard-Bereiche', buildAreaDefs([]).map((d) => d.key), ['sport', 'lernen', 'schlaf', 'musik', 'sonstiges'])
+eq('Bereiche: Überschreibung ändert Name/Farbe/Symbol/ausgeblendet', (() => { const d = buildAreaDefs([arow('schlaf', { name: 'Erholung', color: '#445566', glyph: 'bed', hidden: true })]).find((x) => x.key === 'schlaf')!; return [d.label, d.color, d.glyph, d.hidden, d.builtin] })(), ['Erholung', '#445566', 'bed', true, true])
+eq('Bereiche: eigene Bereiche hinten, nach Anlegen sortiert', buildAreaDefs([arow('b', { createdAt: '2026-11-03T10:00:00' }), arow('a', { createdAt: '2026-11-02T10:00:00' })]).slice(5).map((d) => d.key), ['a', 'b'])
+eq('Bereiche: gelöschte eigene und gelöschte Überschreibung zählen nicht', [buildAreaDefs([arow('x', { deleted: true })]).length, buildAreaDefs([arow('sport', { name: 'X', deleted: true })])[0].label], [5, 'Sport'])
+eq('Bereiche: feste IDs sind eindeutig und UUID-förmig', (() => { const ids = DEFAULT_AREAS.map((d) => builtinAreaId(d.key)!); return [new Set(ids).size, ids.every((x) => /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-8[0-9a-f]{3}-[0-9a-f]{12}$/.test(x)), builtinAreaId('eigener')] })(), [5, true, null])
+setAreaRows([arow('schlaf', { name: 'Erholung', hidden: true }), arow('eigen', { name: 'Garten', color: '#4ade80' })])
+eq('Register: Label/Farbe, unbekannt = Sonstiges', [areaLabelR('eigen'), areaColorR('eigen'), areaLabelR('gibt-es-nicht'), areaLabelR('schlaf')], ['Garten', '#4ade80', 'Sonstiges', 'Erholung'])
+eq('Register: ausgeblendet nicht in Auswahl, aber wenn aktuell gewählt', [getAreas().some((d) => d.key === 'schlaf'), pickableAreas('schlaf').some((d) => d.key === 'schlaf'), pickableAreas('sport').some((d) => d.key === 'schlaf')], [false, true, false])
+setAreaRows([])
+eq('Register: zurückgesetzt', areaLabelR('schlaf'), 'Schlaf')
 process.exit(fail ? 1 : 0)

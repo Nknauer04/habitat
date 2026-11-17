@@ -4,13 +4,14 @@ import type { Area, Frequency, TimeOfDay } from '../../lib/types'
 import { IconGlyph, areaColor } from '../ItemIcon'
 import Wizard, { type WizardStep } from './Wizard'
 import { AreaTiles, BigInput, Chip, IconGrid, PreviewIcon, Stepper, Tile, Tiles, WeekdayChips } from './parts'
+import { getAreas } from '../../lib/areas'
 
 const num = (v: string) => Number(v.replace(',', '.'))
 
 // Gewohnheit anlegen: Name → Bereich → Symbol → Tageszeit → Häufigkeit → Messung → Mini-Version
 export default function HabitWizard({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('')
-  const [area, setArea] = useState<Area>('sport')
+  const [area, setArea] = useState<Area>(() => getAreas()[0]?.key ?? 'sonstiges')
   const [icon, setIcon] = useState('i:check')
   const [time, setTime] = useState<TimeOfDay>('morgen')
   const [freq, setFreq] = useState<Frequency['type']>('daily')

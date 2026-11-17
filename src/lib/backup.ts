@@ -1,7 +1,7 @@
 import { dayKey, db } from './db'
-import { AREAS, TIMES } from './habits'
+import { TIMES } from './habits'
 import { scheduleSync } from './sync'
-import type { Activity, ActivityEntry, CheckIn, Goal, Habit, Review } from './types'
+import type { Activity, ActivityEntry, AreaRow, CheckIn, Goal, Habit, Review } from './types'
 
 export const BACKUP_VERSION = 1
 
@@ -15,17 +15,19 @@ export interface BackupFile {
   reviews?: Review[] // ältere Sicherungen haben keine Rückblicke
   plans?: Activity[] // Einheiten (Name aus der ersten Version); ältere Sicherungen haben keine
   planEntries?: ActivityEntry[] // Ist-Werte der Einheiten
+  areas?: AreaRow[] // eigene Bereiche und Überschreibungen der Standard-Bereiche
 }
 
 // Alles, auch Archiviertes und weich Gelöschtes (damit Löschungen beim Zusammenführen erhalten bleiben).
 export async function buildBackup(): Promise<BackupFile> {
-  const [habits, checkIns, goals, reviews, plans, planEntries] = await Promise.all([
+  const [habits, checkIns, goals, reviews, plans, planEntries, areas] = await Promise.all([
     db.habits.toArray(),
     db.checkIns.toArray(),
     db.goals.toArray(),
     db.reviews.toArray(),
     db.plans.toArray(),
     db.planEntries.toArray(),
+    db.areas.toArray(),
   ])
   return {
     app: 'habitat',
@@ -37,6 +39,7 @@ export async function buildBackup(): Promise<BackupFile> {
     reviews,
     plans,
     planEntries,
+    areas,
   }
 }
 
@@ -71,7 +74,7 @@ function checkHabit(r: Row): string | null {
     checkSync(r) ??
     (!isStr(r.name) ? 'name fehlt' : null) ??
     (typeof r.icon !== 'string' ? 'icon fehlt' : null) ??
-    (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
+    (!isStr(r.area) ? 'area ungültig' : null) ??
     (!TIMES.some((t) => t.value === r.timeOfDay) ? 'timeOfDay ungültig' : null) ??
     (!checkFrequency(r.frequency) ? 'frequency ungültig' : null) ??
     (r.unit !== undefined && typeof r.unit !== 'string' ? 'unit ungültig' : null) ??
@@ -99,7 +102,7 @@ function checkGoal(r: Row): string | null {
   return (
     checkSync(r) ??
     (!isStr(r.title) ? 'title fehlt' : null) ??
-    (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
+    (!isStr(r.area) ? 'area ungültig' : null) ??
     (r.kind !== 'steps' && r.kind !== 'count' && r.kind !== 'amount' ? 'kind ungültig' : null) ??
     (!Array.isArray(r.steps) || !r.steps.every((s) => isObj(s) && isStr(s.id) && typeof s.text === 'string' && typeof s.done === 'boolean')
       ? 'steps ungültig'
@@ -128,12 +131,24 @@ function checkActivity(r: Row): string | null {
     checkSync(r) ??
     (!isStr(r.name) ? 'name fehlt' : null) ??
     (typeof r.icon !== 'string' ? 'icon fehlt' : null) ??
-    (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
+    (!isStr(r.area) ? 'area ungültig' : null) ??
     (typeof r.unit !== 'string' ? 'unit fehlt' : null) ??
     (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
     (r.days !== undefined && !(Array.isArray(r.days) && r.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6))
       ? 'days ungültig'
       : null) ??
+    (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
+  )
+}
+
+function checkAreaRow(r: Row): string | null {
+  return (
+    checkSync(r) ??
+    (!isStr(r.key) ? 'key fehlt' : null) ??
+    (!isStr(r.name) ? 'name fehlt' : null) ??
+    (!(isStr(r.color) && /^#[0-9a-fA-F]{6}$/.test(r.color)) ? 'color ungültig' : null) ??
+    (typeof r.glyph !== 'string' ? 'glyph fehlt' : null) ??
+    (typeof r.hidden !== 'boolean' ? 'hidden fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )
 }
@@ -166,9 +181,10 @@ export function parseBackup(text: string): BackupFile {
     ['reviews', checkReview],
     ['plans', checkActivity],
     ['planEntries', checkActivityEntry],
+    ['areas', checkAreaRow],
   ]
   // ältere Sicherungen ohne Rückblicke bzw. Pläne
-  for (const k of ['reviews', 'plans', 'planEntries']) if (data[k] === undefined) data[k] = []
+  for (const k of ['reviews', 'plans', 'planEntries', 'areas']) if (data[k] === undefined) data[k] = []
   for (const [name, check] of tables) {
     const rows = data[name]
     if (!Array.isArray(rows)) throw new Error(`„${name}“ fehlt in der Datei.`)
@@ -189,14 +205,15 @@ export interface ImportResult {
   reviews: number
   plans: number
   planEntries: number
+  areas: number
   skipped: number
 }
 
 export async function mergeBackup(file: BackupFile): Promise<ImportResult> {
-  const result: ImportResult = { habits: 0, checkIns: 0, goals: 0, reviews: 0, plans: 0, planEntries: 0, skipped: 0 }
+  const result: ImportResult = { habits: 0, checkIns: 0, goals: 0, reviews: 0, plans: 0, planEntries: 0, areas: 0, skipped: 0 }
 
-  await db.transaction('rw', [db.habits, db.checkIns, db.goals, db.reviews, db.plans, db.planEntries], async () => {
-    for (const name of ['habits', 'checkIns', 'goals', 'reviews', 'plans', 'planEntries'] as const) {
+  await db.transaction('rw', [db.habits, db.checkIns, db.goals, db.reviews, db.plans, db.planEntries, db.areas], async () => {
+    for (const name of ['habits', 'checkIns', 'goals', 'reviews', 'plans', 'planEntries', 'areas'] as const) {
       const tbl = db.table(name)
       const rows = (file[name] ?? []) as { id: string; updatedAt: string }[]
       const existing = await tbl.bulkGet(rows.map((r) => r.id))

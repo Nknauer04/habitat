@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { AREAS, TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
+import { pickableAreas } from '../lib/areas'
+import { TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import { IconGrid } from './wizard/parts'
@@ -99,8 +100,8 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">
-          {AREAS.map((a) => (
-            <button type="button" key={a.value} onClick={() => setArea(a.value)} className={chip(area === a.value)}>
+          {pickableAreas(area).map((a) => (
+            <button type="button" key={a.key} onClick={() => setArea(a.key)} className={chip(area === a.key)}>
               {a.label}
             </button>
           ))}

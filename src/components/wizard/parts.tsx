@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
-import { AREAS, WEEKDAYS } from '../../lib/habits'
+import { pickableAreas } from '../../lib/areas'
+import { WEEKDAYS } from '../../lib/habits'
 import type { Area } from '../../lib/types'
-import ItemIcon, { areaColor, ICON_KEYS, ICON_SHAPES, IconGlyph } from '../ItemIcon'
+import { areaColor } from '../../lib/areas'
+import ItemIcon, { ICON_KEYS, ICON_SHAPES, IconGlyph } from '../ItemIcon'
 
 export const bigField =
   'w-full border-0 border-b-2 border-slate-700 bg-transparent px-0 py-3 text-3xl font-semibold tracking-tight text-white outline-none placeholder:text-slate-600 focus:border-accent-500'
@@ -78,19 +80,19 @@ export function Tile({ active, onClick, icon, iconRaw, title, text, color, disab
 export const Tiles = ({ children }: { children: ReactNode }) => <div className="flex flex-col gap-3">{children}</div>
 
 export function AreaTiles({ value, onChange }: { value: Area; onChange: (a: Area) => void }) {
-  const ICON: Record<Area, string> = { sport: 'dumbbell', lernen: 'book', schlaf: 'moon', musik: 'music', sonstiges: 'sparkle' }
+  const list = pickableAreas(value)
   return (
     <div className="grid grid-cols-2 gap-3">
-      {AREAS.map((a) => {
-        const on = value === a.value
-        const c = areaColor(a.value)
+      {list.map((a, i) => {
+        const on = value === a.key
+        const c = a.color
         return (
           <button
-            key={a.value}
+            key={a.key}
             type="button"
-            onClick={() => onChange(a.value)}
+            onClick={() => onChange(a.key)}
             aria-pressed={on}
-            className={`flex flex-col items-start gap-3 rounded-3xl border p-4 text-left transition-colors active:scale-[0.99] ${a.value === 'sonstiges' ? 'col-span-2' : ''}`}
+            className={`flex flex-col items-start gap-3 rounded-3xl border p-4 text-left transition-colors active:scale-[0.99] ${i === list.length - 1 && list.length % 2 === 1 ? 'col-span-2' : ''}`}
             style={{
               borderColor: on ? c : 'var(--color-slate-800)',
               background: on ? `color-mix(in srgb, ${c} 14%, var(--color-slate-900))` : 'var(--color-slate-900)',
@@ -98,7 +100,7 @@ export function AreaTiles({ value, onChange }: { value: Area; onChange: (a: Area
             }}
           >
             <span className="flex h-12 w-12 items-center justify-center rounded-2xl" style={{ color: c, background: `color-mix(in srgb, ${c} 16%, transparent)` }}>
-              <IconGlyph name={ICON[a.value]} size={26} />
+              <IconGlyph name={a.glyph} size={26} />
             </span>
             <span className="text-lg font-semibold">{a.label}</span>
           </button>
@@ -109,7 +111,8 @@ export function AreaTiles({ value, onChange }: { value: Area; onChange: (a: Area
 }
 
 // Symbol-Raster
-export function IconGrid({ value, area, onChange }: { value: string; area: Area; onChange: (icon: string) => void }) {
+export function IconGrid({ value, area, color, onChange }: { value: string; area: Area; color?: string; onChange: (icon: string) => void }) {
+  const c = color ?? areaColor(area)
   return (
     <div className="grid grid-cols-5 gap-2.5 sm:grid-cols-6">
       {ICON_KEYS.map((k) => {
@@ -125,9 +128,9 @@ export function IconGrid({ value, area, onChange }: { value: string; area: Area;
             title={ICON_SHAPES[k].label}
             className="flex aspect-square items-center justify-center rounded-2xl border transition-colors active:scale-95"
             style={{
-              borderColor: on ? areaColor(area) : 'var(--color-slate-800)',
-              background: on ? `color-mix(in srgb, ${areaColor(area)} 18%, var(--color-slate-900))` : 'var(--color-slate-900)',
-              color: on ? areaColor(area) : 'var(--color-slate-300)',
+              borderColor: on ? c : 'var(--color-slate-800)',
+              background: on ? `color-mix(in srgb, ${c} 18%, var(--color-slate-900))` : 'var(--color-slate-900)',
+              color: on ? c : 'var(--color-slate-300)',
             }}
           >
             <IconGlyph name={k} size={26} />

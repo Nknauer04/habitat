@@ -97,7 +97,7 @@ export default function Settings() {
       }
       setBackupMsg({
         ok: true,
-        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele, ${backup.reviews?.length ?? 0} Rückblicke, ${backup.plans?.length ?? 0} Einheiten.`,
+        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele, ${backup.reviews?.length ?? 0} Rückblicke, ${backup.plans?.length ?? 0} Einheiten, ${backup.areas?.length ?? 0} Bereiche.`,
       })
     } catch (e) {
       setBackupMsg({ ok: false, text: `Export fehlgeschlagen: ${e instanceof Error ? e.message : String(e)}` })
@@ -113,7 +113,7 @@ export default function Settings() {
       const r = await mergeBackup(parseBackup(await f.text()))
       setBackupMsg({
         ok: true,
-        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele, ${r.reviews} Rückblicke, ${r.plans} Einheiten, ${r.planEntries} Einheiten-Einträge übernommen, ${r.skipped} unverändert übersprungen.`,
+        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele, ${r.reviews} Rückblicke, ${r.plans} Einheiten, ${r.planEntries} Einheiten-Einträge, ${r.areas} Bereiche übernommen, ${r.skipped} unverändert übersprungen.`,
       })
     } catch (err) {
       setBackupMsg({ ok: false, text: `Import abgebrochen: ${err instanceof Error ? err.message : String(err)}` })
@@ -139,6 +139,14 @@ export default function Settings() {
           />
         </label>
       </section>
+
+      <Link to="/bereiche" className="mt-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-900 p-5 active:bg-slate-800">
+        <span>
+          <span className="block font-medium">Bereiche</span>
+          <span className="block text-sm text-slate-500">Farben, Namen und Symbole anpassen, Bereiche ausblenden</span>
+        </span>
+        <span aria-hidden className="text-xl text-slate-500">›</span>
+      </Link>
 
       <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-5">
         <h2 className="font-medium">Coach</h2>

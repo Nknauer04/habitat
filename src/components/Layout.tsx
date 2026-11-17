@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAreaRegistry } from '../lib/useAreaRegistry'
 import { useAutoCelebrations } from '../lib/useAutoCelebrations'
 import CelebrationHost from './CelebrationHost'
 import { BarsIcon, CalendarIcon, PersonIcon, TrendIcon } from './icons'
@@ -10,12 +11,13 @@ const items: Item[] = [
   { to: '/', label: 'Heute', Icon: CalendarIcon, match: (p) => p === '/' },
   { to: '/ziele', label: 'Ziele', Icon: TrendIcon, match: (p) => p.startsWith('/ziele') },
   { to: '/verlauf', label: 'Statistik', Icon: BarsIcon, match: (p) => p.startsWith('/verlauf') || p.startsWith('/rueckblick') },
-  { to: '/profil', label: 'Profil', Icon: PersonIcon, match: (p) => p.startsWith('/profil') || p.startsWith('/einstellungen') },
+  { to: '/profil', label: 'Profil', Icon: PersonIcon, match: (p) => p.startsWith('/profil') || p.startsWith('/einstellungen') || p.startsWith('/bereiche') },
 ]
 
 export default function Layout() {
   const { pathname } = useLocation()
   useAutoCelebrations()
+  const areaVersion = useAreaRegistry() // Seiten laden neu, wenn sich Bereiche ändern (Name, Farbe, Symbol)
 
   return (
     <div className="flex h-full flex-col lg:flex-row">
@@ -40,7 +42,7 @@ export default function Layout() {
       </nav>
 
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pb-[calc(5.5rem+var(--safe-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
-        <div className="mx-auto max-w-2xl">
+        <div key={areaVersion} className="mx-auto max-w-2xl">
           <Outlet />
         </div>
       </main>

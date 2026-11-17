@@ -1,5 +1,4 @@
 import type { SVGProps } from 'react'
-import type { Area } from '../lib/types'
 
 // Eigene, schlichte Icons (24×24, Strich in currentColor) – keine zusätzliche Bibliothek.
 type P = SVGProps<SVGSVGElement>
@@ -87,41 +86,6 @@ export const LinkIcon = (p: P) => (
     <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
   </svg>
 )
-
-// Bereichs-Icons
-const SportIcon = (p: P) => (
-  <svg {...base(p)}>
-    <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11" />
-  </svg>
-)
-const BookIcon = (p: P) => (
-  <svg {...base(p)}>
-    <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H20v14H5.5A1.5 1.5 0 0 0 4 19.5z" />
-    <path d="M4 19.5A1.5 1.5 0 0 0 5.5 21H20" />
-  </svg>
-)
-const MoonIcon = (p: P) => (
-  <svg {...base(p)}>
-    <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" />
-  </svg>
-)
-const NoteIcon = (p: P) => (
-  <svg {...base(p)}>
-    <path d="M9 18V6l11-2v12" />
-    <circle cx="6" cy="18" r="3" />
-    <circle cx="17" cy="16" r="3" />
-  </svg>
-)
-const SparkIcon = (p: P) => (
-  <svg {...base(p)}>
-    <path d="M12 3l2.2 6.3L21 12l-6.8 2.7L12 21l-2.2-6.3L3 12l6.8-2.7z" />
-  </svg>
-)
-
-export const AreaIcon = ({ area, ...p }: { area: Area } & P) => {
-  const Icon = { sport: SportIcon, lernen: BookIcon, schlaf: MoonIcon, musik: NoteIcon, sonstiges: SparkIcon }[area]
-  return <Icon {...p} />
-}
 
 export const PenIcon = (p: P) => (
   <svg {...base(p)}>

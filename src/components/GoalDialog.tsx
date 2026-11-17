@@ -2,7 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type FormEvent } from 'react'
 import { dayKey, db, newId } from '../lib/db'
 import { deleteGoal, saveGoal } from '../lib/goals'
-import { AREAS, fmtQty } from '../lib/habits'
+import { pickableAreas } from '../lib/areas'
+import { fmtQty } from '../lib/habits'
 import type { Area, Goal, GoalStep, Milestone } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import EditShell, { editChip, editField, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
@@ -124,8 +125,8 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">
-          {AREAS.map((a) => (
-            <button type="button" key={a.value} onClick={() => setArea(a.value)} className={chip(area === a.value)}>
+          {pickableAreas(area).map((a) => (
+            <button type="button" key={a.key} onClick={() => setArea(a.key)} className={chip(area === a.key)}>
               {a.label}
             </button>
           ))}

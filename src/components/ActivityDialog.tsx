@@ -2,7 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState, type FormEvent } from 'react'
 import { activityDays, deleteActivity, saveActivity, setActivityGoalLinks } from '../lib/activities'
 import { db } from '../lib/db'
-import { AREAS, WEEKDAYS } from '../lib/habits'
+import { pickableAreas } from '../lib/areas'
+import { WEEKDAYS } from '../lib/habits'
 import type { Activity, Area } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import { IconGrid } from './wizard/parts'
@@ -74,8 +75,8 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">
-          {AREAS.map((a) => (
-            <button type="button" key={a.value} onClick={() => setArea(a.value)} className={chip(area === a.value)}>
+          {pickableAreas(area).map((a) => (
+            <button type="button" key={a.key} onClick={() => setArea(a.key)} className={chip(area === a.key)}>
               {a.label}
             </button>
           ))}

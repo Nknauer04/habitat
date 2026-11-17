@@ -1,14 +1,6 @@
 import { dayKey, db, newId, now } from './db'
 import { nextSortOrder } from './order'
-import type { Area, CheckIn, Habit, TimeOfDay } from './types'
-
-export const AREAS: { value: Area; label: string }[] = [
-  { value: 'sport', label: 'Sport' },
-  { value: 'lernen', label: 'Lernen' },
-  { value: 'schlaf', label: 'Schlaf' },
-  { value: 'musik', label: 'Musik' },
-  { value: 'sonstiges', label: 'Sonstiges' },
-]
+import type { CheckIn, Habit, TimeOfDay } from './types'
 
 export const TIMES: { value: TimeOfDay; label: string }[] = [
   { value: 'morgen', label: 'Morgen' },
@@ -18,7 +10,7 @@ export const TIMES: { value: TimeOfDay; label: string }[] = [
 
 export const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
-export const areaLabel = (a: Area) => AREAS.find((x) => x.value === a)?.label ?? a
+export { areaLabel } from './areas'
 
 // 0 = Montag … 6 = Sonntag
 export const weekdayIndex = (d: Date) => (d.getDay() + 6) % 7

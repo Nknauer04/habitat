@@ -8,6 +8,7 @@ import type { Area, GoalStep, Milestone } from '../../lib/types'
 import ItemIcon, { IconGlyph, areaColor } from '../ItemIcon'
 import Wizard, { type WizardStep } from './Wizard'
 import { AreaTiles, BigInput, Chip, Tile, Tiles, bigField } from './parts'
+import { getAreas } from '../../lib/areas'
 
 type Kind = 'amount' | 'count' | 'steps'
 const num = (v: string) => Number(v.replace(',', '.'))
@@ -26,7 +27,7 @@ export default function GoalWizard({ onClose }: { onClose: () => void }) {
   const [habitIds, setHabitIds] = useState<string[]>([])
   const [countTarget, setCountTarget] = useState('')
   const [steps, setSteps] = useState<GoalStep[]>([{ id: newId(), text: '', done: false }])
-  const [area, setArea] = useState<Area>('sport')
+  const [area, setArea] = useState<Area>(() => getAreas()[0]?.key ?? 'sonstiges')
   const [areaTouched, setAreaTouched] = useState(false)
   const [targetDate, setTargetDate] = useState('')
   const [milestones, setMilestones] = useState<{ id: string; date: string; value: string }[]>([])
