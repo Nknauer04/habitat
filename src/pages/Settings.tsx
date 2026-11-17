@@ -40,6 +40,8 @@ export default function Settings() {
   const { session, loading } = useSession()
   const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
   const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [codeError, setCodeError] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState('')
 
@@ -57,6 +59,14 @@ export default function Settings() {
     } else {
       setStatus('sent')
     }
+  }
+
+  async function verifyCode(e: FormEvent) {
+    e.preventDefault()
+    if (!supabase) return
+    setCodeError('')
+    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
+    if (error) setCodeError(error.message)
   }
 
   return (
@@ -97,9 +107,27 @@ export default function Settings() {
             </div>
           </div>
         ) : status === 'sent' ? (
-          <p className="mt-2 text-sm text-emerald-400">
-            Link gesendet. Öffne die E-Mail auf diesem Gerät und tippe auf den Link.
-          </p>
+          <div className="mt-2 text-sm">
+            <p className="text-emerald-400">
+              E-Mail gesendet. Tippe auf den Link – oder gib hier den Code aus der E-Mail ein (nötig
+              in der installierten iPhone-App).
+            </p>
+            <form onSubmit={verifyCode} className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                required
+                value={code}
+                onChange={(e) => setCode(e.target.value.trim())}
+                placeholder="Code"
+                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base tracking-widest outline-none focus:border-emerald-500"
+              />
+              <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">
+                Anmelden
+              </button>
+            </form>
+            {codeError && <p className="mt-2 text-red-400">{codeError}</p>}
+          </div>
         ) : (
           <form onSubmit={sendLink} className="mt-3 flex flex-col gap-2 sm:flex-row">
             <input
