@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Phase 1 fertig. Gewohnheiten, Heute-Ansicht, Streak, XP und Level fertig. Nächstes Feature offen (Vorschlag: Verlauf/Heatmap). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 fertig. Gewohnheiten, Heute, Streak/XP/Level und Verlauf fertig. Nächstes Feature offen (Vorschlag: JSON-Export/-Import). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -15,7 +15,7 @@ Status: Phase 1 fertig. Gewohnheiten, Heute-Ansicht, Streak, XP und Level fertig
 - [x] Häufigkeit: täglich, bestimmte Wochentage, X× pro Woche
 - [x] Streak mit Verzeihung (1 Freeze alle 10 Streak-Tage, max. 3)
 - [x] XP + Level mit Identitäts-Titeln (10 XP, Bonus 7/30/66 Tage; Gesamt-Level + Titel je Bereich)
-- [ ] Verlauf: Kalender-/Heatmap-Ansicht pro Gewohnheit
+- [x] Verlauf: Heatmap (12 Wochen) pro Gewohnheit, Nachtragen per Tipp, Streak/Längste/Quote
 - [ ] Offline + Sync zwischen iPhone und Mac
 - [ ] JSON-Export/-Import
 
