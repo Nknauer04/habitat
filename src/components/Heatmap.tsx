@@ -1,6 +1,7 @@
 import { dayKey } from '../lib/db'
 import { weekdayIndex } from '../lib/habits'
 import type { Habit } from '../lib/types'
+import { areaColor } from './ItemIcon'
 
 const WEEKS = 12
 
@@ -45,17 +46,18 @@ export default function Heatmap({
       {cells.map(({ d, key, future, done, part, isMini, due }) => {
         if (future) return <span key={key} className="aspect-square" />
         const state = done ? (isMini ? 'Mini' : 'erledigt') : part ? 'teilweise' : due ? 'verpasst' : 'nicht fällig'
-        const color = done
+        const c = areaColor(habit.area)
+        const fill = done
           ? isMini
-            ? 'bg-done/60'
-            : 'bg-done'
+            ? `color-mix(in srgb, ${c} 55%, transparent)`
+            : c
           : part
-            ? 'bg-done/40'
-            : due
-            ? 'bg-slate-700'
-            : 'bg-slate-800/60'
+            ? `color-mix(in srgb, ${c} 35%, transparent)`
+            : undefined
+        const color = fill ? '' : due ? 'bg-slate-700' : 'bg-slate-800/60'
         const label = `${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}: ${state}`
-        const cls = `aspect-square w-full rounded-[3px] ${color} ${key === todayKey ? 'ring-1 ring-slate-300' : ''}`
+        const cls = `aspect-square w-full rounded-[4px] ${color} ${key === todayKey ? 'ring-1 ring-slate-300' : ''}`
+        const style = fill ? { background: fill } : undefined
         return onToggle ? (
           <button
             key={key}
@@ -64,10 +66,11 @@ export default function Heatmap({
             aria-label={label}
             aria-pressed={done}
             onClick={() => onToggle(key)}
+            style={style}
             className={`${cls} hover:brightness-125`}
           />
         ) : (
-          <span key={key} title={label} className={cls} />
+          <span key={key} title={label} style={style} className={cls} />
         )
       })}
     </div>

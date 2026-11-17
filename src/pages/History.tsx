@@ -5,7 +5,9 @@ import ArcGauge from '../components/ArcGauge'
 import BadgesCard from '../components/BadgesCard'
 import Heatmap from '../components/Heatmap'
 import HeatmapAll from '../components/HeatmapAll'
-import { ChevronDownIcon, MedalIcon, PenIcon } from '../components/icons'
+import { ChevronDownIcon } from '../components/icons'
+import { IconGlyph } from '../components/ItemIcon'
+import KpiCard from '../components/widgets/KpiCard'
 import InsightsCard from '../components/InsightsCard'
 import GoalAmountStats from '../components/GoalAmountStats'
 import QuantitySheet from '../components/QuantitySheet'
@@ -98,6 +100,9 @@ export default function History() {
     selected ? selChecks.filter((c) => c.date === date).reduce((s, c) => s + checkInValue(selected, c), 0) : 0
 
   const gaugeValue = stats7?.current.avg ?? null
+  const doneChecks = (checks ?? []).filter((c) => { const h = (habits ?? []).find((x) => x.id === c.habitId); return !!h && isCheckInDone(h, c) }).length
+  const unitEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
+  const units30 = (unitEntries ?? []).filter((e) => e.date > dayKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 30)) && e.date <= todayKey).length
 
   return (
     <div>
@@ -121,35 +126,29 @@ export default function History() {
 
       {/* Schnellzugriff */}
       <div className="grid grid-cols-2 gap-3">
-        <Link to="/rueckblick" className={`${card} flex flex-col items-center gap-2 px-3 py-5 text-center active:bg-slate-800`}>
-          <PenIcon width={26} height={26} className="text-accent-400" />
+        <Link to="/rueckblick" className={`${card} flex flex-col items-center gap-3 px-3 py-5 text-center active:bg-slate-800`}>
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl" style={{ color: 'var(--color-accent-500)', background: 'color-mix(in srgb, var(--color-accent-500) 15%, transparent)' }}>
+            <IconGlyph name="pencil" size={26} />
+          </span>
           <span className="text-[17px] font-semibold">Wochenrückblick</span>
         </Link>
         <button
           onClick={() => document.getElementById('abzeichen')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-          className={`${card} flex flex-col items-center gap-2 px-3 py-5 text-center active:bg-slate-800`}
+          className={`${card} flex flex-col items-center gap-3 px-3 py-5 text-center active:bg-slate-800`}
         >
-          <MedalIcon width={26} height={26} className="text-accent-400" />
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl" style={{ color: '#facc15', background: 'color-mix(in srgb, #facc15 15%, transparent)' }}>
+            <IconGlyph name="medal" size={26} />
+          </span>
           <span className="text-[17px] font-semibold">Abzeichen</span>
         </button>
       </div>
 
       {/* Kennzahlen */}
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className={`${card} p-4`}>
-          <div className="text-[15px] font-medium text-slate-300">Ø Score</div>
-          <div className="mt-2 border-t border-slate-800 pt-3 text-3xl font-semibold tabular-nums">
-            {stats30?.current.avg == null ? '–' : `${stats30.current.avg} %`}
-          </div>
-          <div className="mt-1 text-xs text-slate-500">letzte 30 Tage</div>
-        </div>
-        <div className={`${card} p-4`}>
-          <div className="text-[15px] font-medium text-slate-300">Konstanz</div>
-          <div className="mt-2 border-t border-slate-800 pt-3 text-3xl font-semibold tabular-nums">
-            {konstanz?.rate == null ? '–' : `${konstanz.rate} %`}
-          </div>
-          <div className="mt-1 text-xs text-slate-500">Tage mit Haken, 30 Tage</div>
-        </div>
+        <KpiCard glyph="trend" color="var(--color-accent-500)" label="Ø Score" value={stats30?.current.avg == null ? '–' : `${stats30.current.avg} %`} sub="letzte 30 Tage" ring={stats30?.current.avg ?? null} />
+        <KpiCard glyph="calendar" color="var(--color-area-lernen)" label="Konstanz" value={konstanz?.rate == null ? '–' : `${konstanz.rate} %`} sub="Haken-Tage, 30 T" ring={konstanz?.rate ?? null} />
+        <KpiCard glyph="check" color="var(--color-done)" label="Haken" value={String(doneChecks)} sub="gesamt abgehakt" />
+        <KpiCard glyph="run" color="var(--color-area-musik)" label="Einheiten" value={String(units30)} sub="Einträge, 30 Tage" />
       </div>
 
       <GoalAmountStats today={today} />

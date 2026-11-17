@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Link } from 'react-router-dom'
 import { db } from '../lib/db'
 import { isoWeek, prevWeek, weekEndOf, weekStartOf } from '../lib/review'
+import SectionTitle from './widgets/SectionTitle'
 
 const fmt = (key: string) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', { day: 'numeric', month: 'short' })
@@ -18,7 +19,7 @@ export default function ReviewLinksCard({ today }: { today: Date }) {
 
   return (
     <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
-      <h2 className="font-medium">Wochenrückblick</h2>
+      <SectionTitle glyph="pencil" title="Wochenrückblick" />
       <ul className="mt-3 flex flex-col divide-y divide-slate-800">
         {weeks.map((w, i) => (
           <li key={w}>

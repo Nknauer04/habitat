@@ -4,6 +4,8 @@ import { WEEKDAYS } from '../lib/habits'
 import { computeInsights, MIN_DAYS } from '../lib/insights'
 import type { CheckIn, Habit } from '../lib/types'
 import ItemIcon from './ItemIcon'
+import SectionTitle from './widgets/SectionTitle'
+import { EmojiGlyph } from './widgets/glyphs'
 
 const rateColor = (r: number | null) =>
   r === null ? 'bg-slate-800' : r >= 80 ? 'bg-done' : r >= 50 ? 'bg-done/60' : r > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
@@ -17,7 +19,7 @@ export default function InsightsCard({ habits, checkIns, today }: { habits: Habi
 
   return (
     <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
-      <h2 className="font-medium">Insights</h2>
+      <SectionTitle glyph="bulb" color="#fde047" title="Insights" />
 
       {!insights.enoughData ? (
         <p className="mt-2 text-sm text-slate-400">
@@ -29,7 +31,7 @@ export default function InsightsCard({ habits, checkIns, today }: { habits: Habi
             <ul className="mt-3 flex flex-col gap-2 text-sm">
               {insights.sentences.map((s) => (
                 <li key={s} className="flex gap-2">
-                  <span>💡</span>
+                  <EmojiGlyph emoji="💡" size={28} />
                   <span className="text-slate-200">{s}</span>
                 </li>
               ))}

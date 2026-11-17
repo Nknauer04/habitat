@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { dayKey } from '../lib/db'
 import { computeStats, weeklyGoals } from '../lib/stats'
 import type { CheckIn, Habit } from '../lib/types'
+import SectionTitle from './widgets/SectionTitle'
 
 type Mode = 'week' | 'month'
 
@@ -12,16 +13,15 @@ const fmtDay = (key: string, long = false) =>
     month: long ? 'long' : 'short',
   })
 
-const barColor = (s: number | null) =>
+// Cyan-Balken; schwache Tage gelb, leere Tage grau
+const barStyle = (s: number | null) =>
   s === null
-    ? 'bg-transparent border border-dashed border-slate-700'
-    : s >= 80
-      ? 'bg-done'
-      : s >= 50
-        ? 'bg-done/60'
-        : s > 0
-          ? 'bg-amber-500/70'
-          : 'bg-slate-600'
+    ? { background: 'transparent', border: '1px dashed var(--color-slate-700)' }
+    : s >= 50
+      ? { background: `linear-gradient(to top, var(--color-accent-600), var(--color-accent-400))`, opacity: s >= 80 ? 1 : 0.65, boxShadow: s >= 80 ? '0 0 10px rgb(31 220 240 / 0.45)' : undefined }
+      : s > 0
+        ? { background: '#f59e0b', opacity: 0.8 }
+        : { background: 'var(--color-slate-700)' }
 
 export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]; checkIns: CheckIn[]; today: Date }) {
   const [mode, setMode] = useState<Mode>('week')
@@ -41,8 +41,8 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
   return (
     <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="font-medium">Tages-Score</h2>
-        <div className="flex rounded-lg border border-slate-700 p-0.5 text-sm" role="group" aria-label="Zeitraum">
+        <SectionTitle glyph="trend" title="Score" />
+        <div className="flex rounded-full border border-slate-700 p-0.5 text-sm" role="group" aria-label="Zeitraum">
           {(['week', 'month'] as const).map((m) => (
             <button
               key={m}
@@ -51,7 +51,7 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
                 setPicked(null)
               }}
               aria-pressed={mode === m}
-              className={`rounded-md px-3 py-1 ${mode === m ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+              className={`rounded-full px-3.5 py-1 ${mode === m ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
             >
               {m === 'week' ? 'Woche' : 'Monat'}
             </button>
@@ -71,10 +71,8 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
               className="flex h-full min-w-0 flex-1 items-end"
             >
               <span
-                className={`block w-full rounded-sm ${barColor(d.score)} ${isToday ? 'opacity-70 ring-1 ring-slate-300' : ''} ${
-                  picked === d.date ? 'outline outline-1 outline-slate-200' : ''
-                }`}
-                style={{ height: d.score === null ? '8%' : `${Math.max(d.score, 4)}%` }}
+                className={`block w-full rounded-full ${isToday ? 'ring-1 ring-slate-300' : ''} ${picked === d.date ? 'outline outline-1 outline-slate-200' : ''}`}
+                style={{ height: d.score === null ? '8%' : `${Math.max(d.score, 6)}%`, ...barStyle(d.score) }}
               />
             </button>
           )

@@ -2,6 +2,7 @@ import { nextBadge, reachedBadges } from '../lib/badges'
 import { useBadges } from '../lib/useBadges'
 import ItemIcon from './ItemIcon'
 import { TierMedal } from './widgets/glyphs'
+import SectionTitle from './widgets/SectionTitle'
 
 // „Noch 3 Tage bis 🥉 7 Tage“, „Noch 2 Level bis 🥉 Level 5“, „Noch 1 Ziel bis 🥉 1 Ziel“
 const unitLabel = (unit: string, n: number) => (unit === 'Ziele' && n === 1 ? 'Ziel' : unit === 'Tage' && n === 1 ? 'Tag' : unit === 'Wochen' && n === 1 ? 'Woche' : unit)
@@ -18,12 +19,7 @@ export default function BadgesCard({ today }: { today: Date }) {
 
   return (
     <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-medium">Abzeichen</h2>
-        <span className="text-sm text-slate-400">
-          {reached} von {all.length} erreicht
-        </span>
-      </div>
+      <SectionTitle glyph="medal" color="#facc15" title="Abzeichen" right={<span className="text-sm text-slate-400">{reached} von {all.length} erreicht</span>} />
 
       <ul className="mt-3 flex flex-col divide-y divide-slate-800">
         {groups.map((g) => {
