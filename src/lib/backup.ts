@@ -83,6 +83,7 @@ function checkHabit(r: Row): string | null {
       ? 'dailyTarget ungültig'
       : null) ??
     (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
+    (r.reminderTime !== undefined && !(typeof r.reminderTime === 'string' && /^\d{1,2}:\d{2}$/.test(r.reminderTime)) ? 'reminderTime ungültig' : null) ??
     (typeof r.archived !== 'boolean' ? 'archived fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )

@@ -23,7 +23,7 @@ export function weekRange(d: Date) {
   return [dayKey(start), dayKey(end)] as const
 }
 
-export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency' | 'unit' | 'dailyTarget' | 'miniVersion'>
+export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency' | 'unit' | 'dailyTarget' | 'miniVersion' | 'reminderTime'>
 
 // Mini-Version ("schlechter Tag"): Check-in mit mini=true. Erreicht eine Mengen-Gewohnheit später
 // ihr Tagesziel, gilt der Tag als voll.

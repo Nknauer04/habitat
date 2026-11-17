@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { loadPushState, pushSupport } from '../../lib/push'
 import { pickableAreas } from '../../lib/areas'
 import { WEEKDAYS } from '../../lib/habits'
 import type { Area } from '../../lib/types'
@@ -197,4 +198,54 @@ export function Stepper({ value, min = 1, max = 99, onChange }: { value: number;
       </button>
     </div>
   )
+}
+
+// Uhrzeit für die Erinnerung einer Gewohnheit (leer = keine eigene Erinnerung)
+const SUGGEST = ['06:30', '07:30', '12:00', '18:00', '20:30']
+export function ReminderPicker({ value, onChange, fallback }: { value: string; onChange: (v: string) => void; fallback: string }) {
+  const on = value !== ''
+  return (
+    <div>
+      <Tiles>
+        <Tile active={!on} onClick={() => onChange('')} icon={<IconGlyph name="check" size={26} />} title="Keine eigene Erinnerung" text="Es bleibt bei den allgemeinen Erinnerungen morgens und abends" />
+        <Tile active={on} onClick={() => !on && onChange(fallback)} icon={<IconGlyph name="clock" size={26} />} title="Zu einer Uhrzeit" text="Mitteilung, wenn die Gewohnheit fällig und noch offen ist" />
+      </Tiles>
+      {on && (
+        <div className="mt-6">
+          <input type="time" value={value} onChange={(e) => onChange(e.target.value)} aria-label="Uhrzeit der Erinnerung" className={bigField} />
+          <div className="mt-4 flex flex-wrap gap-2">
+            {SUGGEST.map((t) => (
+              <Chip key={t} active={value === t} onClick={() => onChange(t)}>
+                {t}
+              </Chip>
+            ))}
+          </div>
+          <PushHint />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Hinweis, falls auf diesem Gerät keine Mitteilungen aktiv sind
+function PushHint() {
+  const [msg, setMsg] = useState('')
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const support = pushSupport()
+      if (support === 'not-installed') return alive && setMsg('Mitteilungen gibt es nur in der installierten App (zum Home-Bildschirm hinzufügen).')
+      if (support !== 'ok') return alive && setMsg('Mitteilungen sind auf diesem Gerät nicht verfügbar.')
+      try {
+        const st = await loadPushState()
+        if (alive && (!st.subscribed || st.permission !== 'granted')) setMsg('Damit die Erinnerung ankommt, schalte unter Einstellungen → Erinnerungen die Mitteilungen ein.')
+      } catch {
+        /* Zustand nicht lesbar */
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [])
+  return msg ? <p className="mt-4 text-sm text-amber-300">{msg}</p> : null
 }

@@ -3,7 +3,7 @@ import { saveHabit } from '../../lib/habits'
 import type { Area, Frequency, TimeOfDay } from '../../lib/types'
 import { IconGlyph, areaColor } from '../ItemIcon'
 import Wizard, { type WizardStep } from './Wizard'
-import { AreaTiles, BigInput, Chip, IconGrid, PreviewIcon, Stepper, Tile, Tiles, WeekdayChips } from './parts'
+import { AreaTiles, BigInput, Chip, IconGrid, PreviewIcon, ReminderPicker, Stepper, Tile, Tiles, WeekdayChips } from './parts'
 import { getAreas } from '../../lib/areas'
 
 const num = (v: string) => Number(v.replace(',', '.'))
@@ -21,6 +21,7 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
   const [target, setTarget] = useState('30')
   const [unit, setUnit] = useState('min')
   const [mini, setMini] = useState('')
+  const [remind, setRemind] = useState('')
 
   const steps: WizardStep[] = [
     {
@@ -82,6 +83,13 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
       ),
     },
     {
+      key: 'remind',
+      question: 'Soll ich dich erinnern?',
+      hint: 'Optional. Du bekommst nur eine Mitteilung, wenn die Gewohnheit heute fällig und noch offen ist.',
+      optional: true,
+      content: <ReminderPicker value={remind} onChange={setRemind} fallback={time === 'abend' ? '20:00' : time === 'morgen' ? '07:30' : '12:00'} />,
+    },
+    {
       key: 'qty',
       question: 'Wie misst du es?',
       validate: () => (qty && !(num(target) > 0) ? 'Bitte ein Tagesziel größer 0 eingeben.' : qty && !unit.trim() ? 'Bitte eine Einheit angeben.' : null),
@@ -127,6 +135,7 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
       unit: qty ? unit.trim() : undefined,
       dailyTarget: qty ? num(target) : undefined,
       miniVersion: mini.trim() || undefined,
+      reminderTime: remind || undefined,
     })
     onClose()
   }

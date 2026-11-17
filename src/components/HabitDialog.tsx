@@ -3,7 +3,7 @@ import { pickableAreas } from '../lib/areas'
 import { TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
 import ItemIcon from './ItemIcon'
-import { IconGrid } from './wizard/parts'
+import { IconGrid, ReminderPicker } from './wizard/parts'
 import EditShell, { editChip, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
 
 const chip = editChip
@@ -21,6 +21,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
   )
   const [count, setCount] = useState(habit?.frequency.type === 'perWeek' ? habit.frequency.count : 3)
   const [miniText, setMiniText] = useState(habit?.miniVersion ?? '')
+  const [remind, setRemind] = useState(habit?.reminderTime ?? '')
   const [qty, setQty] = useState(!!habit?.dailyTarget)
   const [unit, setUnit] = useState(habit?.unit ?? 'min')
   const [target, setTarget] = useState(String(habit?.dailyTarget ?? 30).replace('.', ','))
@@ -56,6 +57,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
         unit: qty ? unit.trim() || undefined : undefined,
         dailyTarget: qty ? dailyTarget : undefined,
         miniVersion: miniText.trim() || undefined,
+        reminderTime: remind || undefined,
       },
       habit?.id,
     )
@@ -204,6 +206,9 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             </p>
           </div>
         )}
+
+        <span className={`${label} mt-5`}>Erinnerung</span>
+        <ReminderPicker value={remind} onChange={setRemind} fallback={time === 'abend' ? '20:00' : time === 'morgen' ? '07:30' : '12:00'} />
 
         <label className={`${label} mt-5`}>
           Mini-Version für schlechte Tage (optional)
