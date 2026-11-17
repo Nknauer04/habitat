@@ -1,5 +1,4 @@
 import { useState, useSyncExternalStore, type FormEvent } from 'react'
-import { db, newId, now } from '../lib/db'
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../lib/useSession'
@@ -17,23 +16,6 @@ function syncText(s: SyncStatus) {
     default:
       return 'Noch nicht synchronisiert.'
   }
-}
-
-// Nur für Tests in der Entwicklung: legt eine Gewohnheit an, um den Sync zu prüfen.
-function addTestHabit() {
-  const t = now()
-  void db.habits.add({
-    id: newId(),
-    name: `Test ${new Date().toLocaleTimeString('de-DE')}`,
-    icon: '🧪',
-    area: 'sonstiges',
-    timeOfDay: 'beliebig',
-    frequency: { type: 'daily' },
-    archived: false,
-    createdAt: t,
-    updatedAt: t,
-    deleted: false,
-  })
 }
 
 const input =
@@ -108,11 +90,6 @@ export default function Settings() {
               >
                 Abmelden
               </button>
-              {import.meta.env.DEV && (
-                <button onClick={addTestHabit} className="rounded-lg bg-slate-800 px-3 py-2 hover:bg-slate-700">
-                  Testgewohnheit (nur Dev)
-                </button>
-              )}
             </div>
 
             <form onSubmit={changePassword} className="mt-5 border-t border-slate-800 pt-4">

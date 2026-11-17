@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Phase 1 fertig (iPhone + Mac getestet: Login, Sync, Installation). Nächstes Feature: Gewohnheiten anlegen + Heute-Ansicht. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 fertig. Heute-Ansicht + Gewohnheiten fertig. Nächstes Feature offen (Vorschlag: Streak + XP + Level). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -10,9 +10,9 @@ Status: Phase 1 fertig (iPhone + Mac getestet: Login, Sync, Installation). Näch
 - [x] Vercel-Deployment via GitHub (https://habitat-ft3o.vercel.app)
 
 ## Must
-- [ ] Gewohnheiten anlegen/bearbeiten/archivieren (Name, Icon, Bereich: Sport/Lernen/Schlaf/Musik, Tageszeit Morgen/Abend)
-- [ ] „Heute“-Ansicht: Abhaken in 1–2 Taps, gruppiert nach Morgen/Abend
-- [ ] Häufigkeit: täglich, bestimmte Wochentage, X× pro Woche
+- [x] Gewohnheiten anlegen/bearbeiten/archivieren (Name, Icon, Bereich: Sport/Lernen/Schlaf/Musik, Tageszeit Morgen/Abend)
+- [x] „Heute“-Ansicht: Abhaken in 1–2 Taps, gruppiert nach Morgen/Abend
+- [x] Häufigkeit: täglich, bestimmte Wochentage, X× pro Woche
 - [ ] Streak mit Verzeihung (Wochenziel-Streak + Freeze, max. 3)
 - [ ] XP + Level mit Identitäts-Titeln
 - [ ] Verlauf: Kalender-/Heatmap-Ansicht pro Gewohnheit
