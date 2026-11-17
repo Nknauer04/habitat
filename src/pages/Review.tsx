@@ -78,6 +78,8 @@ export default function Review() {
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
+  const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).toArray(), [])
+  const actEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
   // Ergebnis trägt seine Woche: beim Blättern liefert useLiveQuery kurz noch den Stand der vorigen Woche
   const review = useLiveQuery(async () => {
     const r = await db.reviews.get(reviewId(weekStart))
@@ -87,9 +89,12 @@ export default function Review() {
 
   const todayKey = dayKey(today)
   const summary = useMemo(
-    () => (habits && checks && goals ? weekSummary(habits, checks, goals, weekStart, today) : null),
+    () =>
+      habits && checks && goals && activities && actEntries
+        ? weekSummary(habits, checks, goals, weekStart, today, { activities, entries: actEntries })
+        : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [habits, checks, goals, weekStart, todayKey],
+    [habits, checks, goals, activities, actEntries, weekStart, todayKey],
   )
   const insights = useMemo(
     () => (habits && checks ? computeInsights(habits, checks, today) : null),

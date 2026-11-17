@@ -397,4 +397,8 @@ eq('Trend Menge: erledigt = kein Trend', gt2({ ...amountGoal, done: true }, gp.r
 const coachAmt = (g: Goal, when: Date) => dailyTips({ habits: [lauf], checkIns: [], goals: [g], activityEntries: aEntries, progress: computeProgress([lauf], [], when, [g]), insights: computeInsights([lauf], [], when), today: when }, 10)
 eq('Tipp Menge: überfällige Etappe wird genannt', coachAmt(amountGoal, at('2026-12-01')).find((t) => t.id === 'goal-behind')?.text, 'Bei „500 km laufen“ ist die Etappe 100 km (bis 30. November) noch offen: es fehlen 34,5 km.')
 eq('Tipp Menge: ohne Rückstand kein Hinweis', coachAmt(amountGoal, at(TUE)).some((t) => t.id === 'goal-behind'), false)
+// Wochenrückblick zählt Einheiten-XP mit (zwei Einträge in der Woche 16.–22.11., einer davor)
+const wkAct = weekSummary([lh], [], [], '2026-11-16', today, { activities: [act], entries: [ae('2026-11-10', 3), ae('2026-11-16', 5), ae('2026-11-17', 6)] })
+eq('Rückblick: Einheiten-XP der Woche', wkAct.xp, 20)
+eq('Rückblick: ohne Einheiten-Daten unverändert', weekSummary([lh], [], [], '2026-11-16', today).xp, 0)
 process.exit(fail ? 1 : 0)

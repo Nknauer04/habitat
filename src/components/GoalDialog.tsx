@@ -34,6 +34,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
   const [startDate, setStartDate] = useState(goal?.startDate ?? dayKey())
   const [targetDate, setTargetDate] = useState(goal?.targetDate ?? '')
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -317,18 +318,36 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
         </label>
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {confirmDelete && (
+          <p className="mt-4 text-sm text-red-300">
+            „{goal?.title}“ wird gelöscht (auch auf deinem anderen Gerät). Bereits gesammelte Gewohnheiten, Einheiten und Einträge bleiben erhalten. Das lässt sich nicht rückgängig machen.
+          </p>
+        )}
 
-        <div className="mt-6 flex items-center gap-2">
-          {goal && (
-            <button type="button" onClick={remove} className="rounded-lg px-3 py-2 text-sm text-red-400 hover:bg-slate-800">
+        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
+          {goal && !confirmDelete && (
+            <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg px-2 py-2 text-sm text-red-400 hover:bg-slate-800">
               Löschen
             </button>
           )}
-          <div className="flex-1" />
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
-            Abbrechen
-          </button>
-          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+          {confirmDelete && (
+            <>
+              <button type="button" onClick={remove} className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white">
+                Endgültig löschen
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-800">
+                Zurück
+              </button>
+            </>
+          )}
+          {!confirmDelete && (
+            <div className="ml-auto flex items-center gap-2">
+              <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
+                Abbrechen
+              </button>
+              <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+            </div>
+          )}
         </div>
       </form>
     </div>

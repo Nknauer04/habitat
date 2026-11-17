@@ -151,6 +151,9 @@ export default function Goals() {
                       ))}
                     </div>
                   )}
+                  <button onClick={() => setActDialog({ activity: a })} className="mt-3 text-xs text-slate-500 active:text-white">
+                    Bearbeiten / Löschen
+                  </button>
                 </li>
               )
             })}
@@ -171,13 +174,14 @@ export default function Goals() {
           {done.length === 0 && <li className="rounded-3xl border border-dashed border-slate-700 p-6 text-center text-slate-400">Noch keine erledigten Ziele.</li>}
           {done.map((g) => (
             <li key={g.id} className="flex items-center justify-between gap-3 rounded-3xl border border-done/30 bg-slate-900 p-5">
-              <div className="min-w-0">
+              <button onClick={() => setDialog({ goal: g })} aria-label={`${g.title} bearbeiten oder löschen`} className="min-w-0 flex-1 text-left">
                 <div className="truncate text-lg font-semibold">✓ {g.title}</div>
                 <div className="mt-0.5 text-sm text-slate-400">
                   {areaLabel(g.area)}
                   {g.doneAt && ` · erledigt am ${fmt(g.doneAt)}`}
                 </div>
-              </div>
+                <div className="mt-1 text-xs text-slate-500">Bearbeiten / Löschen</div>
+              </button>
               <button
                 onClick={() => void reopenGoal(g.id)}
                 className="shrink-0 rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-300 active:bg-slate-800"
@@ -284,6 +288,10 @@ export default function Goals() {
                   </span>
                   <span className={trend.cls}>{trend.text}</span>
                 </div>
+
+                <button onClick={() => setDialog({ goal: g })} className="mt-3 text-xs text-slate-500 active:text-white">
+                  Bearbeiten / Löschen
+                </button>
 
                 {p.ratio >= 1 && (
                   <button

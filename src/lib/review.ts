@@ -3,7 +3,7 @@ import { dayKey, db, now } from './db'
 import { isCheckInDone, weekRange, weekdayIndex } from './habits'
 import { computeProgress } from './progress'
 import { computeDayScores, summarize, weeklyGoals, type DayScore, type WeeklyGoals } from './stats'
-import type { CheckIn, Goal, Habit, Review } from './types'
+import type { Activity, ActivityEntry, CheckIn, Goal, Habit, Review } from './types'
 
 const parse = (k: string) => {
   const [y, m, d] = k.split('-').map(Number)
@@ -74,6 +74,7 @@ export function weekSummary(
   goals: Goal[],
   weekStart: string,
   today: Date,
+  activityData?: { activities: Activity[]; entries: ActivityEntry[] }, // Einheiten zählen mit ins XP
 ): WeekSummary {
   const start = parse(weekStart)
   const weekEnd = weekEndOf(weekStart)
@@ -95,8 +96,8 @@ export function weekSummary(
   }).length
 
   const dayBefore = shift(start, -1)
-  const progressEnd = computeProgress(habits, checkIns, last, goalsAsOf(goals, lastKey))
-  const progressBefore = computeProgress(habits, checkIns, dayBefore, goalsAsOf(goals, dayKey(dayBefore)))
+  const progressEnd = computeProgress(habits, checkIns, last, goalsAsOf(goals, lastKey), activityData)
+  const progressBefore = computeProgress(habits, checkIns, dayBefore, goalsAsOf(goals, dayKey(dayBefore)), activityData)
   const before = new Set(reachedBadges(computeBadges(habits, progressBefore)).map((b) => b.id))
   const newBadges = reachedBadges(computeBadges(habits, progressEnd)).filter((b) => !before.has(b.id))
 
