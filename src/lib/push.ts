@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
@@ -107,7 +108,20 @@ export async function savePrefs(prefs: ReminderPrefs): Promise<void> {
 export async function sendTestPush(): Promise<string> {
   if (!supabase) throw new Error('Nicht konfiguriert.')
   const { data, error } = await supabase.functions.invoke('remind', { body: { test: true } })
-  if (error) throw new Error(`Die Funktion „remind“ ist nicht erreichbar (${error.message}). Ist sie in Supabase eingerichtet?`)
+  if (error) {
+    // Antwort der Funktion lesen, damit die echte Ursache in der App steht
+    if (error instanceof FunctionsHttpError) {
+      let detail = `Status ${error.context.status}`
+      try {
+        const body = (await error.context.json()) as { error?: string; message?: string }
+        detail = body.error ?? body.message ?? detail
+      } catch {
+        /* keine JSON-Antwort */
+      }
+      throw new Error(`Testnachricht fehlgeschlagen: ${detail}`)
+    }
+    throw new Error(`Die Funktion „remind“ ist nicht erreichbar (${error.message}). Ist sie in Supabase eingerichtet?`)
+  }
   const r = data as { sent?: number; failed?: string[] }
   if (r.failed?.length) throw new Error(`Versand fehlgeschlagen: ${r.failed[0]}`)
   if (!r.sent) throw new Error('Keine registrierte Anmeldung gefunden. Aktiviere die Erinnerungen erneut.')

@@ -71,8 +71,22 @@ const corsHeaders = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
+const REQUIRED_SECRETS = ['VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT', 'CRON_SECRET']
+
+// Jeder Fehler kommt als lesbare JSON-Meldung zurück (steht dann direkt in der App).
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  try {
+    return await handle(req)
+  } catch (e) {
+    console.error(e)
+    return json({ error: `Unerwarteter Fehler: ${(e as Error).message}` }, 500)
+  }
+})
+
+async function handle(req: Request): Promise<Response> {
+  const missing = REQUIRED_SECRETS.filter((k) => !Deno.env.get(k))
+  if (missing.length) return json({ error: `Fehlende Geheimnisse in Supabase: ${missing.join(', ')}` }, 500)
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
   webpush.setVapidDetails(
@@ -128,4 +142,4 @@ Deno.serve(async (req) => {
     }
   }
   return json({ sent, removed, failed })
-})
+}
