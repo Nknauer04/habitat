@@ -1,16 +1,26 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import HabitDialog from '../components/HabitDialog'
+import LevelCard from '../components/LevelCard'
+import { useProgress } from '../lib/useProgress'
 import { dayKey, db } from '../lib/db'
 import { TIMES, areaLabel, isDue, toggleCheckIn, weekRange } from '../lib/habits'
+import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
 import { useToday } from '../lib/useToday'
+
+function streakText(p?: HabitProgress) {
+  if (!p || p.streak === 0) return ''
+  const unit = p.unit === 'Tage' ? 'T' : 'Wo.'
+  return ` · 🔥 ${p.streak} ${unit}${p.freezes > 0 ? ` · ❄️ ${p.freezes}` : ''}`
+}
 
 export default function Today() {
   const today = useToday()
   const key = dayKey(today)
   const [weekStart, weekEnd] = weekRange(today)
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
+  const progress = useProgress(today)
 
   const habits = useLiveQuery(
     () => db.habits.filter((h) => !h.deleted && !h.archived).sortBy('createdAt'),
@@ -56,6 +66,8 @@ export default function Today() {
           +
         </button>
       </div>
+
+      {progress && habits && habits.length > 0 && <LevelCard progress={progress} />}
 
       {habits && habits.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
@@ -107,6 +119,7 @@ export default function Today() {
                       <span className="block text-xs text-slate-500">
                         {areaLabel(h.area)}
                         {h.frequency.type === 'perWeek' && ` · ${weekCount}/${h.frequency.count} diese Woche`}
+                        {streakText(progress?.byHabit.get(h.id))}
                       </span>
                     </span>
                   </button>
