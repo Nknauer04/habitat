@@ -1,4 +1,5 @@
-import { useState, useSyncExternalStore, type FormEvent } from 'react'
+import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react'
+import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../lib/useSession'
@@ -58,6 +59,55 @@ export default function Settings() {
       setNewPassword('')
     }
     setBusy(false)
+  }
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [backupMsg, setBackupMsg] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function exportBackup() {
+    setBackupMsg(null)
+    try {
+      const backup = await buildBackup()
+      const file = new File([JSON.stringify(backup, null, 2)], backupFileName(), { type: 'application/json' })
+      // iPhone/iPad: Teilen-Menü (Dateien, iCloud …); sonst normaler Download.
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] })
+        } catch (e) {
+          if ((e as DOMException).name === 'AbortError') return
+          throw e
+        }
+      } else {
+        const url = URL.createObjectURL(file)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = file.name
+        a.click()
+        setTimeout(() => URL.revokeObjectURL(url), 10_000)
+      }
+      setBackupMsg({
+        ok: true,
+        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele.`,
+      })
+    } catch (e) {
+      setBackupMsg({ ok: false, text: `Export fehlgeschlagen: ${e instanceof Error ? e.message : String(e)}` })
+    }
+  }
+
+  async function importBackup(e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    e.target.value = '' // erlaubt, dieselbe Datei erneut zu wählen
+    if (!f) return
+    setBackupMsg(null)
+    try {
+      const r = await mergeBackup(parseBackup(await f.text()))
+      setBackupMsg({
+        ok: true,
+        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele übernommen, ${r.skipped} unverändert übersprungen.`,
+      })
+    } catch (err) {
+      setBackupMsg({ ok: false, text: `Import abgebrochen: ${err instanceof Error ? err.message : String(err)}` })
+    }
   }
 
   return (
@@ -138,6 +188,35 @@ export default function Settings() {
           </form>
         )}
         {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+      </section>
+
+      <section className="mt-4 rounded-xl border border-slate-800 p-4">
+        <h2 className="font-medium">Backup</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Sichert alle Gewohnheiten, Check-ins und Ziele als Datei. Beim Importieren wird zusammengeführt, der
+          neuere Eintrag gewinnt – nichts wird gelöscht.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button onClick={() => void exportBackup()} className={primary}>
+            Exportieren
+          </button>
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="rounded-lg bg-slate-800 px-4 py-2 hover:bg-slate-700"
+          >
+            Importieren
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={(e) => void importBackup(e)}
+          />
+        </div>
+        {backupMsg && (
+          <p className={`mt-3 text-sm ${backupMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{backupMsg.text}</p>
+        )}
       </section>
     </div>
   )
