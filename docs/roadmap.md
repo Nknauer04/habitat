@@ -1,13 +1,13 @@
 # Roadmap
 
-Status: Phase 1 läuft – Grundgerüst steht, Supabase-Login + Sync + Vercel offen. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 fast fertig – App deployed; offen: iPhone-Test (Installation, Login, Sync). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
 - [x] PWA (Manifest, Service Worker, Icons, Splash)
 - [x] Datenmodell (Habits, Check-ins, Ziele) + Dexie
 - [x] Supabase: Login (E-Mail + Passwort), RLS, Sync (last write wins) – Sync noch nicht mit zwei Geräten getestet
-- [ ] Vercel-Deployment via GitHub
+- [x] Vercel-Deployment via GitHub (https://habitat-ft3o.vercel.app)
 
 ## Must
 - [ ] Gewohnheiten anlegen/bearbeiten/archivieren (Name, Icon, Bereich: Sport/Lernen/Schlaf/Musik, Tageszeit Morgen/Abend)
