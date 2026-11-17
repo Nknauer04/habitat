@@ -23,7 +23,10 @@ const set = (k: string, v: string | null) => {
   notify()
 }
 
-export const setCoachEnabled = (on: boolean) => set(OFF_KEY, on ? null : '1')
+export const setCoachEnabled = (on: boolean) => {
+  if (on) set(DISMISS_KEY, null) // wieder einschalten zeigt auch einen heute weggeklickten Tipp erneut
+  set(OFF_KEY, on ? null : '1')
+}
 export const dismissCoachFor = (dayKey: string) => set(DISMISS_KEY, dayKey)
 
 const subscribe = (l: () => void) => {

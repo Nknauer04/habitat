@@ -207,15 +207,25 @@ export function dailyTips(input: CoachInput, limit = 2): Tip[] {
     }
   }
 
-  // 8) Morgen: Tagesplan
-  if (hour < 12 && dueOpen.length && !tips.length) {
-    const first = dueOpen.find((s) => s.h.timeOfDay === 'morgen') ?? dueOpen[0]
-    tips.push({
-      id: 'morning-plan',
-      icon: '☀️',
-      priority: 70,
-      text: `Heute fällig: ${list(dueOpen.map((s) => s.h.name))}. Ein guter Start: ${first.h.name}.`,
-    })
+  // 8) Offene Gewohnheiten ohne besonderen Anlass: Tagesplan (morgens) oder sanfte Erinnerung (tagsüber)
+  if (hour < 18 && dueOpen.length && !tips.length) {
+    if (hour < 12) {
+      const first = dueOpen.find((s) => s.h.timeOfDay === 'morgen') ?? dueOpen[0]
+      tips.push({
+        id: 'morning-plan',
+        icon: '☀️',
+        priority: 70,
+        text: `Heute fällig: ${list(dueOpen.map((s) => s.h.name))}. Ein guter Start: ${first.h.name}.`,
+      })
+    } else {
+      const hasMini = dueOpen.some((s) => s.h.miniVersion)
+      tips.push({
+        id: 'day-open',
+        icon: '⏳',
+        priority: 75,
+        text: `Noch offen heute: ${list(dueOpen.map((s) => s.h.name))}. Schon ein kleiner Schritt zählt${hasMini ? ' – nutze bei Bedarf die Mini-Version' : ''}.`,
+      })
+    }
   }
 
   // 9) Alles erledigt
