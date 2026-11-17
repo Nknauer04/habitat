@@ -129,17 +129,15 @@ export default function Today() {
     [weekStart, weekEnd],
   )
 
-  // Einheiten (nur Ist-Wert): an Erinnerungs-Wochentagen oder bei vorhandenem Eintrag anzeigen
+  // Einheiten (nur Ist-Wert): immer anzeigbar, damit man jederzeit eintragen kann; sie zählen zu „x von y erledigt“ nur an Erinnerungstagen
   const actRows = (activities ?? [])
     .map((a) => {
       const mine = (actEntries ?? []).filter((e) => e.planId === a.id)
       const entry = mine.find((e) => e.date === viewKey)
       const weekSum = mine.reduce((sum, e) => sum + e.value, 0)
-      const created = dayKey(new Date(a.createdAt)) <= viewKey
-      return { a, entry, weekSum, show: !!entry || (created && isActivityDay(a, viewKey)) }
+      const counts = !!entry || isActivityDay(a, viewKey)
+      return { a, entry, weekSum, counts }
     })
-    .filter((r) => r.show)
-
   const rows = (habits ?? [])
     .map((h) => {
       const mine = (checks ?? []).filter((c) => c.habitId === h.id)
@@ -163,8 +161,8 @@ export default function Today() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habits, checks, weekStart, weekEnd, todayKey])
 
-  const done = rows.filter((r) => r.doneToday).length + actRows.filter((r) => r.entry).length
-  const dueCount = rows.length + actRows.length
+  const done = rows.filter((r) => r.doneToday).length + actRows.filter((r) => r.counts && r.entry).length
+  const dueCount = rows.length + actRows.filter((r) => r.counts).length
   const viewScore = weekScores.get(viewKey) ?? null
   const dateText = viewDate.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
   const title = isToday ? 'Heute' : viewDate.toLocaleDateString('de-DE', { weekday: 'long' })
@@ -287,7 +285,7 @@ export default function Today() {
         </div>
       )}
 
-      {habits && habits.length > 0 && rows.length === 0 && actRows.length === 0 && (
+      {habits && habits.length > 0 && rows.length === 0 && (activities ?? []).length === 0 && (
         <p className="mt-8 text-center text-slate-400">{isFuture ? 'Hier ist noch nichts zu sehen.' : 'Heute ist nichts fällig. 🎉'}</p>
       )}
 

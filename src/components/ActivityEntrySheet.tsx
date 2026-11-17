@@ -68,6 +68,7 @@ export default function ActivityEntrySheet({
             </button>
             <input
               autoFocus
+              onFocus={(e) => e.target.select()}
               placeholder={activity.unit}
               inputMode="decimal"
               value={amount}
@@ -82,17 +83,18 @@ export default function ActivityEntrySheet({
 
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
-        <div className="mt-6 flex items-center gap-2">
+        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
           {current > 0 && (
-            <button type="button" onClick={reset} className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800">
+            <button type="button" onClick={reset} className="rounded-lg px-2 py-2 text-sm text-slate-400 hover:bg-slate-800">
               Zurücknehmen
             </button>
           )}
-          <div className="flex-1" />
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
-            Abbrechen
-          </button>
-          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+          <div className="ml-auto flex items-center gap-2">
+            <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
+              Abbrechen
+            </button>
+            <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+          </div>
         </div>
       </form>
     </div>
