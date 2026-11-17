@@ -122,3 +122,24 @@ export const AreaIcon = ({ area, ...p }: { area: Area } & P) => {
   const Icon = { sport: SportIcon, lernen: BookIcon, schlaf: MoonIcon, musik: NoteIcon, sonstiges: SparkIcon }[area]
   return <Icon {...p} />
 }
+
+export const PenIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />
+    <path d="M13.5 6.5l4 4" />
+  </svg>
+)
+
+export const MedalIcon = (p: P) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="14.5" r="5.5" />
+    <path d="M8.6 10 6.5 3.5h4L12 7l1.5-3.5h4L15.4 10" />
+    <path d="M12 12.2l.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2z" strokeWidth="1.2" />
+  </svg>
+)
+
+export const ChevronDownIcon = (p: P) => (
+  <svg {...base({ strokeWidth: 2, ...p })}>
+    <path d="M5 9l7 7 7-7" />
+  </svg>
+)

@@ -117,7 +117,7 @@ export default function Profile() {
         {(
           [
             ['/rueckblick', 'Wochenrückblick', 'Wie lief deine Woche?'],
-            ['/verlauf', 'Verlauf, Insights und Abzeichen', 'Heatmaps, Auffälligkeiten, Medaillen'],
+            ['/verlauf', 'Statistik, Insights und Abzeichen', 'Score, Heatmaps, Auffälligkeiten, Medaillen'],
             ['/einstellungen', 'Einstellungen', 'Konto, Erinnerungen, Backup'],
           ] as const
         ).map(([to, title, sub], i) => (

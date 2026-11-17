@@ -180,3 +180,32 @@ export function areaScores(habits: Habit[], checkIns: CheckIn[], today: Date, mo
   }
   return out
 }
+
+// ---------- Konstanz (Statistik) ----------
+
+export interface Consistency {
+  rate: number | null // 0–100: Anteil der Tage mit mindestens einem erledigten Haken
+  days: number // betrachtete Tage
+  active: number // Tage mit Haken
+}
+
+// Letzte `windowDays` Tage inkl. heute, aber nicht vor Anlegen der ersten Gewohnheit.
+// Voll und Mini zählen; ein Mengen-Teilwert unter dem Ziel zählt nicht.
+export function consistency(habits: Habit[], checkIns: CheckIn[], today: Date, windowDays = 30): Consistency {
+  const live = habits.filter((h) => !h.deleted)
+  if (!live.length) return { rate: null, days: 0, active: 0 }
+  const earliest = live.map((h) => dayKey(new Date(h.createdAt))).sort()[0]
+  const windowStart = dayKey(shift(today, -(windowDays - 1)))
+  const start = earliest > windowStart ? earliest : windowStart
+  const todayKey = dayKey(today)
+  if (start > todayKey) return { rate: null, days: 0, active: 0 }
+  const days = Math.round((parse(todayKey).getTime() - parse(start).getTime()) / 86_400_000) + 1
+  const byId = new Map(live.map((h) => [h.id, h]))
+  const activeDays = new Set<string>()
+  for (const c of checkIns) {
+    if (c.deleted || c.date < start || c.date > todayKey) continue
+    const h = byId.get(c.habitId)
+    if (h && isCheckInDone(h, c)) activeDays.add(c.date)
+  }
+  return { rate: Math.round((activeDays.size / days) * 100), days, active: activeDays.size }
+}

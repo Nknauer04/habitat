@@ -15,7 +15,7 @@ export default function InsightsCard({ habits, checkIns, today }: { habits: Habi
   if (insights.habits.length === 0) return null
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
       <h2 className="font-medium">Insights</h2>
 
       {!insights.enoughData ? (

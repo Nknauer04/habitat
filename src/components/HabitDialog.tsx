@@ -214,7 +214,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
               </label>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              Der Tag zählt erst, wenn das Tagesziel erreicht ist (für Streak, XP, Verlauf und Ziele).
+              Der Tag zählt erst, wenn das Tagesziel erreicht ist (für Streak, XP, Statistik und Ziele).
             </p>
           </div>
         )}

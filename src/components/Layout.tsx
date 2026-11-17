@@ -7,7 +7,7 @@ type Item = { to: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElem
 const items: Item[] = [
   { to: '/', label: 'Heute', Icon: CalendarIcon, match: (p) => p === '/' },
   { to: '/ziele', label: 'Ziele', Icon: TrendIcon, match: (p) => p.startsWith('/ziele') },
-  { to: '/verlauf', label: 'Verlauf', Icon: BarsIcon, match: (p) => p.startsWith('/verlauf') || p.startsWith('/rueckblick') },
+  { to: '/verlauf', label: 'Statistik', Icon: BarsIcon, match: (p) => p.startsWith('/verlauf') || p.startsWith('/rueckblick') },
   { to: '/profil', label: 'Profil', Icon: PersonIcon, match: (p) => p.startsWith('/profil') || p.startsWith('/einstellungen') },
 ]
 

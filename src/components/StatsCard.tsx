@@ -39,7 +39,7 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
   const { best } = stats.current
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <section className="mt-3 rounded-3xl border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-medium">Tages-Score</h2>
         <div className="flex rounded-lg border border-slate-700 p-0.5 text-sm" role="group" aria-label="Zeitraum">

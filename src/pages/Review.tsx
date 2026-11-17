@@ -103,11 +103,11 @@ export default function Review() {
   return (
     <div>
       <Link to="/verlauf" className="text-sm text-slate-400 hover:text-slate-200">
-        ‹ Verlauf
+        ‹ Statistik
       </Link>
       <h1 className="mt-2 text-4xl font-bold tracking-tight text-accent-400">Wochenrückblick</h1>
 
-      <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 py-1">
+      <div className="mt-3 flex items-center justify-between gap-2 rounded-3xl border border-slate-800 bg-slate-900 px-2 py-1">
         <button
           onClick={() => go(prevWeek(weekStart))}
           aria-label="Vorige Woche"
@@ -134,7 +134,7 @@ export default function Review() {
 
       {summary && (
         <>
-          <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
+          <section className="mt-5 rounded-3xl border border-slate-800 bg-slate-900 p-4">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <div className="text-xs text-slate-500">Score der Woche (Ø)</div>
@@ -217,7 +217,7 @@ export default function Review() {
       )}
 
       {insights?.enoughData && insights.sentences.length > 0 && (
-        <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4">
+        <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-4">
           <h2 className="font-medium">Auffälligkeiten</h2>
           <ul className="mt-2 flex flex-col gap-2 text-sm">
             {insights.sentences.slice(0, 2).map((s) => (
@@ -228,12 +228,12 @@ export default function Review() {
             ))}
           </ul>
           <Link to="/verlauf" className="mt-2 inline-block text-xs text-accent-400">
-            Alle Insights im Verlauf
+            Alle Insights in der Statistik
           </Link>
         </section>
       )}
 
-      <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-4">
         {reviewReady && <NoteEditor key={weekStart} weekStart={weekStart} initial={review.note} />}
       </section>
     </div>

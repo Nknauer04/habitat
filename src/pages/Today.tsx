@@ -232,7 +232,7 @@ export default function Today() {
                   {TIER_ICONS[b.tier]} {b.label}
                 </li>
               ))}
-              {freshBadges.length > 3 && <li className="text-slate-400">+ {freshBadges.length - 3} weitere (siehe Verlauf)</li>}
+              {freshBadges.length > 3 && <li className="text-slate-400">+ {freshBadges.length - 3} weitere (siehe Statistik)</li>}
             </ul>
           </div>
           <button onClick={dismissBadges} className="shrink-0 rounded-full px-3 py-1.5 text-sm font-medium text-amber-200 active:bg-amber-500/20">
