@@ -36,52 +36,46 @@ function addTestHabit() {
   })
 }
 
+const input =
+  'min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500'
+const primary =
+  'rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950 disabled:opacity-50'
+
 export default function Settings() {
   const { session, loading } = useSession()
   const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
-  const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
-  const [codeError, setCodeError] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  const [error, setError] = useState('')
 
-  async function sendLink(e: FormEvent) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [info, setInfo] = useState('')
+
+  async function signIn(e: FormEvent) {
     e.preventDefault()
     if (!supabase) return
-    setStatus('sending')
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin },
-    })
-    if (error) {
-      setError(error.message)
-      setStatus('error')
-    } else {
-      setStatus('sent')
-    }
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) setError(error.message)
+    else setPassword('')
+    setBusy(false)
   }
 
-  async function verifyCode(e: FormEvent) {
+  async function changePassword(e: FormEvent) {
     e.preventDefault()
     if (!supabase) return
-    setCodeError('')
-    let result
-    if (/^https?:\/\//i.test(code)) {
-      // Eingefügter Link aus der Mail: Token-Hash auslesen und direkt einlösen.
-      let hash: string | null = null
-      try {
-        const u = new URL(code)
-        hash = u.searchParams.get('token_hash') ?? u.searchParams.get('token')
-      } catch {
-        /* ungültige URL */
-      }
-      if (!hash) return setCodeError('Kein gültiger Anmelde-Link.')
-      result = await supabase.auth.verifyOtp({ token_hash: hash, type: 'email' })
-      if (result.error) result = await supabase.auth.verifyOtp({ token_hash: hash, type: 'magiclink' })
-    } else {
-      result = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
+    setBusy(true)
+    setError('')
+    setInfo('')
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) setError(error.message)
+    else {
+      setInfo('Passwort gespeichert.')
+      setNewPassword('')
     }
-    if (result.error) setCodeError(result.error.message)
+    setBusy(false)
   }
 
   return (
@@ -104,7 +98,7 @@ export default function Settings() {
               <button
                 onClick={() => void syncNow()}
                 disabled={sync.state === 'syncing'}
-                className="rounded-lg bg-emerald-500 px-3 py-2 font-medium text-slate-950 disabled:opacity-50"
+                className={primary}
               >
                 Jetzt synchronisieren
               </button>
@@ -120,46 +114,53 @@ export default function Settings() {
                 </button>
               )}
             </div>
-          </div>
-        ) : status === 'sent' ? (
-          <div className="mt-2 text-sm">
-            <p className="text-emerald-400">
-              E-Mail gesendet. Am Mac: Link in der Mail anklicken. In der installierten iPhone-App:
-              Link in der Mail lange drücken → „Link kopieren“ und hier einfügen.
-            </p>
-            <form onSubmit={verifyCode} className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <input
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value.trim())}
-                placeholder="Link oder Code einfügen"
-                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500"
-              />
-              <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">
-                Anmelden
-              </button>
+
+            <form onSubmit={changePassword} className="mt-5 border-t border-slate-800 pt-4">
+              <label className="text-slate-300">Passwort festlegen oder ändern</label>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={8}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Neues Passwort (mind. 8 Zeichen)"
+                  className={input}
+                />
+                <button disabled={busy} className={primary}>
+                  Speichern
+                </button>
+              </div>
+              {info && <p className="mt-2 text-emerald-400">{info}</p>}
             </form>
-            {codeError && <p className="mt-2 text-red-400">{codeError}</p>}
           </div>
         ) : (
-          <form onSubmit={sendLink} className="mt-3 flex flex-col gap-2 sm:flex-row">
+          <form onSubmit={signIn} className="mt-3 flex flex-col gap-2">
             <input
               type="email"
+              autoComplete="username"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="E-Mail-Adresse"
-              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500"
+              className={input}
             />
-            <button
-              disabled={status === 'sending'}
-              className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950 disabled:opacity-50"
-            >
-              Magic Link senden
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Passwort"
+              className={input}
+            />
+            <button disabled={busy} className={primary}>
+              Anmelden
             </button>
           </form>
         )}
-        {status === 'error' && <p className="mt-2 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
       </section>
     </div>
   )

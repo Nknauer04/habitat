@@ -6,7 +6,7 @@ Nur ein Nutzer (ich), läuft als PWA auf meinem **iPhone** (Safari → „Zum Ho
 
 ## Feste Basics (nicht neu diskutieren)
 - Stack: React + Vite + TypeScript, Tailwind CSS
-- Sync/Backend: Supabase (kostenloser Tarif) – Postgres + Auth (Login per Magic Link, nur mein Account),
+- Sync/Backend: Supabase (kostenloser Tarif) – Postgres + Auth (Login per E-Mail + Passwort, nur mein Account; Magic Link verworfen: öffnet sich auf iOS nicht in der PWA),
   Row Level Security aktiv, Zugangsdaten nur in `.env` (nie committen)
 - Offline: lokaler Cache in IndexedDB (Dexie.js), Änderungen offline speichern und beim nächsten
   Online-Sein synchronisieren (einfaches „last write wins“ über `updated_at` reicht)
