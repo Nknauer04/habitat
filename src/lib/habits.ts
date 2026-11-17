@@ -30,16 +30,24 @@ export function weekRange(d: Date) {
   return [dayKey(start), dayKey(end)] as const
 }
 
-export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency' | 'unit' | 'dailyTarget'>
+export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency' | 'unit' | 'dailyTarget' | 'miniVersion'>
 
-// Erledigt: normale Gewohnheit = Check-in vorhanden; Mengen-Gewohnheit = Wert ≥ Tagesziel.
+// Mini-Version ("schlechter Tag"): Check-in mit mini=true. Erreicht eine Mengen-Gewohnheit später
+// ihr Tagesziel, gilt der Tag als voll.
+export const isMini = (h: Habit, c: CheckIn) =>
+  !c.deleted && !!c.mini && !(h.dailyTarget && c.value !== undefined && c.value >= h.dailyTarget)
+
+// Voll erledigt: normale Gewohnheit = Check-in vorhanden; Mengen-Gewohnheit = Wert ≥ Tagesziel.
 // Alte Check-ins ohne Wert (vor Umstellung auf Menge) zählen weiter als erledigt.
-export const isCheckInDone = (h: Habit, c: CheckIn) =>
-  !c.deleted && (!h.dailyTarget || c.value === undefined || c.value >= h.dailyTarget)
+export const isFull = (h: Habit, c: CheckIn) =>
+  !c.deleted && !isMini(h, c) && (!h.dailyTarget || c.value === undefined || c.value >= h.dailyTarget)
 
-// Teilwert: Menge erfasst, Ziel aber noch nicht erreicht.
+// Der Tag zählt (voll oder Mini) für Streak, Quote und Ziele.
+export const isCheckInDone = (h: Habit, c: CheckIn) => isFull(h, c) || isMini(h, c)
+
+// Teilwert: Menge erfasst, Ziel aber noch nicht erreicht (und kein Mini).
 export const isPartial = (h: Habit, c: CheckIn) =>
-  !c.deleted && !!h.dailyTarget && c.value !== undefined && c.value > 0 && c.value < h.dailyTarget
+  !c.deleted && !c.mini && !!h.dailyTarget && c.value !== undefined && c.value > 0 && c.value < h.dailyTarget
 
 export const fmtQty = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
 
@@ -64,7 +72,8 @@ export async function addQuantity(habitId: string, date: string, amount: number)
       { ...active[0], value: sum, updatedAt: t },
       ...active.slice(1).map((c) => ({ ...c, deleted: true, updatedAt: t })),
     ])
-  } else if (existing.length) await db.checkIns.put({ ...existing[0], deleted: false, value: amount, updatedAt: t })
+  } else if (existing.length)
+    await db.checkIns.put({ ...existing[0], deleted: false, mini: false, value: amount, updatedAt: t })
   else await db.checkIns.add({ id: newId(), habitId, date, value: amount, deleted: false, updatedAt: t })
 }
 
@@ -85,13 +94,36 @@ export async function saveHabit(input: HabitInput, id?: string) {
 export const archiveHabit = (id: string) => db.habits.update(id, { archived: true, updatedAt: now() })
 
 // Abhaken/Zurücknehmen. Check-ins werden nur weich gelöscht, damit der Sync sie erkennt.
+// Auf einem Mini-Tag stuft der Tipp zur vollen Version hoch (statt zurückzunehmen).
 export async function toggleCheckIn(habitId: string, date: string) {
   const existing = await db.checkIns.where('[habitId+date]').equals([habitId, date]).toArray()
   const active = existing.filter((c) => !c.deleted)
   const t = now()
-  if (active.length) await db.checkIns.bulkPut(active.map((c) => ({ ...c, deleted: true, updatedAt: t })))
-  else if (existing.length) await db.checkIns.put({ ...existing[0], deleted: false, updatedAt: t })
+  if (active.some((c) => c.mini))
+    await db.checkIns.bulkPut([
+      { ...active[0], mini: false, updatedAt: t },
+      ...active.slice(1).map((c) => ({ ...c, deleted: true, updatedAt: t })),
+    ])
+  else if (active.length) await db.checkIns.bulkPut(active.map((c) => ({ ...c, deleted: true, updatedAt: t })))
+  else if (existing.length) await db.checkIns.put({ ...existing[0], deleted: false, mini: false, updatedAt: t })
   else await db.checkIns.add({ id: newId(), habitId, date, deleted: false, updatedAt: t })
+}
+
+// Mini-Version an-/ausschalten (nur solange der Tag nicht voll erledigt ist).
+export async function toggleMini(h: Habit, date: string) {
+  const existing = await db.checkIns.where('[habitId+date]').equals([h.id, date]).toArray()
+  const active = existing.filter((c) => !c.deleted)
+  const t = now()
+  const base = h.dailyTarget ? 0 : undefined // Menge: Wert 0, damit der Check-in nicht als "alt/voll" gilt
+  if (active.length) {
+    const c = active[0]
+    if (c.mini) {
+      if (h.dailyTarget && (c.value ?? 0) > 0) await db.checkIns.put({ ...c, mini: false, updatedAt: t })
+      else await db.checkIns.bulkPut(active.map((x) => ({ ...x, deleted: true, updatedAt: t })))
+    } else if (!isFull(h, c)) await db.checkIns.put({ ...c, mini: true, updatedAt: t })
+  } else if (existing.length)
+    await db.checkIns.put({ ...existing[0], deleted: false, mini: true, value: base, updatedAt: t })
+  else await db.checkIns.add({ id: newId(), habitId: h.id, date, mini: true, value: base, deleted: false, updatedAt: t })
 }
 
 export function isDue(h: Habit, date: Date, doneToday: boolean, weekCount: number) {

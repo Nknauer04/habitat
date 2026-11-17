@@ -59,6 +59,7 @@ function checkHabit(r: Row): string | null {
     (!TIMES.some((t) => t.value === r.timeOfDay) ? 'timeOfDay ungültig' : null) ??
     (!checkFrequency(r.frequency) ? 'frequency ungültig' : null) ??
     (r.unit !== undefined && typeof r.unit !== 'string' ? 'unit ungültig' : null) ??
+    (r.miniVersion !== undefined && typeof r.miniVersion !== 'string' ? 'miniVersion ungültig' : null) ??
     (r.dailyTarget !== undefined && !(typeof r.dailyTarget === 'number' && r.dailyTarget > 0)
       ? 'dailyTarget ungültig'
       : null) ??
@@ -72,7 +73,8 @@ function checkCheckIn(r: Row): string | null {
     checkSync(r) ??
     (!isStr(r.habitId) ? 'habitId fehlt' : null) ??
     (!isDay(r.date) ? 'date ungültig' : null) ??
-    (r.value !== undefined && !(typeof r.value === 'number' && r.value >= 0) ? 'value ungültig' : null)
+    (r.value !== undefined && !(typeof r.value === 'number' && r.value >= 0) ? 'value ungültig' : null) ??
+    (r.mini !== undefined && typeof r.mini !== 'boolean' ? 'mini ungültig' : null)
   )
 }
 

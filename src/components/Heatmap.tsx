@@ -11,12 +11,14 @@ export default function Heatmap({
   habit,
   dates,
   partial,
+  mini,
   today,
   onToggle,
 }: {
   habit: Habit
   dates: Set<string>
   partial?: Set<string> // Mengen-Gewohnheit: Wert erfasst, Ziel noch nicht erreicht
+  mini?: Set<string> // Mini-Version erledigt
   today: Date
   onToggle?: (key: string) => void
 }) {
@@ -28,7 +30,7 @@ export default function Heatmap({
     const d = new Date(start)
     d.setDate(start.getDate() + i)
     const key = dayKey(d)
-    return { d, key, future: key > todayKey, done: dates.has(key), part: partial?.has(key) ?? false, due: isDue(habit, d) }
+    return { d, key, future: key > todayKey, done: dates.has(key), part: partial?.has(key) ?? false, isMini: mini?.has(key) ?? false, due: isDue(habit, d) }
   })
 
   return (
@@ -40,11 +42,13 @@ export default function Heatmap({
         gridAutoFlow: 'column',
       }}
     >
-      {cells.map(({ d, key, future, done, part, due }) => {
+      {cells.map(({ d, key, future, done, part, isMini, due }) => {
         if (future) return <span key={key} className="aspect-square" />
-        const state = done ? 'erledigt' : part ? 'teilweise' : due ? 'verpasst' : 'nicht fällig'
+        const state = done ? (isMini ? 'Mini' : 'erledigt') : part ? 'teilweise' : due ? 'verpasst' : 'nicht fällig'
         const color = done
-          ? 'bg-emerald-500'
+          ? isMini
+            ? 'bg-emerald-500/60'
+            : 'bg-emerald-500'
           : part
             ? 'bg-emerald-500/40'
             : due

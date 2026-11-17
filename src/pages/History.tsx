@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Heatmap from '../components/Heatmap'
 import QuantitySheet from '../components/QuantitySheet'
 import { db } from '../lib/db'
-import { areaLabel, checkInValue, isCheckInDone, isPartial, toggleCheckIn } from '../lib/habits'
+import { areaLabel, checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import type { CheckIn, Habit } from '../lib/types'
 import { useProgress } from '../lib/useProgress'
@@ -51,6 +51,7 @@ function Card({
   const [sheetDate, setSheetDate] = useState<string | null>(null)
   const dates = new Set(checks.filter((c) => isCheckInDone(habit, c)).map((c) => c.date))
   const partial = new Set(checks.filter((c) => isPartial(habit, c)).map((c) => c.date))
+  const minis = new Set(checks.filter((c) => isMini(habit, c)).map((c) => c.date))
   const valueOn = (date: string) =>
     checks.filter((c) => c.date === date && !c.deleted).reduce((s, c) => s + checkInValue(habit, c), 0)
 
@@ -67,6 +68,7 @@ function Card({
         habit={habit}
         dates={dates}
         partial={partial}
+        mini={minis}
         today={today}
         onToggle={
           readOnly

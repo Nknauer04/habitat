@@ -5,7 +5,18 @@ import LevelCard from '../components/LevelCard'
 import QuantitySheet from '../components/QuantitySheet'
 import { useProgress } from '../lib/useProgress'
 import { dayKey, db } from '../lib/db'
-import { TIMES, areaLabel, checkInValue, fmtQty, isCheckInDone, isDue, toggleCheckIn, weekRange } from '../lib/habits'
+import {
+  TIMES,
+  areaLabel,
+  checkInValue,
+  fmtQty,
+  isCheckInDone,
+  isDue,
+  isMini,
+  toggleCheckIn,
+  toggleMini,
+  weekRange,
+} from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
 import { useToday } from '../lib/useToday'
@@ -45,7 +56,8 @@ export default function Today() {
       const doneToday = doneDays.some((c) => c.date === key)
       const weekCount = new Set(doneDays.map((c) => c.date)).size
       const current = mine.filter((c) => c.date === key).reduce((sum, c) => sum + checkInValue(h, c), 0)
-      return { h, doneToday, weekCount, current, due: isDue(h, today, doneToday, weekCount) }
+      const miniToday = mine.some((c) => c.date === key && isMini(h, c))
+      return { h, doneToday, miniToday, weekCount, current, due: isDue(h, today, doneToday, weekCount) }
     })
     .filter((r) => r.due)
 
@@ -92,11 +104,15 @@ export default function Today() {
           <section key={t.value} className="mt-6">
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">{t.label}</h2>
             <ul className="flex flex-col gap-2">
-              {section.map(({ h, doneToday, weekCount, current }) => (
+              {section.map(({ h, doneToday, miniToday, weekCount, current }) => (
                 <li
                   key={h.id}
                   className={`flex items-center gap-3 rounded-xl border p-3 ${
-                    doneToday ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-slate-800 bg-slate-900/40'
+                    doneToday
+                      ? miniToday
+                        ? 'border-emerald-500/20 bg-emerald-500/5'
+                        : 'border-emerald-500/30 bg-emerald-500/10'
+                      : 'border-slate-800 bg-slate-900/40'
                   }`}
                 >
                   <button
@@ -118,7 +134,9 @@ export default function Today() {
                     }
                     className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${
                       doneToday
-                        ? 'border-2 border-emerald-500 bg-emerald-500 text-slate-950'
+                        ? miniToday
+                          ? 'border-2 border-emerald-500/60 bg-emerald-500/30 text-emerald-200'
+                          : 'border-2 border-emerald-500 bg-emerald-500 text-slate-950'
                         : h.dailyTarget
                           ? ''
                           : 'border-2 border-slate-600 text-transparent hover:border-emerald-500'
@@ -144,11 +162,27 @@ export default function Today() {
                       <span className="block text-xs text-slate-500">
                         {areaLabel(h.area)}
                         {h.dailyTarget && ` · ${fmtQty(current)}/${fmtQty(h.dailyTarget)} ${h.unit ?? ''}`}
+                        {miniToday && ' · Mini'}
                         {h.frequency.type === 'perWeek' && ` · ${weekCount}/${h.frequency.count} diese Woche`}
                         {streakText(progress?.byHabit.get(h.id))}
                       </span>
                     </span>
                   </button>
+                  {h.miniVersion && (!doneToday || miniToday) && (
+                    <button
+                      onClick={() => void toggleMini(h, key)}
+                      title={h.miniVersion}
+                      aria-label={`Mini-Version: ${h.miniVersion}`}
+                      aria-pressed={miniToday}
+                      className={`shrink-0 rounded-lg border px-2.5 py-1.5 text-xs ${
+                        miniToday
+                          ? 'border-emerald-500/60 bg-emerald-500/20 text-emerald-200'
+                          : 'border-slate-700 text-slate-300 hover:border-slate-500'
+                      }`}
+                    >
+                      Mini{miniToday ? ' ✓' : ''}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>

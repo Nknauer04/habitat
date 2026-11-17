@@ -23,6 +23,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
     habit?.frequency.type === 'weekdays' ? habit.frequency.days : [0, 1, 2, 3, 4],
   )
   const [count, setCount] = useState(habit?.frequency.type === 'perWeek' ? habit.frequency.count : 3)
+  const [miniText, setMiniText] = useState(habit?.miniVersion ?? '')
   const [qty, setQty] = useState(!!habit?.dailyTarget)
   const [unit, setUnit] = useState(habit?.unit ?? 'min')
   const [target, setTarget] = useState(String(habit?.dailyTarget ?? 30).replace('.', ','))
@@ -55,6 +56,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
         frequency,
         unit: qty ? unit.trim() || undefined : undefined,
         dailyTarget: qty ? dailyTarget : undefined,
+        miniVersion: miniText.trim() || undefined,
       },
       habit?.id,
     )
@@ -216,6 +218,19 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             </p>
           </div>
         )}
+
+        <label className={`${label} mt-5`}>
+          Mini-Version für schlechte Tage (optional)
+          <input
+            value={miniText}
+            onChange={(e) => setMiniText(e.target.value)}
+            placeholder="z. B. 2 Minuten dehnen"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+          />
+          <span className="mt-1 block text-xs text-slate-500">
+            Hält die Streak, bringt aber nur halbe XP.
+          </span>
+        </label>
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
 

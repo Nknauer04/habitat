@@ -1,9 +1,10 @@
 import { dayKey } from './db'
-import { isCheckInDone, weekRange, weekdayIndex } from './habits'
+import { isCheckInDone, isMini, weekRange, weekdayIndex } from './habits'
 import type { Area, CheckIn, Goal, Habit } from './types'
 
 // Alles wird aus den Check-ins berechnet (nichts gespeichert) → kein Sync-Konflikt.
 export const XP_PER_CHECKIN = 10
+export const XP_MINI = 5 // Mini-Version: halbe XP, Streak bleibt
 export const STREAK_BONUS: Record<number, number> = { 7: 20, 30: 100, 66: 300 }
 export const FREEZE_EVERY = 10 // alle 10 Streak-Tage ein Freeze
 export const MAX_FREEZES = 3
@@ -63,7 +64,7 @@ const parse = (k: string) => {
 }
 
 // Täglich / bestimmte Wochentage: nur fällige Tage zählen, andere unterbrechen nicht.
-function dailyProgress(h: Habit, dates: Set<string>, todayKey: string): HabitProgress {
+function dailyProgress(h: Habit, dates: Set<string>, minis: Set<string>, todayKey: string): HabitProgress {
   let streak = 0
   let longest = 0
   let freezes = 0
@@ -75,7 +76,7 @@ function dailyProgress(h: Habit, dates: Set<string>, todayKey: string): HabitPro
       if (dates.has(k)) {
         streak++
         longest = Math.max(longest, streak)
-        xp += XP_PER_CHECKIN + (STREAK_BONUS[streak] ?? 0)
+        xp += (minis.has(k) ? XP_MINI : XP_PER_CHECKIN) + (STREAK_BONUS[streak] ?? 0)
         if (streak % FREEZE_EVERY === 0) freezes = Math.min(MAX_FREEZES, freezes + 1)
       } else if (k < todayKey && isDueOn(h, d)) {
         if (freezes > 0) freezes--
@@ -87,7 +88,13 @@ function dailyProgress(h: Habit, dates: Set<string>, todayKey: string): HabitPro
 }
 
 // X× pro Woche: Streak zählt Wochen, in denen das Ziel erreicht wurde (keine Freezes).
-function weeklyProgress(h: Habit, target: number, dates: Set<string>, today: Date): HabitProgress {
+function weeklyProgress(
+  h: Habit,
+  target: number,
+  dates: Set<string>,
+  minis: Set<string>,
+  today: Date,
+): HabitProgress {
   const perWeek = new Map<string, number>()
   for (const k of dates) {
     const ws = weekRange(parse(k))[0]
@@ -111,7 +118,7 @@ function weeklyProgress(h: Habit, target: number, dates: Set<string>, today: Dat
     longest,
     freezes: 0,
     unit: 'Wochen',
-    xp: dates.size * XP_PER_CHECKIN,
+    xp: (dates.size - minis.size) * XP_PER_CHECKIN + minis.size * XP_MINI,
     rate: weeklyRate(h, target, perWeek, today),
   }
 }
@@ -150,6 +157,7 @@ export const GOAL_DONE_XP = 100 // einmalig je abgeschlossenem Ziel, in den Bere
 export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Date, goals: Goal[] = []): Progress {
   const todayKey = dayKey(today)
   const datesByHabit = new Map<string, Set<string>>()
+  const minisByHabit = new Map<string, Set<string>>()
   const habitById = new Map(habits.map((h) => [h.id, h]))
   for (const c of checkIns) {
     if (c.deleted || c.date > todayKey) continue
@@ -157,6 +165,10 @@ export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Dat
     if (habit && !isCheckInDone(habit, c)) continue // Mengen-Gewohnheit: Ziel noch nicht erreicht
     if (!datesByHabit.has(c.habitId)) datesByHabit.set(c.habitId, new Set())
     datesByHabit.get(c.habitId)!.add(c.date)
+    if (habit && isMini(habit, c)) {
+      if (!minisByHabit.has(c.habitId)) minisByHabit.set(c.habitId, new Set())
+      minisByHabit.get(c.habitId)!.add(c.date)
+    }
   }
 
   const byHabit = new Map<string, HabitProgress>()
@@ -165,10 +177,11 @@ export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Dat
   for (const h of habits) {
     if (h.deleted) continue
     const dates = datesByHabit.get(h.id) ?? new Set<string>()
+    const minis = minisByHabit.get(h.id) ?? new Set<string>()
     const p =
       h.frequency.type === 'perWeek'
-        ? weeklyProgress(h, h.frequency.count, dates, today)
-        : dailyProgress(h, dates, todayKey)
+        ? weeklyProgress(h, h.frequency.count, dates, minis, today)
+        : dailyProgress(h, dates, minis, todayKey)
     byHabit.set(h.id, p)
     areaXp[h.area] = (areaXp[h.area] ?? 0) + p.xp
     totalXp += p.xp
