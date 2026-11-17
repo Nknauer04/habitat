@@ -1,6 +1,6 @@
 import { dayKey } from './db'
 import { weekRange, weekdayIndex } from './habits'
-import type { Area, CheckIn, Habit } from './types'
+import type { Area, CheckIn, Goal, Habit } from './types'
 
 // Alles wird aus den Check-ins berechnet (nichts gespeichert) → kein Sync-Konflikt.
 export const XP_PER_CHECKIN = 10
@@ -145,7 +145,9 @@ export interface Progress {
   totalXp: number
 }
 
-export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Date): Progress {
+export const GOAL_DONE_XP = 100 // einmalig je abgeschlossenem Ziel, in den Bereich des Ziels
+
+export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Date, goals: Goal[] = []): Progress {
   const todayKey = dayKey(today)
   const datesByHabit = new Map<string, Set<string>>()
   for (const c of checkIns) {
@@ -167,6 +169,11 @@ export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Dat
     byHabit.set(h.id, p)
     areaXp[h.area] = (areaXp[h.area] ?? 0) + p.xp
     totalXp += p.xp
+  }
+  for (const g of goals) {
+    if (g.deleted || !g.done) continue
+    areaXp[g.area] = (areaXp[g.area] ?? 0) + GOAL_DONE_XP
+    totalXp += GOAL_DONE_XP
   }
   return { byHabit, areaXp, totalXp }
 }

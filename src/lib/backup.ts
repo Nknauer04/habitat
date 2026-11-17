@@ -71,7 +71,15 @@ function checkGoal(r: Row): string | null {
   return (
     checkSync(r) ??
     (!isStr(r.title) ? 'title fehlt' : null) ??
+    (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
+    (r.kind !== 'steps' && r.kind !== 'count' ? 'kind ungültig' : null) ??
+    (!Array.isArray(r.steps) || !r.steps.every((s) => isObj(s) && isStr(s.id) && typeof s.text === 'string' && typeof s.done === 'boolean')
+      ? 'steps ungültig'
+      : null) ??
     (!Array.isArray(r.habitIds) ? 'habitIds fehlt' : null) ??
+    (r.target !== undefined && !(typeof r.target === 'number' && r.target >= 1) ? 'target ungültig' : null) ??
+    (r.startDate !== undefined && !isDay(r.startDate) ? 'startDate ungültig' : null) ??
+    (r.targetDate !== undefined && !isDay(r.targetDate) ? 'targetDate ungültig' : null) ??
     (typeof r.done !== 'boolean' ? 'done fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )

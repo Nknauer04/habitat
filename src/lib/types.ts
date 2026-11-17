@@ -31,11 +31,23 @@ export interface CheckIn extends Syncable {
   mini?: boolean
 }
 
+export interface GoalStep {
+  id: string
+  text: string
+  done: boolean
+}
+
 export interface Goal extends Syncable {
   title: string
   note?: string
-  targetDate?: string // YYYY-MM-DD
-  habitIds: string[]
+  area: Area
+  kind: 'steps' | 'count' // Teilschritte-Checkliste oder Zählziel aus Gewohnheiten
+  steps: GoalStep[] // kind = steps
+  habitIds: string[] // kind = count
+  target?: number // kind = count: Anzahl Check-ins
+  startDate?: string // kind = count: Zählen ab (YYYY-MM-DD)
+  targetDate?: string // Frist (YYYY-MM-DD)
   done: boolean
+  doneAt?: string // YYYY-MM-DD
   createdAt: string
 }
