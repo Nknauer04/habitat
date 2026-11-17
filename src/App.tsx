@@ -4,10 +4,12 @@ import Layout from './components/Layout'
 import Placeholder from './pages/Placeholder'
 import Settings from './pages/Settings'
 import { requestPersistentStorage } from './lib/db'
+import { startSyncEngine } from './lib/sync'
 
 export default function App() {
   useEffect(() => {
     void requestPersistentStorage()
+    return startSyncEngine()
   }, [])
 
   return (

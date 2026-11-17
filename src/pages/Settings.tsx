@@ -1,9 +1,44 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useSyncExternalStore, type FormEvent } from 'react'
+import { db, newId, now } from '../lib/db'
+import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../lib/useSession'
 
+function syncText(s: SyncStatus) {
+  switch (s.state) {
+    case 'syncing':
+      return 'Synchronisiere …'
+    case 'offline':
+      return 'Offline – Änderungen werden später übertragen.'
+    case 'error':
+      return `Sync-Fehler: ${s.error}`
+    case 'ok':
+      return `Synchronisiert um ${new Date(s.lastSync!).toLocaleTimeString('de-DE')} (↓ ${s.pulled}, ↑ ${s.pushed})`
+    default:
+      return 'Noch nicht synchronisiert.'
+  }
+}
+
+// Nur für Tests in der Entwicklung: legt eine Gewohnheit an, um den Sync zu prüfen.
+function addTestHabit() {
+  const t = now()
+  void db.habits.add({
+    id: newId(),
+    name: `Test ${new Date().toLocaleTimeString('de-DE')}`,
+    icon: '🧪',
+    area: 'sonstiges',
+    timeOfDay: 'beliebig',
+    frequency: { type: 'daily' },
+    archived: false,
+    createdAt: t,
+    updatedAt: t,
+    deleted: false,
+  })
+}
+
 export default function Settings() {
   const { session, loading } = useSession()
+  const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState('')
@@ -39,12 +74,27 @@ export default function Settings() {
         ) : session ? (
           <div className="mt-2 text-sm">
             <p className="text-slate-300">Angemeldet als {session.user.email}</p>
-            <button
-              onClick={() => void supabase!.auth.signOut()}
-              className="mt-3 rounded-lg bg-slate-800 px-3 py-2 hover:bg-slate-700"
-            >
-              Abmelden
-            </button>
+            <p className="mt-2 text-slate-400">{syncText(sync)}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => void syncNow()}
+                disabled={sync.state === 'syncing'}
+                className="rounded-lg bg-emerald-500 px-3 py-2 font-medium text-slate-950 disabled:opacity-50"
+              >
+                Jetzt synchronisieren
+              </button>
+              <button
+                onClick={() => void supabase!.auth.signOut()}
+                className="rounded-lg bg-slate-800 px-3 py-2 hover:bg-slate-700"
+              >
+                Abmelden
+              </button>
+              {import.meta.env.DEV && (
+                <button onClick={addTestHabit} className="rounded-lg bg-slate-800 px-3 py-2 hover:bg-slate-700">
+                  Testgewohnheit (nur Dev)
+                </button>
+              )}
+            </div>
           </div>
         ) : status === 'sent' ? (
           <p className="mt-2 text-sm text-emerald-400">
