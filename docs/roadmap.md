@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version und Statistik fertig. Nächstes: weitere Should-Features (Vorschlag: Push-Erinnerungen). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik und Push-Erinnerungen fertig und auf iPhone + Mac getestet. Nächstes: weitere Should-/Nice-Features. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -24,7 +24,7 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version und Statistik fertig. Näc
 - [x] Mengen-Gewohnheiten (Einheit + Tagesziel; Tag zählt ab Ziel; Teilwerte addieren sich)
 - [x] Mini-Version/2-Minuten-Variante je Gewohnheit („schlechter Tag“): hält Streak, halbe XP
 - [x] Wochen-/Monatsstatistik, Tages-Score (Verlauf oben; Score in Heute; Wochenziele separat)
-- [ ] Erinnerungen per Web-Push (Morgen/Abend) – gebaut, Einrichtung in docs/push-setup.md; iPhone-Zustellung noch zu bestätigen
+- [x] Erinnerungen per Web-Push (Morgen/Abend): Testnachricht und geplanter Versand auf dem iPhone bestätigt; Einrichtung in docs/push-setup.md
 - [ ] Habit-Stacking („Nach X …“) und Notiz/Kontext je Check-in
 
 ## Nice

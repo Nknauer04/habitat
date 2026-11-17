@@ -4,7 +4,7 @@ Einmalig, ca. 10 Minuten. Keine Installation nötig, alles im Supabase-Dashboard
 Lokale Geheimnisse liegen in `.secrets/` (nicht im Repo): `supabase-secrets.txt`, `cron.sql`, `vapid-keys.json`.
 
 1. **Tabelle anlegen:** Supabase → SQL Editor → Inhalt von `supabase/push.sql` einfügen → Run.
-2. **Funktion anlegen:** Edge Functions → Deploy a new function → Via Editor → Name `remind`.
+2. **Funktion anlegen:** Edge Functions → Deploy a new function → Via Editor → **Namen vor dem Deploy auf genau `remind` ändern** (Zufallsnamen lassen sich nicht umbenennen; sonst „Requested function was not found“).
    Inhalt von `supabase/functions/remind/index.ts` komplett einfügen → Deploy.
    In den Funktions-Einstellungen **Verify JWT ausschalten** (der Zeitplan ruft ohne Login-Token auf; Schutz über `CRON_SECRET`).
 3. **Geheimnisse:** Edge Functions → Secrets → vier Einträge aus `.secrets/supabase-secrets.txt`
