@@ -1,7 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { TIER_ICONS } from '../lib/badges'
 import { dayKey, db } from '../lib/db'
 import { weekFeedback } from '../lib/coach'
 import { computeInsights } from '../lib/insights'
@@ -17,6 +16,7 @@ import {
   weekSummary,
 } from '../lib/review'
 import { useToday } from '../lib/useToday'
+import { TierMedal } from '../components/widgets/glyphs'
 
 const fmt = (key: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', opts)
@@ -213,7 +213,7 @@ export default function Review() {
               <ul className="mt-2 flex flex-col gap-1 text-sm">
                 {summary.newBadges.map((b) => (
                   <li key={b.id}>
-                    {TIER_ICONS[b.tier]} {b.label}
+                    <TierMedal tier={b.tier} size={16} /> {b.label}
                   </li>
                 ))}
               </ul>

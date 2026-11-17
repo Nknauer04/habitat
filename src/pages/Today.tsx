@@ -5,10 +5,9 @@ import CoachCard from '../components/CoachCard'
 import HabitDialog from '../components/HabitDialog'
 import HabitWizard from '../components/wizard/HabitWizard'
 import { PlusIcon } from '../components/icons'
-import LevelCard from '../components/LevelCard'
+import DayHero from '../components/widgets/DayHero'
 import ActivityEntrySheet from '../components/ActivityEntrySheet'
 import QuantitySheet from '../components/QuantitySheet'
-import { TIER_ICONS } from '../lib/badges'
 import { dayKey, db } from '../lib/db'
 import {
   TIMES,
@@ -21,9 +20,9 @@ import {
   toggleCheckIn,
   toggleMini,
   weekRange,
+  weekdayIndex,
 } from '../lib/habits'
 import { isActivityDay } from '../lib/activities'
-import type { HabitProgress } from '../lib/progress'
 import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
 import type { Habit } from '../lib/types'
@@ -32,19 +31,14 @@ import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useCoachTips } from '../lib/useCoach'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
-import ItemIcon from '../components/ItemIcon'
+import ItemIcon, { areaColor } from '../components/ItemIcon'
+import { EmojiGlyph, StreakChip, TierMedal } from '../components/widgets/glyphs'
 
 const LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S']
 
 const parseKey = (k: string) => {
   const [y, m, d] = k.split('-').map(Number)
   return new Date(y, m - 1, d)
-}
-
-function streakText(p?: HabitProgress) {
-  if (!p || p.streak === 0) return ''
-  const unit = p.unit === 'Tage' ? 'T' : 'Wo.'
-  return ` · 🔥 ${p.streak} ${unit}${p.freezes > 0 ? ` · ❄️ ${p.freezes}` : ''}`
 }
 
 // Kleiner Fortschrittsring (0–100) um die Tageszahl
@@ -138,7 +132,8 @@ export default function Today() {
       const entry = mine.find((e) => e.date === viewKey)
       const weekSum = mine.reduce((sum, e) => sum + e.value, 0)
       const counts = !!entry || isActivityDay(a, viewKey)
-      return { a, entry, weekSum, counts }
+      const bars = Array.from({ length: 7 }, (_, i) => mine.filter((e) => weekdayIndex(parseKey(e.date)) === i).reduce((sum, e) => sum + e.value, 0))
+      return { a, entry, weekSum, counts, bars }
     })
   const rows = (habits ?? [])
     .map((h) => {
@@ -233,7 +228,7 @@ export default function Today() {
 
       {showReviewHint && isToday && (
         <div className="mt-5 flex items-center gap-3 rounded-3xl border border-accent-500/30 bg-accent-500/10 p-4">
-          <span className="text-3xl">📋</span>
+          <EmojiGlyph emoji="📋" size={44} />
           <div className="min-w-0 flex-1 text-sm">
             <div className="font-semibold">Wochenrückblick bereit</div>
             <div className="text-slate-300">KW {isoWeek(reviewWeek)} · wie lief deine Woche?</div>
@@ -259,13 +254,13 @@ export default function Today() {
 
       {freshBadges.length > 0 && isToday && (
         <div role="status" className="mt-5 flex items-start gap-3 rounded-3xl border border-amber-500/40 bg-amber-500/10 p-4">
-          <span className="text-3xl">🏆</span>
+          <EmojiGlyph emoji="🏆" size={44} />
           <div className="min-w-0 flex-1 text-sm">
             <div className="font-semibold">{freshBadges.length === 1 ? 'Neues Abzeichen' : `${freshBadges.length} neue Abzeichen`}</div>
             <ul className="mt-0.5 text-slate-300">
               {freshBadges.slice(0, 3).map((b) => (
                 <li key={b.id} className="truncate">
-                  {TIER_ICONS[b.tier]} {b.label}
+                  <TierMedal tier={b.tier} size={16} /> {b.label}
                 </li>
               ))}
               {freshBadges.length > 3 && <li className="text-slate-400">+ {freshBadges.length - 3} weitere (siehe Statistik)</li>}
@@ -277,7 +272,7 @@ export default function Today() {
         </div>
       )}
 
-      {progress && habits && habits.length > 0 && isToday && <LevelCard progress={progress} />}
+      {progress && ((habits && habits.length > 0) || (activities && activities.length > 0)) && isToday && <DayHero progress={progress} done={done} total={dueCount} />}
 
       {habits && habits.length === 0 && activities && activities.length === 0 && (
         <div className="mt-8 rounded-3xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
@@ -306,16 +301,31 @@ export default function Today() {
                   }`}
                 >
                   <button onClick={() => setDialog({ habit: h })} className="flex min-w-0 flex-1 items-center gap-4 text-left">
-                    <ItemIcon icon={h.icon} area={h.area} size={48} />
-                    <span className="min-w-0">
+                    <ItemIcon icon={h.icon} area={h.area} size={52} />
+                    <span className="min-w-0 flex-1">
                       <span className={`block truncate text-[19px] font-semibold ${doneToday ? 'text-slate-300' : ''}`}>{h.name}</span>
-                      <span className="mt-0.5 block text-sm text-slate-400">
-                        {areaLabel(h.area)}
-                        {h.dailyTarget && ` · ${fmtQty(current)}/${fmtQty(h.dailyTarget)} ${h.unit ?? ''}`}
-                        {miniToday && ' · Mini'}
-                        {h.frequency.type === 'perWeek' && ` · ${weekCount}/${h.frequency.count} diese Woche`}
-                        {isToday && streakText(progress?.byHabit.get(h.id))}
+                      <span className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-slate-400">
+                        <span style={{ color: areaColor(h.area) }}>{areaLabel(h.area)}</span>
+                        {h.dailyTarget && (
+                          <span className="tabular-nums">
+                            {fmtQty(current)}/{fmtQty(h.dailyTarget)} {h.unit ?? ''}
+                          </span>
+                        )}
+                        {miniToday && <span>Mini</span>}
+                        {h.frequency.type === 'perWeek' && (
+                          <span className="inline-flex items-center gap-1" aria-label={`${weekCount} von ${h.frequency.count} diese Woche`}>
+                            {Array.from({ length: h.frequency.count }, (_, i) => (
+                              <span key={i} className="h-2 w-2 rounded-full" style={{ background: i < weekCount ? areaColor(h.area) : 'rgb(255 255 255 / 0.15)' }} />
+                            ))}
+                          </span>
+                        )}
+                        {isToday && <StreakChip {...(progress?.byHabit.get(h.id) ?? { streak: 0, unit: 'Tage' as const, freezes: 0 })} />}
                       </span>
+                      {h.dailyTarget && !doneToday && (
+                        <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-white/10">
+                          <span className="block h-full rounded-full" style={{ width: `${Math.min(100, (current / h.dailyTarget) * 100)}%`, background: areaColor(h.area) }} />
+                        </span>
+                      )}
                     </span>
                   </button>
 
@@ -377,7 +387,7 @@ export default function Today() {
         <section className="mt-7">
           <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Einheiten</h2>
           <ul className="flex flex-col gap-3">
-            {actRows.map(({ a, entry, weekSum }) => (
+            {actRows.map(({ a, entry, weekSum, bars }) => (
               <li
                 key={a.id}
                 className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${entry ? 'border-done/25' : 'border-slate-800'}`}
@@ -392,6 +402,15 @@ export default function Today() {
                     </span>
                   </span>
                 </Link>
+                <span className="flex h-10 shrink-0 items-end gap-[3px]" role="img" aria-label={`Diese Woche: ${fmtQty(weekSum)} ${a.unit}`}>
+                  {bars.map((v, i) => (
+                    <span
+                      key={i}
+                      className="w-[5px] rounded-full"
+                      style={{ height: `${Math.max(12, (v / Math.max(...bars, 0.0001)) * 100)}%`, background: v > 0 ? areaColor(a.area) : 'rgb(255 255 255 / 0.12)' }}
+                    />
+                  ))}
+                </span>
                 <button
                   onClick={() => setActSheetId(a.id)}
                   disabled={disabled}

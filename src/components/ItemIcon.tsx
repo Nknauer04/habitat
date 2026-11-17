@@ -40,10 +40,14 @@ export const ICON_SHAPES: Record<string, { label: string; shape: ReactNode }> = 
   calendar: { label: 'Kalender', shape: <><rect x="3" y="5" width="18" height="16" rx="2.500" />{p('M3 10h18M8 3v4M16 3v4')}</> },
   list: { label: 'Liste', shape: <>{p('M9 6h11M9 12h11M9 18h11')}{p('M4 6h.01M4 12h.01M4 18h.01')}</> },
   check: { label: 'Haken', shape: p('M5 12.500l4.500 4.500L19 7.500') },
+  medal: { label: 'Medaille', shape: <>{circle(12, 14, 5.500)}{p('M8.500 3l3.500 6 3.500-6')}{p('M10 14l1.500 1.500L14.500 12.500')}</> },
+  snow: { label: 'Freeze', shape: <>{p('M12 2v20M3.500 7l17 10M3.500 17l17-10')}{p('M9.500 3.500L12 6l2.500-2.500M9.500 20.500L12 18l2.500 2.500')}</> },
+  trend: { label: 'Trend', shape: <>{p('M3.500 4v16h17')}{p('M7 15l4-4.500 3 2.500 5-6')}</> },
   sparkle: { label: 'Funken', shape: p('M12 3l2.200 6.300L21 12l-6.800 2.700L12 21l-2.200-6.300L3 12l6.800-2.700z') },
 }
 
-export const ICON_KEYS = Object.keys(ICON_SHAPES)
+// Nur im Symbol-Picker anbieten, was als Gewohnheits-Symbol taugt (Medaille, Freeze, Trend sind reine Oberflächen-Symbole)
+export const ICON_KEYS = Object.keys(ICON_SHAPES).filter((k) => !['medal', 'snow', 'trend'].includes(k))
 
 export const iconKey = (icon: string) => (icon.startsWith('i:') && ICON_SHAPES[icon.slice(2)] ? icon.slice(2) : null)
 

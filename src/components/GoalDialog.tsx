@@ -5,16 +5,11 @@ import { deleteGoal, saveGoal } from '../lib/goals'
 import { AREAS, fmtQty } from '../lib/habits'
 import type { Area, Goal, GoalStep, Milestone } from '../lib/types'
 import ItemIcon from './ItemIcon'
+import EditShell, { editChip, editField, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
 
-const chip = (active: boolean) =>
-  `rounded-lg border px-3 py-2 text-sm ${
-    active
-      ? 'border-accent-500 bg-accent-500/15 text-accent-300'
-      : 'border-slate-700 text-slate-300 hover:border-slate-500'
-  }`
-const field =
-  'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500'
-const label = 'mb-2 block text-sm text-slate-400'
+const chip = editChip
+const field = editField
+const label = editLabel
 
 export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted && !h.archived).sortBy('createdAt'), [])
@@ -110,13 +105,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
-      <form
-        onSubmit={submit}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
-      >
-        <h2 className="text-lg font-semibold">{goal ? 'Ziel bearbeiten' : 'Neues Ziel'}</h2>
+    <EditShell title={goal ? 'Ziel bearbeiten' : 'Neues Ziel'} onClose={onClose} onSubmit={submit}>
 
         <input
           autoFocus={!goal}
@@ -327,9 +316,9 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
           </p>
         )}
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
+        <div className={editFooter}>
           {goal && !confirmDelete && (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg px-2 py-2 text-sm text-red-400 hover:bg-slate-800">
+            <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-full px-3 py-2.5 text-sm text-red-400 hover:bg-slate-800">
               Löschen
             </button>
           )}
@@ -348,11 +337,10 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
               <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
                 Abbrechen
               </button>
-              <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+              <button className={primaryBtn}>Speichern</button>
             </div>
           )}
         </div>
-      </form>
-    </div>
+    </EditShell>
   )
 }

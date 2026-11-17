@@ -1,6 +1,7 @@
-import { nextBadge, reachedBadges, TIER_ICONS } from '../lib/badges'
+import { nextBadge, reachedBadges } from '../lib/badges'
 import { useBadges } from '../lib/useBadges'
 import ItemIcon from './ItemIcon'
+import { TierMedal } from './widgets/glyphs'
 
 // „Noch 3 Tage bis 🥉 7 Tage“, „Noch 2 Level bis 🥉 Level 5“, „Noch 1 Ziel bis 🥉 1 Ziel“
 const unitLabel = (unit: string, n: number) => (unit === 'Ziele' && n === 1 ? 'Ziel' : unit === 'Tage' && n === 1 ? 'Tag' : unit === 'Wochen' && n === 1 ? 'Woche' : unit)
@@ -47,15 +48,15 @@ export default function BadgesCard({ today }: { today: Date }) {
                       aria-label={`${b.label}: ${b.reached ? 'erreicht' : 'offen'}`}
                       className={b.reached ? '' : 'opacity-25 grayscale'}
                     >
-                      {TIER_ICONS[b.tier]}
+                      <TierMedal tier={b.tier} size={26} />
                     </span>
                   ))}
                 </div>
               </div>
               <p className="mt-1 pl-10 text-xs text-slate-500">
                 {next
-                  ? `Noch ${next.remaining} ${unitLabel(g.unit, next.remaining)} bis ${TIER_ICONS[next.badge.tier]} ${targetLabel(g.unit, next.badge.threshold)}`
-                  : 'Alle Stufen erreicht 🎉'}
+                  ? `Noch ${next.remaining} ${unitLabel(g.unit, next.remaining)} bis ${targetLabel(g.unit, next.badge.threshold)}`
+                  : 'Alle Stufen erreicht'}
               </p>
             </li>
           )

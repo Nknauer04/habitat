@@ -1,4 +1,5 @@
 import type { Tip } from '../lib/coach'
+import { EmojiGlyph } from './widgets/glyphs'
 
 // Tipp des Tages (regelbasiert, ohne KI)
 export default function CoachCard({ tips, onDismiss }: { tips: Tip[]; onDismiss: () => void }) {
@@ -17,7 +18,7 @@ export default function CoachCard({ tips, onDismiss }: { tips: Tip[]; onDismiss:
       <ul className="mt-2 flex flex-col gap-2.5">
         {tips.map((t) => (
           <li key={t.id} className="flex gap-3">
-            <span className="text-xl leading-snug">{t.icon}</span>
+            <EmojiGlyph emoji={t.icon} size={32} />
             <span className="text-[15px] leading-snug text-slate-200">{t.text}</span>
           </li>
         ))}

@@ -8,12 +8,13 @@ import ActivityEntrySheet from '../components/ActivityEntrySheet'
 import { InboxIcon, LinkIcon, PlusIcon } from '../components/icons'
 import { dayKey, db } from '../lib/db'
 import { activityDays } from '../lib/activities'
-import { completeGoal, goalProgress, goalTrend, milestoneStates, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
+import { completeGoal, deadlineInfo, goalProgress, goalTrend, milestoneStates, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
 import { WEEKDAYS, areaLabel, fmtQty } from '../lib/habits'
 import { GOAL_DONE_XP } from '../lib/progress'
 import type { Activity, Goal } from '../lib/types'
 import { useToday } from '../lib/useToday'
-import ItemIcon, { iconText } from '../components/ItemIcon'
+import ItemIcon, { IconGlyph, areaColor } from '../components/ItemIcon'
+import ProgressRing from '../components/widgets/ProgressRing'
 
 const fmt = (key: string) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -122,6 +123,13 @@ export default function Goals() {
               const total = mine.reduce((sum, e) => sum + e.value, 0)
               const recent = [...mine].sort((x, y) => (x.date < y.date ? 1 : -1)).slice(0, 6)
               const days = activityDays(a)
+              const bars = Array.from({ length: 14 }, (_, i) => {
+                const d = new Date(today)
+                d.setDate(d.getDate() - 13 + i)
+                const key = dayKey(d)
+                return mine.filter((e) => e.date === key).reduce((sum, e) => sum + e.value, 0)
+              })
+              const maxBar = Math.max(...bars, 0.0001)
               return (
                 <li key={a.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
                   <div className="flex items-center justify-between gap-3">
@@ -141,6 +149,15 @@ export default function Goals() {
                     >
                       + Heute
                     </button>
+                  </div>
+                  <div className="mt-4 flex h-12 items-end gap-1" role="img" aria-label="Einträge der letzten 14 Tage">
+                    {bars.map((v, i) => (
+                      <span
+                        key={i}
+                        className="flex-1 rounded-full"
+                        style={{ height: `${Math.max(10, (v / maxBar) * 100)}%`, background: v > 0 ? areaColor(a.area) : 'rgb(255 255 255 / 0.1)' }}
+                      />
+                    ))}
                   </div>
                   {recent.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -202,117 +219,130 @@ export default function Goals() {
             const states = milestoneStates(g, p.value, todayKey)
             const unit = g.unit ? ` ${g.unit}` : ''
             const percent = Math.round(p.ratio * 100)
-            const overdue = !!g.targetDate && g.targetDate < todayKey
+            const color = areaColor(g.area)
+            const dl = g.targetDate ? deadlineInfo(g.targetDate, todayKey) : null
             const trend = TREND[goalTrend(g, p.ratio, todayKey)]
             return (
-              <li key={g.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-                <button onClick={() => setDialog({ goal: g })} className="block w-full text-left">
-                  <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
-                    <div className="min-w-0 max-w-full">
-                      <div className="text-[22px] font-bold leading-tight tracking-tight">{g.title}</div>
-                      <div className="mt-1 text-base text-slate-400">
-                        {g.targetDate ? (
-                          <span className={overdue ? 'text-red-400' : ''}>
-                            {overdue ? 'Überfällig seit ' : 'Frist '}
-                            {fmt(g.targetDate)}
-                          </span>
-                        ) : (
-                          areaLabel(g.area)
-                        )}
-                      </div>
-                    </div>
-                    <span className="glow-accent ml-auto shrink-0 rounded-full bg-accent-500 px-3.5 py-1.5 text-sm font-semibold text-black">
-                      {percent} % abgeschlossen
+              <li key={g.id} className="rounded-[2rem] border border-slate-800 bg-slate-900 p-5" style={{ boxShadow: `inset 0 1px 0 color-mix(in srgb, ${color} 18%, transparent)` }}>
+                <button onClick={() => setDialog({ goal: g })} className="flex w-full items-center gap-4 text-left" aria-label={`${g.title} bearbeiten`}>
+                  <ProgressRing pct={percent} size={76} stroke={8} color={color} glow>
+                    <span className="text-lg font-bold tabular-nums">{percent}%</span>
+                  </ProgressRing>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[21px] font-bold leading-tight tracking-tight">{g.title}</span>
+                    <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-medium">
+                      <span className="rounded-full px-2.5 py-1" style={{ color, background: `color-mix(in srgb, ${color} 14%, transparent)` }}>
+                        {areaLabel(g.area)}
+                      </span>
+                      {dl && (
+                        <span className={`rounded-full px-2.5 py-1 ${dl.days < 0 ? 'bg-red-500/15 text-red-300' : 'bg-white/10 text-slate-300'}`}>
+                          {dl.days < 0 ? `${-dl.days} ${-dl.days === 1 ? 'Tag' : 'Tage'} überfällig` : dl.days === 0 ? 'Heute fällig' : `noch ${dl.days} ${dl.days === 1 ? 'Tag' : 'Tage'}`}
+                        </span>
+                      )}
                     </span>
-                  </div>
-                  {g.note && <p className="mt-3 text-sm text-slate-400">{g.note}</p>}
-                  <div
-                    className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-700"
-                    role="progressbar"
-                    aria-valuenow={p.value}
-                    aria-valuemax={p.total}
-                  >
-                    <div className="h-full rounded-full bg-accent-500" style={{ width: `${p.ratio * 100}%` }} />
-                  </div>
+                  </span>
                 </button>
+                {g.note && <p className="mt-3 text-sm text-slate-400">{g.note}</p>}
 
                 {g.kind === 'amount' && (
-                  <p className="mt-3 text-xs text-slate-500">
-                    Zählt:{' '}
-                    {(g.activityIds ?? [])
-                      .map((id) => (activities ?? []).find((a) => a.id === id))
-                      .filter((a) => !!a)
-                      .map((a) => `${iconText(a!.icon)} ${a!.name}`.trim())
-                      .join(', ') || 'noch keine Einheit verknüpft'}
-                  </p>
+                  <div className="mt-5">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="text-lg font-semibold tabular-nums">
+                        {fmtQty(p.value)}
+                        <span className="text-slate-400"> / {fmtQty(p.total)}{unit}</span>
+                      </span>
+                      <span className={trend.cls}>{trend.text}</span>
+                    </div>
+                    <div className="relative mt-3 h-2.5 rounded-full bg-white/10" role="progressbar" aria-valuenow={p.value} aria-valuemax={p.total}>
+                      <div className="h-full rounded-full" style={{ width: `${p.ratio * 100}%`, background: color, boxShadow: `0 0 12px ${color}` }} />
+                      {states.map(({ m, reached, overdue }) => (
+                        <span
+                          key={m.id}
+                          title={`${fmtQty(m.value)}${unit} bis ${fmt(m.date)}`}
+                          className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-900"
+                          style={{ left: `${Math.min(100, (m.value / p.total) * 100)}%`, background: reached ? 'var(--color-done)' : overdue ? '#fbbf24' : '#8e8e93' }}
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-3 text-xs text-slate-500">
+                      Zählt:{' '}
+                      {(g.activityIds ?? [])
+                        .map((id) => (activities ?? []).find((a) => a.id === id))
+                        .filter((a) => !!a)
+                        .map((a) => a!.name)
+                        .join(', ') || 'noch keine Einheit verknüpft'}
+                    </p>
+                    {states.length > 0 && (
+                      <ul className="mt-3 flex flex-wrap gap-2" aria-label="Etappenziele">
+                        {states.map(({ m, reached, overdue }) => (
+                          <li
+                            key={m.id}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs ${
+                              reached ? 'border-done/40 text-done' : overdue ? 'border-amber-400/50 text-amber-300' : 'border-slate-700 text-slate-300'
+                            }`}
+                          >
+                            <IconGlyph name="flag" size={13} />
+                            {fmtQty(m.value)}
+                            {unit} bis {fmt(m.date)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 )}
 
-                {states.length > 0 && (
-                  <ul className="mt-4 flex flex-wrap gap-2" aria-label="Etappenziele">
-                    {states.map(({ m, reached, overdue }) => (
-                      <li
-                        key={m.id}
-                        className={`rounded-full border px-3 py-1 text-xs ${
-                          reached ? 'border-done/40 text-done' : overdue ? 'border-amber-400/50 text-amber-300' : 'border-slate-700 text-slate-300'
-                        }`}
-                      >
-                        {reached ? '✓ ' : ''}
-                        {fmtQty(m.value)}
-                        {unit} bis {fmt(m.date)}
-                      </li>
-                    ))}
-                  </ul>
+                {g.kind === 'count' && (
+                  <div className="mt-5">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="text-lg font-semibold tabular-nums">
+                        {p.value}
+                        <span className="text-slate-400"> / {p.total} Haken</span>
+                      </span>
+                      <span className={trend.cls}>{trend.text}</span>
+                    </div>
+                    <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuenow={p.value} aria-valuemax={p.total}>
+                      <div className="h-full rounded-full" style={{ width: `${p.ratio * 100}%`, background: color, boxShadow: `0 0 12px ${color}` }} />
+                    </div>
+                    <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500">
+                      <LinkIcon width={14} height={14} />
+                      {g.habitIds.length} {g.habitIds.length === 1 ? 'Gewohnheit' : 'Gewohnheiten'}
+                    </p>
+                  </div>
                 )}
 
                 {g.kind === 'steps' && (
-                  <ul className="mt-4 flex flex-col gap-1">
-                    {g.steps.map((s) => (
-                      <li key={s.id}>
-                        <label className="flex min-h-10 cursor-pointer items-center gap-3 rounded-xl px-1 active:bg-slate-800">
-                          <input
-                            type="checkbox"
-                            checked={s.done}
-                            onChange={() => void toggleStep(g.id, s.id)}
-                            className="h-5 w-5 accent-accent-500"
-                          />
-                          <span className={s.done ? 'text-slate-500 line-through' : ''}>{s.text}</span>
-                        </label>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-4">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="text-lg font-semibold tabular-nums">
+                        {p.value}
+                        <span className="text-slate-400"> / {p.total} Schritte</span>
+                      </span>
+                      <span className={trend.cls}>{trend.text}</span>
+                    </div>
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {g.steps.map((s) => (
+                        <li key={s.id}>
+                          <label
+                            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-2xl border px-4 active:bg-slate-800"
+                            style={{ borderColor: s.done ? 'color-mix(in srgb, var(--color-done) 35%, transparent)' : 'var(--color-slate-800)' }}
+                          >
+                            <input type="checkbox" checked={s.done} onChange={() => void toggleStep(g.id, s.id)} className="h-5 w-5 accent-accent-500" />
+                            <span className={s.done ? 'text-slate-500 line-through' : ''}>{s.text}</span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
 
-                <div className="mt-4 flex items-center justify-between gap-3 text-[15px] text-slate-300">
-                  <span className="flex items-center gap-2">
-                    {g.kind === 'amount' ? (
-                      <>
-                        <LinkIcon width={20} height={20} />
-                        {fmtQty(p.value)} / {fmtQty(p.total)}
-                        {unit}
-                      </>
-                    ) : g.kind === 'count' ? (
-                      <>
-                        <LinkIcon width={20} height={20} />
-                        {g.habitIds.length} {g.habitIds.length === 1 ? 'Gewohnheit' : 'Gewohnheiten'} · {p.value} / {p.total}
-                      </>
-                    ) : (
-                      <>
-                        ☑ {p.value} von {p.total} Schritten
-                      </>
-                    )}
-                  </span>
-                  <span className={trend.cls}>{trend.text}</span>
+                <div className="mt-4 flex items-center justify-between">
+                  <button onClick={() => setDialog({ goal: g })} className="text-xs text-slate-500 active:text-white">
+                    Bearbeiten / Löschen
+                  </button>
                 </div>
 
-                <button onClick={() => setDialog({ goal: g })} className="mt-3 text-xs text-slate-500 active:text-white">
-                  Bearbeiten / Löschen
-                </button>
-
                 {p.ratio >= 1 && (
-                  <button
-                    onClick={() => void completeGoal(g.id)}
-                    className="mt-4 w-full rounded-full bg-accent-500 px-4 py-3 font-semibold text-black"
-                  >
+                  <button onClick={() => void completeGoal(g.id)} className="mt-3 w-full rounded-full bg-accent-500 px-4 py-3.5 font-semibold text-black">
                     Abschließen (+{GOAL_DONE_XP} XP)
                   </button>
                 )}

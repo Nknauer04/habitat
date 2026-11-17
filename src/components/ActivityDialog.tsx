@@ -4,16 +4,15 @@ import { activityDays, deleteActivity, saveActivity, setActivityGoalLinks } from
 import { db } from '../lib/db'
 import { AREAS, WEEKDAYS } from '../lib/habits'
 import type { Activity, Area } from '../lib/types'
+import ItemIcon from './ItemIcon'
 import { IconGrid } from './wizard/parts'
+import EditShell, { editChip, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
 
 const UNITS = ['km', 'h', 'min', 'Seiten', 'Einheiten']
 
-const chip = (active: boolean) =>
-  `rounded-lg border px-3 py-2 text-sm ${
-    active ? 'border-accent-500 bg-accent-500/15 text-accent-300' : 'border-slate-700 text-slate-300 hover:border-slate-500'
-  }`
-const field = 'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500'
-const label = 'mb-2 block text-sm text-slate-400'
+const chip = editChip
+const field = 'w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500'
+const label = editLabel
 
 // Einheit anlegen/bearbeiten (z. B. „Laufen“ in km). Hat nur Ist-Werte; das Soll legst du in einem Ziel fest.
 export default function ActivityDialog({ activity, onClose }: { activity?: Activity; onClose: () => void }) {
@@ -25,6 +24,7 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
   const [linked, setLinked] = useState<string[] | null>(null) // null = unverändert (aus den Zielen abgeleitet)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pickIcon, setPickIcon] = useState(false)
 
   // Offene Mengen-Ziele, in die diese Einheit zählen kann (gleiche Einheit)
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted && !g.done && g.kind === 'amount').sortBy('createdAt'), [])
@@ -56,19 +56,21 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
   const toggleDay = (i: number) => setDays((d) => (d.includes(i) ? d.filter((x) => x !== i) : [...d, i]))
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center" onClick={onClose}>
-      <form
-        onSubmit={submit}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
-      >
-        <h2 className="text-lg font-semibold">{activity ? 'Einheit bearbeiten' : 'Neue Einheit'}</h2>
+    <EditShell title={activity ? 'Einheit bearbeiten' : 'Neue Einheit'} onClose={onClose} onSubmit={submit}>
         <p className="mt-1 text-sm text-slate-400">Eine Einheit hat nur einen Ist-Wert (z. B. gelaufene km). Das Soll legst du in einem Ziel fest.</p>
 
         <input autoFocus={!activity} value={name} onChange={(e) => setName(e.target.value)} placeholder="Name, z. B. Laufen" className={`${field} mt-4`} />
 
         <span className={`${label} mt-5`}>Symbol</span>
-        <IconGrid value={icon} area={area} onChange={setIcon} />
+        <button type="button" onClick={() => setPickIcon((v) => !v)} aria-expanded={pickIcon} className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-3 pr-5 active:bg-slate-800">
+          <ItemIcon icon={icon} area={area} size={48} />
+          <span className="text-base font-medium text-slate-200">{pickIcon ? 'Fertig' : 'Symbol ändern'}</span>
+        </button>
+        {pickIcon && (
+          <div className="mt-3">
+            <IconGrid value={icon} area={area} onChange={(i) => { setIcon(i); setPickIcon(false) }} />
+          </div>
+        )}
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">
@@ -134,9 +136,9 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
           </p>
         )}
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
+        <div className={editFooter}>
           {activity && !confirmDelete && (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg px-2 py-2 text-sm text-red-400 hover:bg-slate-800">
+            <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-full px-3 py-2.5 text-sm text-red-400 hover:bg-slate-800">
               Löschen
             </button>
           )}
@@ -155,11 +157,10 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
               <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
                 Abbrechen
               </button>
-              <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+              <button className={primaryBtn}>Speichern</button>
             </div>
           )}
         </div>
-      </form>
-    </div>
+    </EditShell>
   )
 }

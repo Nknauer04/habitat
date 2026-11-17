@@ -3,15 +3,11 @@ import { AREAS, TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '..
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import { IconGrid } from './wizard/parts'
+import EditShell, { editChip, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
 
-const chip = (active: boolean) =>
-  `rounded-lg border px-3 py-2 text-sm ${
-    active
-      ? 'border-accent-500 bg-accent-500/15 text-accent-300'
-      : 'border-slate-700 text-slate-300 hover:border-slate-500'
-  }`
+const chip = editChip
 
-const label = 'mb-2 block text-sm text-slate-400'
+const label = editLabel
 
 export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void }) {
   const [name, setName] = useState(habit?.name ?? '')
@@ -29,6 +25,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
   const [target, setTarget] = useState(String(habit?.dailyTarget ?? 30).replace('.', ','))
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pickIcon, setPickIcon] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -80,30 +77,25 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
     setDays((d) => (d.includes(i) ? d.filter((x) => x !== i) : [...d, i]))
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center"
-      onClick={onClose}
-    >
-      <form
-        onSubmit={submit}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
-      >
-        <h2 className="text-lg font-semibold">{habit ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'}</h2>
+    <EditShell title={habit ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'} onClose={onClose} onSubmit={submit}>
 
         <div className="mt-4 flex items-center gap-3">
-          <ItemIcon icon={icon} area={area} size={52} />
+          <button type="button" onClick={() => setPickIcon((v) => !v)} aria-label="Symbol ändern" aria-expanded={pickIcon} className="rounded-2xl active:scale-95">
+            <ItemIcon icon={icon} area={area} size={56} />
+          </button>
           <input
             autoFocus={!habit}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name, z. B. Laufen"
-            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
+            className="min-w-0 flex-1 rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500"
           />
         </div>
-        <div className="mt-3">
-          <IconGrid value={icon} area={area} onChange={setIcon} />
-        </div>
+        {pickIcon && (
+          <div className="mt-3">
+            <IconGrid value={icon} area={area} onChange={(i) => { setIcon(i); setPickIcon(false) }} />
+          </div>
+        )}
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">
@@ -194,7 +186,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
                   inputMode="decimal"
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
+                  className="mt-1 w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500"
                 />
               </label>
               <label className="text-sm text-slate-400">
@@ -202,7 +194,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
                 <input
                   value={unit}
                   onChange={(e) => setUnit(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
+                  className="mt-1 w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500"
                 />
               </label>
             </div>
@@ -218,7 +210,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             value={miniText}
             onChange={(e) => setMiniText(e.target.value)}
             placeholder="z. B. 2 Minuten dehnen"
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
+            className="mt-1 w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500"
           />
           <span className="mt-1 block text-xs text-slate-500">
             Hält die Streak, bringt aber nur halbe XP.
@@ -232,13 +224,13 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
           </p>
         )}
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
+        <div className={editFooter}>
           {habit && !confirmDelete && (
             <>
-              <button type="button" onClick={archive} className="rounded-lg px-2 py-2 text-sm text-slate-400 hover:bg-slate-800">
+              <button type="button" onClick={archive} className="rounded-full px-3 py-2.5 text-sm text-slate-400 hover:bg-slate-800">
                 Archivieren
               </button>
-              <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg px-2 py-2 text-sm text-red-400 hover:bg-slate-800">
+              <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-full px-3 py-2.5 text-sm text-red-400 hover:bg-slate-800">
                 Löschen
               </button>
             </>
@@ -258,11 +250,10 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
               <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
                 Abbrechen
               </button>
-              <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+              <button className={primaryBtn}>Speichern</button>
             </div>
           )}
         </div>
-      </form>
-    </div>
+    </EditShell>
   )
 }
