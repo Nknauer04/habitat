@@ -36,7 +36,7 @@ export default function Layout() {
         })}
       </nav>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(5.5rem+var(--safe-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pb-[calc(5.5rem+var(--safe-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
         <div className="mx-auto max-w-2xl">
           <Outlet />
         </div>
