@@ -19,6 +19,7 @@ import {
 } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
+import { computeDayScores } from '../lib/stats'
 import { useToday } from '../lib/useToday'
 
 function streakText(p?: HabitProgress) {
@@ -62,6 +63,7 @@ export default function Today() {
     .filter((r) => r.due)
 
   const done = rows.filter((r) => r.doneToday).length
+  const todayScore = computeDayScores(habits ?? [], checks ?? [], today, today)[0]?.score ?? null
   const dateText = today.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
 
   return (
@@ -72,6 +74,7 @@ export default function Today() {
           <p className="mt-1 text-sm text-slate-400">
             {dateText}
             {rows.length > 0 && ` · ${done} von ${rows.length} erledigt`}
+            {todayScore !== null && ` · Score ${todayScore} %`}
           </p>
         </div>
         <button

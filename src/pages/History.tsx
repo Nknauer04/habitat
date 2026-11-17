@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import Heatmap from '../components/Heatmap'
 import QuantitySheet from '../components/QuantitySheet'
+import StatsCard from '../components/StatsCard'
 import { db } from '../lib/db'
 import { areaLabel, checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
@@ -101,6 +102,8 @@ export default function History() {
       <p className="mt-1 text-sm text-slate-400">
         Letzte 12 Wochen. Tippe auf ein Feld, um einen Tag nachzutragen oder zurückzunehmen.
       </p>
+
+      {habits && checks && <StatsCard habits={habits} checkIns={checks} today={today} />}
 
       {habits && habits.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
