@@ -38,5 +38,5 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik, Push-Erinnerun
 
 ## Neu (Wunschliste Niklas, Stand 2026-11-17)
 - [x] Wochenrückblick + Insights (bewusst schlicht gehalten, Design folgt)
-- [~] Design-Überarbeitung (Etappe 1 fertig: Design-System, Tab-Leiste, Profil mit Bereichs-Scores, Heute mit Wochenstreifen; Einstellungen unter Profil. Etappe 2: Ziele, Etappe 3: Statistik offen). Vorlage: Pattrn-Screenshots von Niklas. Ursprünglich: „cooler“, weniger minimalistisch. Niklas schickt Screenshots als Vorlage, sobald Wochenrückblick + Insights fertig sind; danach in einem Zug umsetzen
+- [~] Design-Überarbeitung (Etappe 1 fertig: Design-System, Tab-Leiste, Profil mit Bereichs-Scores, Heute mit Wochenstreifen; Einstellungen unter Profil. Etappe 2 fertig: Ziele mit Cyan-Pillen, Trend, Archiv; Etappe 3: Statistik offen). Vorlage: Pattrn-Screenshots von Niklas. Ursprünglich: „cooler“, weniger minimalistisch. Niklas schickt Screenshots als Vorlage, sobald Wochenrückblick + Insights fertig sind; danach in einem Zug umsetzen
 - [ ] KI-Coach (Claude API): Tipps für den Tag, Feedback zur Woche. Voraussetzungen klären: API-Key + Abrechnung bei Anthropic (laufende Kosten, nicht im Abo enthalten), Key nur serverseitig in einer Supabase Edge Function, Datenschutz (Gewohnheitsdaten gehen an die API), Ausgabenlimit setzen

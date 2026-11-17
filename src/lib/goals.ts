@@ -56,3 +56,21 @@ export function goalProgress(g: Goal, checkIns: CheckIn[], todayKey: string, hab
   }
   return { value, total, ratio: total > 0 ? Math.min(1, value / total) : 0 }
 }
+
+// Trend: liegt der Fortschritt vor oder hinter dem Zeitplan bis zur Frist? Ohne Frist: kein Trend.
+export type GoalTrend = 'ahead' | 'behind' | 'none'
+
+const utcDay = (k: string) => {
+  const [y, m, d] = k.split('-').map(Number)
+  return Date.UTC(y, m - 1, d)
+}
+
+export function goalTrend(g: Goal, ratio: number, todayKey: string): GoalTrend {
+  if (g.done || !g.targetDate) return 'none'
+  const start = g.kind === 'count' && g.startDate ? g.startDate : dayKey(new Date(g.createdAt))
+  const total = (utcDay(g.targetDate) - utcDay(start)) / 86_400_000
+  const elapsed = (utcDay(todayKey) - utcDay(start)) / 86_400_000
+  if (total <= 0 || elapsed <= 0) return 'none'
+  const expected = Math.min(1, elapsed / total)
+  return ratio + 1e-9 >= expected ? 'ahead' : 'behind'
+}
