@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik und Push-Erinnerungen fertig und auf iPhone + Mac getestet. Nächstes: weitere Should-/Nice-Features. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik, Push-Erinnerungen und Abzeichen fertig. Nächstes: weitere Nice-Features. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -29,7 +29,7 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik und Push-Erinne
 
 ## Nice
 - [ ] App-Icon-Badge (offene Habits heute)
-- [ ] Abzeichen/Meilensteine (7/30/66 Tage)
+- [x] Abzeichen/Meilensteine (Streak 7/30/66 Tage je Gewohnheit, Level 5/10/20, Ziele 1/5/10; Hinweis in Heute, Sammlung im Verlauf)
 - [ ] Wochenrückblick (Reflexion, 3 Fragen)
 - [ ] Schlaf-Logging (Zubettgeh-/Aufstehzeit) und Musik-Session-Timer
 - [ ] Widgets/Shortcuts-Anbindung (Apple Kurzbefehle)

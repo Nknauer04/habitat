@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import Heatmap from '../components/Heatmap'
 import QuantitySheet from '../components/QuantitySheet'
+import BadgesCard from '../components/BadgesCard'
 import StatsCard from '../components/StatsCard'
 import { db } from '../lib/db'
 import { areaLabel, checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn } from '../lib/habits'
@@ -104,6 +105,8 @@ export default function History() {
       </p>
 
       {habits && checks && <StatsCard habits={habits} checkIns={checks} today={today} />}
+
+      <BadgesCard today={today} />
 
       {habits && habits.length === 0 && (
         <div className="mt-8 rounded-xl border border-dashed border-slate-700 p-6 text-center text-slate-400">

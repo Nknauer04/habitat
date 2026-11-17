@@ -150,6 +150,7 @@ export interface Progress {
   byHabit: Map<string, HabitProgress>
   areaXp: Partial<Record<Area, number>>
   totalXp: number
+  goalsDone: number // abgeschlossene, nicht gelöschte Ziele
 }
 
 export const GOAL_DONE_XP = 100 // einmalig je abgeschlossenem Ziel, in den Bereich des Ziels
@@ -186,10 +187,12 @@ export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Dat
     areaXp[h.area] = (areaXp[h.area] ?? 0) + p.xp
     totalXp += p.xp
   }
+  let goalsDone = 0
   for (const g of goals) {
     if (g.deleted || !g.done) continue
+    goalsDone++
     areaXp[g.area] = (areaXp[g.area] ?? 0) + GOAL_DONE_XP
     totalXp += GOAL_DONE_XP
   }
-  return { byHabit, areaXp, totalXp }
+  return { byHabit, areaXp, totalXp, goalsDone }
 }

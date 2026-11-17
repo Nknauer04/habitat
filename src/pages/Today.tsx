@@ -20,6 +20,8 @@ import {
 import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
 import { computeDayScores } from '../lib/stats'
+import { TIER_ICONS } from '../lib/badges'
+import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useToday } from '../lib/useToday'
 
 function streakText(p?: HabitProgress) {
@@ -35,6 +37,7 @@ export default function Today() {
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
   const [sheetId, setSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
+  const { fresh: freshBadges, dismiss: dismissBadges } = useNewBadges(useBadges(today))
 
   const habits = useLiveQuery(
     () => db.habits.filter((h) => !h.deleted && !h.archived).sortBy('createdAt'),
@@ -85,6 +88,34 @@ export default function Today() {
           +
         </button>
       </div>
+
+      {freshBadges.length > 0 && (
+        <div
+          role="status"
+          className="mt-5 flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3"
+        >
+          <span className="text-2xl">🏆</span>
+          <div className="min-w-0 flex-1 text-sm">
+            <div className="font-medium">
+              {freshBadges.length === 1 ? 'Neues Abzeichen' : `${freshBadges.length} neue Abzeichen`}
+            </div>
+            <ul className="mt-0.5 text-slate-300">
+              {freshBadges.slice(0, 3).map((b) => (
+                <li key={b.id} className="truncate">
+                  {TIER_ICONS[b.tier]} {b.label}
+                </li>
+              ))}
+              {freshBadges.length > 3 && <li className="text-slate-400">+ {freshBadges.length - 3} weitere (siehe Verlauf)</li>}
+            </ul>
+          </div>
+          <button
+            onClick={dismissBadges}
+            className="shrink-0 rounded-lg px-3 py-1.5 text-sm text-amber-200 hover:bg-amber-500/20"
+          >
+            OK
+          </button>
+        </div>
+      )}
 
       {progress && habits && habits.length > 0 && <LevelCard progress={progress} />}
 
