@@ -3,9 +3,8 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ArcGauge from '../components/ArcGauge'
 import BadgesCard from '../components/BadgesCard'
-import Heatmap from '../components/Heatmap'
-import HeatmapAll from '../components/HeatmapAll'
-import { ChevronDownIcon } from '../components/icons'
+import Heat90Card from '../components/Heat90Card'
+import { HEAT_DAYS } from '../lib/heat'
 import { IconGlyph } from '../components/ItemIcon'
 import KpiCard from '../components/widgets/KpiCard'
 import InsightsCard from '../components/InsightsCard'
@@ -14,12 +13,11 @@ import QuantitySheet from '../components/QuantitySheet'
 import ReviewLinksCard from '../components/ReviewLinksCard'
 import StatsCard from '../components/StatsCard'
 import { dayKey, db } from '../lib/db'
-import { checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn, weekdayIndex } from '../lib/habits'
+import { checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import { computeDayScores, computeStats, consistency, summarize } from '../lib/stats'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
-import { iconText } from '../components/ItemIcon'
 
 const card = 'rounded-3xl border border-slate-800 bg-slate-900'
 
@@ -58,8 +56,6 @@ export default function History() {
   const [sel, setSel] = useState<string>('all')
   const [sheetDate, setSheetDate] = useState<string | null>(null)
 
-  const active = (habits ?? []).filter((h) => !h.archived)
-  const archived = (habits ?? []).filter((h) => h.archived)
   const selected = sel === 'all' ? null : (habits ?? []).find((h) => h.id === sel) ?? null
 
   // Kennzahlen für Bogen und Karten
@@ -79,17 +75,16 @@ export default function History() {
     [habits, checks, todayKey],
   )
 
-  // Score je Tag der letzten 12 Wochen (Heatmap "Alle Gewohnheiten")
+  // Score je Tag der letzten 90 Tage (Muster „Alle Gewohnheiten“)
   const allScores = useMemo(() => {
     const m = new Map<string, number | null>()
     if (!habits || !checks) return m
-    const start = new Date(today)
-    start.setDate(today.getDate() - weekdayIndex(today) - 11 * 7)
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (HEAT_DAYS - 1))
     for (const d of computeDayScores(habits, checks, start, today)) m.set(d.date, d.score)
     return m
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habits, checks, todayKey])
-  const avg12 = useMemo(() => summarize([...allScores.entries()].filter(([k]) => k < todayKey).map(([date, score]) => ({ date, score, due: 0 }))).avg, [allScores, todayKey])
+  const avg90 = useMemo(() => summarize([...allScores.entries()].filter(([k]) => k < todayKey).map(([date, score]) => ({ date, score, due: 0 }))).avg, [allScores, todayKey])
 
   // Einzelne Gewohnheit
   const selChecks = selected ? (checks ?? []).filter((c) => c.habitId === selected.id) : []
@@ -159,66 +154,28 @@ export default function History() {
         </div>
       )}
 
-      {/* Heatmap mit Auswahl */}
+      {/* 90-Tage-Muster mit Auswahl */}
       {habits && habits.length > 0 && (
-        <section className={`${card} mt-3 p-5`}>
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold">12 Wochen</h2>
-            <label className="relative">
-              <span className="sr-only">Gewohnheit wählen</span>
-              <select
-                value={selected ? selected.id : 'all'}
-                onChange={(e) => setSel(e.target.value)}
-                className="max-w-[11.5rem] appearance-none truncate rounded-full border border-slate-700 bg-slate-950 py-2 pl-4 pr-9 text-[15px] font-medium text-white outline-none focus:border-accent-500"
-              >
-                <option value="all">Alle Gewohnheiten</option>
-                {active.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {iconText(h.icon)} {h.name}
-                  </option>
-                ))}
-                {archived.length > 0 && (
-                  <optgroup label="Archiviert">
-                    {archived.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {iconText(h.icon)} {h.name}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-              </select>
-              <ChevronDownIcon width={18} height={18} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            </label>
-          </div>
-
-          <div className="mt-4">
-            {selected ? (
-              <>
-                <Heatmap
-                  habit={selected}
-                  dates={dates}
-                  partial={partial}
-                  mini={minis}
-                  today={today}
-                  onToggle={
-                    selected.archived
-                      ? undefined
-                      : (key) => (selected.dailyTarget ? setSheetDate(key) : void toggleCheckIn(selected.id, key))
-                  }
-                />
-                <HabitStats p={progress?.byHabit.get(selected.id)} />
-                {!selected.archived && <p className="mt-3 text-xs text-slate-500">Tippe auf ein Feld, um einen Tag nachzutragen oder zurückzunehmen.</p>}
-              </>
-            ) : (
-              <>
-                <HeatmapAll scores={allScores} today={today} />
-                <p className="mt-3 text-xs text-slate-500">
-                  Farbe = Tages-Score aller Gewohnheiten{avg12 === null ? '' : ` · Ø ${avg12} % in 12 Wochen`}. Für Nachtragen wähle oben eine Gewohnheit.
-                </p>
-              </>
-            )}
-          </div>
-        </section>
+        <Heat90Card
+          habits={habits}
+          selId={selected ? selected.id : 'all'}
+          onSelect={setSel}
+          allScores={allScores}
+          selected={selected}
+          dates={dates}
+          partial={partial}
+          minis={minis}
+          today={today}
+          onToggle={selected && !selected.archived ? (key) => (selected.dailyTarget ? setSheetDate(key) : void toggleCheckIn(selected.id, key)) : undefined}
+        >
+          {selected ? (
+            <HabitStats p={progress?.byHabit.get(selected.id)} />
+          ) : (
+            <p className="mt-4 text-xs text-slate-500">
+              Farbe = Tages-Score aller Gewohnheiten{avg90 === null ? '' : ` · Ø ${avg90} % in 90 Tagen`}. Zum Nachtragen wähle oben eine Gewohnheit.
+            </p>
+          )}
+        </Heat90Card>
       )}
 
       {habits && checks && <StatsCard habits={habits} checkIns={checks} today={today} />}

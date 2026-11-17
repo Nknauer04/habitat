@@ -142,7 +142,7 @@ export default function Profile() {
         {(
           [
             ['/rueckblick', 'Wochenrückblick', 'Wie lief deine Woche?', 'pencil', 'var(--color-accent-500)'],
-            ['/verlauf', 'Statistik, Insights und Abzeichen', 'Score, Heatmaps, Auffälligkeiten, Medaillen', 'trend', '#facc15'],
+            ['/verlauf', 'Statistik, Insights und Abzeichen', 'Score, Muster, Auffälligkeiten, Medaillen', 'trend', '#facc15'],
             ['/bereiche', 'Bereiche', 'Farben, Namen, Symbole, ausblenden', 'target', 'var(--color-area-musik)'],
             ['/einstellungen', 'Einstellungen', 'Konto, Erinnerungen, Backup', 'bolt', 'var(--color-area-schlaf)'],
           ] as const

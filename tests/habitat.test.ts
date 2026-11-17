@@ -445,4 +445,13 @@ eq('Register: Label/Farbe, unbekannt = Sonstiges', [areaLabelR('eigen'), areaCol
 eq('Register: ausgeblendet nicht in Auswahl, aber wenn aktuell gewählt', [getAreas().some((d) => d.key === 'schlaf'), pickableAreas('schlaf').some((d) => d.key === 'schlaf'), pickableAreas('sport').some((d) => d.key === 'schlaf')], [false, true, false])
 setAreaRows([])
 eq('Register: zurückgesetzt', areaLabelR('schlaf'), 'Schlaf')
+// 90-Tage-Muster
+import { doneDaysIn, fullDays, heatAlpha, heatKeys } from '../src/lib/heat'
+const hk = heatKeys(new Date(2026, 10, 17))
+eq('Heat: 90 Tage, heute zuletzt, älteste zuerst', [hk.length, hk[89], hk[0], hk[88]], [90, '2026-11-17', '2026-08-20', '2026-11-16'])
+eq('Heat: über Zeitumstellung keine Lücke/Doppelung', new Set(hk).size, 90)
+eq('Heat: volle Tage zählen nur Score 100', fullDays(new Map<string, number | null>([['2026-11-17', 100], ['2026-11-16', 99], ['2026-11-15', null], ['2026-11-14', 100]]), hk), 2)
+eq('Heat: Tage außerhalb des Zeitraums zählen nicht', fullDays(new Map<string, number | null>([['2025-01-01', 100]]), hk), 0)
+eq('Heat: erledigte Tage einer Gewohnheit', doneDaysIn(new Set(['2026-11-17', '2026-11-16', '2020-01-01']), hk), 2)
+eq('Heat: Deckkraft 0 / 50 / 100 / über 100', [heatAlpha(0), heatAlpha(50), heatAlpha(100), heatAlpha(150)], [0, 0.64, 1, 1])
 process.exit(fail ? 1 : 0)
