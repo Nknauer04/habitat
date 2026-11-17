@@ -6,7 +6,7 @@ Status: Phase 1 läuft – Grundgerüst steht, Supabase-Login + Sync + Vercel of
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
 - [x] PWA (Manifest, Service Worker, Icons, Splash)
 - [x] Datenmodell (Habits, Check-ins, Ziele) + Dexie
-- [ ] Supabase: Magic-Link-Login, RLS, Sync (last write wins)
+- [x] Supabase: Magic-Link-Login, RLS, Sync (last write wins) – Sync noch nicht mit zwei Geräten getestet
 - [ ] Vercel-Deployment via GitHub
 
 ## Must
