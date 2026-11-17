@@ -35,3 +35,8 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version, Statistik, Push-Erinnerun
 - [ ] Schlaf-Logging (Zubettgeh-/Aufstehzeit) und Musik-Session-Timer
 - [ ] Widgets/Shortcuts-Anbindung (Apple Kurzbefehle)
 - [ ] Insights („an welchen Tagen klappt X nicht?“)
+
+## Neu (Wunschliste Niklas, Stand 2026-11-17)
+- [ ] Wochenrückblick + Insights (als Nächstes, bewusst schlicht gehalten)
+- [ ] Design-Überarbeitung: „cooler“, weniger minimalistisch. Niklas schickt Screenshots als Vorlage, sobald Wochenrückblick + Insights fertig sind; danach in einem Zug umsetzen
+- [ ] KI-Coach (Claude API): Tipps für den Tag, Feedback zur Woche. Voraussetzungen klären: API-Key + Abrechnung bei Anthropic (laufende Kosten, nicht im Abo enthalten), Key nur serverseitig in einer Supabase Edge Function, Datenschutz (Gewohnheitsdaten gehen an die API), Ausgabenlimit setzen
