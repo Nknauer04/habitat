@@ -24,7 +24,7 @@ Status: Alle Must-Punkte, Ziele, Mengen, Mini-Version und Statistik fertig. Näc
 - [x] Mengen-Gewohnheiten (Einheit + Tagesziel; Tag zählt ab Ziel; Teilwerte addieren sich)
 - [x] Mini-Version/2-Minuten-Variante je Gewohnheit („schlechter Tag“): hält Streak, halbe XP
 - [x] Wochen-/Monatsstatistik, Tages-Score (Verlauf oben; Score in Heute; Wochenziele separat)
-- [ ] Erinnerungen per Web-Push (Morgen/Abend)
+- [ ] Erinnerungen per Web-Push (Morgen/Abend) – gebaut, Einrichtung in docs/push-setup.md; iPhone-Zustellung noch zu bestätigen
 - [ ] Habit-Stacking („Nach X …“) und Notiz/Kontext je Check-in
 
 ## Nice

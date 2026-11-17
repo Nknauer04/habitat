@@ -1,4 +1,5 @@
 import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react'
+import RemindersCard from '../components/RemindersCard'
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
@@ -189,6 +190,8 @@ export default function Settings() {
         )}
         {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
       </section>
+
+      <RemindersCard />
 
       <section className="mt-4 rounded-xl border border-slate-800 p-4">
         <h2 className="font-medium">Backup</h2>
