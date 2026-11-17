@@ -79,6 +79,7 @@ function checkHabit(r: Row): string | null {
     (r.dailyTarget !== undefined && !(typeof r.dailyTarget === 'number' && r.dailyTarget > 0)
       ? 'dailyTarget ungültig'
       : null) ??
+    (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
     (typeof r.archived !== 'boolean' ? 'archived fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )
@@ -129,6 +130,7 @@ function checkActivity(r: Row): string | null {
     (typeof r.icon !== 'string' ? 'icon fehlt' : null) ??
     (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
     (typeof r.unit !== 'string' ? 'unit fehlt' : null) ??
+    (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
     (r.days !== undefined && !(Array.isArray(r.days) && r.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6))
       ? 'days ungültig'
       : null) ??

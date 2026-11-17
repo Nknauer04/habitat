@@ -7,6 +7,7 @@ import HabitWizard from '../components/wizard/HabitWizard'
 import { PlusIcon } from '../components/icons'
 import DayHero from '../components/widgets/DayHero'
 import ActivityEntrySheet from '../components/ActivityEntrySheet'
+import SortableList from '../components/widgets/SortableList'
 import QuantitySheet from '../components/QuantitySheet'
 import { dayKey, db } from '../lib/db'
 import {
@@ -23,6 +24,7 @@ import {
   weekdayIndex,
 } from '../lib/habits'
 import { isActivityDay } from '../lib/activities'
+import { byOrder, mergeVisibleOrder, orderChanges, saveOrder } from '../lib/order'
 import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
 import type { Habit } from '../lib/types'
@@ -31,7 +33,7 @@ import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useCoachTips } from '../lib/useCoach'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
-import ItemIcon, { areaColor } from '../components/ItemIcon'
+import ItemIcon, { IconGlyph, areaColor } from '../components/ItemIcon'
 import { EmojiGlyph, StreakChip, TierMedal } from '../components/widgets/glyphs'
 
 const LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S']
@@ -86,6 +88,7 @@ export default function Today() {
 
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
   const [sheetId, setSheetId] = useState<string | null>(null)
+  const [sortMode, setSortMode] = useState(false)
   const [actSheetId, setActSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
   const coachOn = useCoachEnabled()
@@ -126,16 +129,18 @@ export default function Today() {
   )
 
   // Einheiten (nur Ist-Wert): immer anzeigbar, damit man jederzeit eintragen kann; sie zählen zu „x von y erledigt“ nur an Erinnerungstagen
-  const actRows = (activities ?? [])
+  const actRows = [...(activities ?? [])]
+    .sort(byOrder)
     .map((a) => {
       const mine = (actEntries ?? []).filter((e) => e.planId === a.id)
       const entry = mine.find((e) => e.date === viewKey)
       const weekSum = mine.reduce((sum, e) => sum + e.value, 0)
       const counts = !!entry || isActivityDay(a, viewKey)
       const bars = Array.from({ length: 7 }, (_, i) => mine.filter((e) => weekdayIndex(parseKey(e.date)) === i).reduce((sum, e) => sum + e.value, 0))
-      return { a, entry, weekSum, counts, bars }
+      return { id: a.id, a, entry, weekSum, counts, bars }
     })
-  const rows = (habits ?? [])
+  const rows = [...(habits ?? [])]
+    .sort(byOrder)
     .map((h) => {
       const mine = (checks ?? []).filter((c) => c.habitId === h.id)
       const doneDays = mine.filter((c) => isCheckInDone(h, c))
@@ -144,7 +149,7 @@ export default function Today() {
       const current = mine.filter((c) => c.date === viewKey).reduce((sum, c) => sum + checkInValue(h, c), 0)
       const miniToday = mine.some((c) => c.date === viewKey && isMini(h, c))
       const existed = dayKey(new Date(h.createdAt)) <= viewKey || doneToday
-      return { h, doneToday, miniToday, weekCount, current, show: existed && isDue(h, viewDate, doneToday, weekCount) }
+      return { id: h.id, h, doneToday, miniToday, weekCount, current, show: existed && isDue(h, viewDate, doneToday, weekCount) }
     })
     .filter((r) => r.show)
 
@@ -157,6 +162,16 @@ export default function Today() {
     return m
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habits, checks, weekStart, weekEnd, todayKey])
+
+  // Neue Reihenfolge einer Tageszeit speichern (nicht fällige Gewohnheiten behalten ihren Platz in der Gesamtliste)
+  function reorderHabits(time: Habit['timeOfDay'], visibleIds: string[]) {
+    const full = [...(habits ?? [])].sort(byOrder).filter((h) => h.timeOfDay === time)
+    const merged = mergeVisibleOrder(full.map((h) => h.id), visibleIds)
+    void saveOrder('habits', orderChanges(full, merged))
+  }
+  function reorderActivities(ids: string[]) {
+    void saveOrder('plans', orderChanges([...(activities ?? [])].sort(byOrder), ids))
+  }
 
   const done = rows.filter((r) => r.doneToday).length + actRows.filter((r) => r.counts && r.entry).length
   const dueCount = rows.length + actRows.filter((r) => r.counts).length
@@ -176,14 +191,33 @@ export default function Today() {
             {viewScore !== null && !isFuture && ` · Score ${viewScore} %`}
           </p>
         </div>
-        <button
-          onClick={() => setDialog({})}
-          aria-label="Neue Gewohnheit"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-white active:bg-slate-800"
-        >
-          <PlusIcon width={24} height={24} />
-        </button>
+        <div className="flex shrink-0 gap-2.5">
+          <button
+            onClick={() => setSortMode((v) => !v)}
+            aria-label={sortMode ? 'Sortieren beenden' : 'Reihenfolge ändern'}
+            aria-pressed={sortMode}
+            className={`flex h-12 w-12 items-center justify-center rounded-full border bg-slate-900 active:bg-slate-800 ${sortMode ? 'border-accent-500 text-accent-400' : 'border-slate-800 text-white'}`}
+          >
+            <IconGlyph name="sort" size={22} />
+          </button>
+          <button
+            onClick={() => setDialog({})}
+            aria-label="Neue Gewohnheit"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-white active:bg-slate-800"
+          >
+            <PlusIcon width={24} height={24} />
+          </button>
+        </div>
       </div>
+
+      {sortMode && (
+        <div role="status" className="mt-4 flex items-center gap-3 rounded-2xl border border-accent-500/30 bg-accent-500/10 p-3 pl-4 text-sm text-slate-200">
+          <span className="min-w-0 flex-1">Ziehe an den Griffen oder nutze die Pfeile. Die Reihenfolge gilt je Tageszeit.</span>
+          <button onClick={() => setSortMode(false)} className="shrink-0 rounded-full bg-accent-500 px-4 py-2 font-semibold text-black">
+            Fertig
+          </button>
+        </div>
+      )}
 
       {/* Wochenstreifen */}
       <div className="mt-5 grid grid-cols-7 gap-1.5" role="group" aria-label="Woche">
@@ -292,15 +326,18 @@ export default function Today() {
         return (
           <section key={t.value} className="mt-7">
             <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">{t.label}</h2>
-            <ul className="flex flex-col gap-3">
-              {section.map(({ h, doneToday, miniToday, weekCount, current }) => (
-                <li
-                  key={h.id}
+            <SortableList
+              items={section}
+              active={sortMode}
+              className="flex flex-col gap-3"
+              onReorder={(ids) => reorderHabits(t.value, ids)}
+              renderItem={({ h, doneToday, miniToday, weekCount, current }, controls) => (
+                <div
                   className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${
                     doneToday ? 'border-done/25' : 'border-slate-800'
                   }`}
                 >
-                  <button onClick={() => setDialog({ habit: h })} className="flex min-w-0 flex-1 items-center gap-4 text-left">
+                  <button onClick={() => setDialog({ habit: h })} disabled={sortMode} className="flex min-w-0 flex-1 items-center gap-4 text-left">
                     <ItemIcon icon={h.icon} area={h.area} size={52} />
                     <span className="min-w-0 flex-1">
                       <span className={`block truncate text-[19px] font-semibold ${doneToday ? 'text-slate-300' : ''}`}>{h.name}</span>
@@ -329,7 +366,7 @@ export default function Today() {
                     </span>
                   </button>
 
-                  {h.miniVersion && (!doneToday || miniToday) && (
+                  {!sortMode && h.miniVersion && (!doneToday || miniToday) && (
                     <button
                       onClick={() => void toggleMini(h, viewKey)}
                       disabled={disabled}
@@ -344,6 +381,7 @@ export default function Today() {
                     </button>
                   )}
 
+                  {!sortMode && (
                   <button
                     onClick={() => (h.dailyTarget ? setSheetId(h.id) : void toggleCheckIn(h.id, viewKey))}
                     disabled={disabled}
@@ -376,9 +414,11 @@ export default function Today() {
                       <CheckSvg />
                     )}
                   </button>
-                </li>
-              ))}
-            </ul>
+                  )}
+                  {controls}
+                </div>
+              )}
+            />
           </section>
         )
       })}
@@ -386,13 +426,16 @@ export default function Today() {
       {actRows.length > 0 && (
         <section className="mt-7">
           <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Einheiten</h2>
-          <ul className="flex flex-col gap-3">
-            {actRows.map(({ a, entry, weekSum, bars }) => (
-              <li
-                key={a.id}
+          <SortableList
+            items={actRows}
+            active={sortMode}
+            className="flex flex-col gap-3"
+            onReorder={reorderActivities}
+            renderItem={({ a, entry, weekSum, bars }, controls) => (
+              <div
                 className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${entry ? 'border-done/25' : 'border-slate-800'}`}
               >
-                <Link to="/ziele" className="flex min-w-0 flex-1 items-center gap-4 text-left">
+                <Link to="/ziele" className="flex min-w-0 flex-1 items-center gap-4 text-left" onClick={(e) => sortMode && e.preventDefault()}>
                   <ItemIcon icon={a.icon} area={a.area} size={48} />
                   <span className="min-w-0">
                     <span className={`block truncate text-[19px] font-semibold ${entry ? 'text-slate-300' : ''}`}>{a.name}</span>
@@ -402,6 +445,7 @@ export default function Today() {
                     </span>
                   </span>
                 </Link>
+                {!sortMode && (
                 <span className="flex h-10 shrink-0 items-end gap-[3px]" role="img" aria-label={`Diese Woche: ${fmtQty(weekSum)} ${a.unit}`}>
                   {bars.map((v, i) => (
                     <span
@@ -411,6 +455,8 @@ export default function Today() {
                     />
                   ))}
                 </span>
+                )}
+                {!sortMode && (
                 <button
                   onClick={() => setActSheetId(a.id)}
                   disabled={disabled}
@@ -421,9 +467,11 @@ export default function Today() {
                 >
                   {entry ? <CheckSvg /> : '+'}
                 </button>
-              </li>
-            ))}
-          </ul>
+                )}
+                {controls}
+              </div>
+            )}
+          />
         </section>
       )}
 

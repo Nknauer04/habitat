@@ -1,4 +1,5 @@
 import { db, newId, now } from './db'
+import { nextSortOrder } from './order'
 import type { Activity, ActivityEntry, Area, Goal } from './types'
 
 // Einheiten (z. B. Laufen in km): nur Ist-Werte je Tag. Das Soll steckt in Zielen der Art „Menge“ (siehe goals.ts).
@@ -28,7 +29,7 @@ export async function saveActivity(input: ActivityInput, id?: string): Promise<s
     return id
   }
   const newActivityId = newId()
-  await db.plans.add({ ...input, id: newActivityId, deleted: false, createdAt: t, updatedAt: t })
+  await db.plans.add({ ...input, sortOrder: nextSortOrder(await db.plans.toArray()), id: newActivityId, deleted: false, createdAt: t, updatedAt: t })
   return newActivityId
 }
 

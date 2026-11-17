@@ -43,11 +43,12 @@ export const ICON_SHAPES: Record<string, { label: string; shape: ReactNode }> = 
   medal: { label: 'Medaille', shape: <>{circle(12, 14, 5.500)}{p('M8.500 3l3.500 6 3.500-6')}{p('M10 14l1.500 1.500L14.500 12.500')}</> },
   snow: { label: 'Freeze', shape: <>{p('M12 2v20M3.500 7l17 10M3.500 17l17-10')}{p('M9.500 3.500L12 6l2.500-2.500M9.500 20.500L12 18l2.500 2.500')}</> },
   trend: { label: 'Trend', shape: <>{p('M3.500 4v16h17')}{p('M7 15l4-4.500 3 2.500 5-6')}</> },
+  sort: { label: 'Sortieren', shape: <>{p('M8 4v16M4.500 7.500L8 4l3.500 3.500')}{p('M16 20V4M12.500 16.500L16 20l3.500-3.500')}</> },
   sparkle: { label: 'Funken', shape: p('M12 3l2.200 6.300L21 12l-6.800 2.700L12 21l-2.200-6.300L3 12l6.800-2.700z') },
 }
 
 // Nur im Symbol-Picker anbieten, was als Gewohnheits-Symbol taugt (Medaille, Freeze, Trend sind reine Oberflächen-Symbole)
-export const ICON_KEYS = Object.keys(ICON_SHAPES).filter((k) => !['medal', 'snow', 'trend'].includes(k))
+export const ICON_KEYS = Object.keys(ICON_SHAPES).filter((k) => !['medal', 'snow', 'trend', 'sort'].includes(k))
 
 export const iconKey = (icon: string) => (icon.startsWith('i:') && ICON_SHAPES[icon.slice(2)] ? icon.slice(2) : null)
 

@@ -1,4 +1,5 @@
 import { dayKey, db, newId, now } from './db'
+import { nextSortOrder } from './order'
 import type { Area, CheckIn, Habit, TimeOfDay } from './types'
 
 export const AREAS: { value: Area; label: string }[] = [
@@ -83,6 +84,7 @@ export async function saveHabit(input: HabitInput, id?: string) {
   else
     await db.habits.add({
       ...input,
+      sortOrder: nextSortOrder(await db.habits.toArray()),
       id: newId(),
       archived: false,
       deleted: false,

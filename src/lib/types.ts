@@ -23,6 +23,7 @@ export interface Habit extends Syncable {
   unit?: string // Mengen-Gewohnheit: Einheit (min, h, Seiten …)
   dailyTarget?: number // Mengen-Gewohnheit: Tagesziel; Tag gilt ab diesem Wert als erledigt
   archived: boolean
+  sortOrder?: number // eigene Reihenfolge in „Heute“ (kleiner = weiter oben)
   createdAt: string
 }
 
@@ -71,6 +72,7 @@ export interface Activity extends Syncable {
   icon: string // Emoji
   area: Area
   unit: string // km, h, Seiten …
+  sortOrder?: number // eigene Reihenfolge in „Heute“
   days?: number[] // Erinnerungs-Wochentage, 0 = Montag … 6 = Sonntag (optional; ohne Soll)
   createdAt: string
   // Altdaten der ersten Version („Plan“ mit Soll) – werden ignoriert
