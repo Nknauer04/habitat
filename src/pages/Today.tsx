@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CoachCard from '../components/CoachCard'
 import HabitDialog from '../components/HabitDialog'
@@ -29,6 +29,7 @@ import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
 import type { Habit } from '../lib/types'
 import { dismissCoachFor, useCoachDismissedDay, useCoachEnabled } from '../lib/coachPrefs'
+import { celebrate, hasSeen, markSeen } from '../lib/celebrate'
 import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useCoachTips } from '../lib/useCoach'
 import { useProgress } from '../lib/useProgress'
@@ -175,6 +176,34 @@ export default function Today() {
 
   const done = rows.filter((r) => r.doneToday).length + actRows.filter((r) => r.counts && r.entry).length
   const dueCount = rows.length + actRows.filter((r) => r.counts).length
+  // Feier-Moment: Tag komplett (nur wenn es sich in dieser Sitzung ergibt, einmal pro Tag)
+  const doneRef = useRef<number | null>(null)
+  const dataReady = !!habits && !!checks && !!activities && !!actEntries
+  useEffect(() => {
+    if (!dataReady || !isToday) return
+    const prev = doneRef.current
+    doneRef.current = done
+    if (prev !== null && prev < done && dueCount > 0 && done === dueCount && !hasSeen(`day:${todayKey}`)) {
+      markSeen(`day:${todayKey}`)
+      celebrate({ id: `day:${todayKey}`, title: 'Tag geschafft!', text: 'Alles Fällige für heute ist erledigt.', glyph: 'sparkle', color: '#1fdcf0' })
+    }
+  }, [dataReady, isToday, done, dueCount, todayKey])
+
+  // Feier-Moment: neue Streak-Stufen/Abzeichen
+  const badgeIds = freshBadges.map((b) => b.id).join(',')
+  useEffect(() => {
+    if (!badgeIds || !isToday) return
+    const first = freshBadges[0]
+    celebrate({
+      id: `badge:${badgeIds}`,
+      title: freshBadges.length === 1 ? 'Neues Abzeichen!' : `${freshBadges.length} neue Abzeichen!`,
+      text: first.label,
+      glyph: 'medal',
+      color: '#facc15',
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [badgeIds, isToday])
+
   const viewScore = weekScores.get(viewKey) ?? null
   const dateText = viewDate.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
   const title = isToday ? 'Heute' : viewDate.toLocaleDateString('de-DE', { weekday: 'long' })

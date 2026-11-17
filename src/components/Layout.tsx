@@ -1,5 +1,7 @@
 import type { ComponentType, SVGProps } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useAutoCelebrations } from '../lib/useAutoCelebrations'
+import CelebrationHost from './CelebrationHost'
 import { BarsIcon, CalendarIcon, PersonIcon, TrendIcon } from './icons'
 
 type Item = { to: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>>; match: (path: string) => boolean }
@@ -13,6 +15,7 @@ const items: Item[] = [
 
 export default function Layout() {
   const { pathname } = useLocation()
+  useAutoCelebrations()
 
   return (
     <div className="flex h-full flex-col lg:flex-row">
@@ -41,6 +44,8 @@ export default function Layout() {
           <Outlet />
         </div>
       </main>
+
+      <CelebrationHost />
 
       {/* Feste Tab-Leiste am unteren Rand unter 1024 px (reicht bis unter die Home-Anzeige des iPhones) */}
       <nav

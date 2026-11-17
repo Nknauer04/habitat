@@ -424,4 +424,11 @@ eq('moveId ungültig bleibt unverändert', moveId(['a', 'b'], 5, 0), ['a', 'b'])
 eq('Sichtbare tauschen, versteckte behalten Platz', mergeVisibleOrder(['a', 'h1', 'b', 'h2', 'c'], ['c', 'a', 'b']), ['c', 'h1', 'a', 'h2', 'b'])
 eq('Nur geänderte Positionen werden geschrieben', orderChanges([o('a', 0, 'x'), o('b', 1, 'x'), o('c', 2, 'x')], ['a', 'c', 'b']), [{ id: 'c', sortOrder: 1 }, { id: 'b', sortOrder: 2 }])
 eq('Erste Sortierung nummeriert alle (auch ohne Wert)', orderChanges([o('a', undefined, 'x'), o('b', undefined, 'x')], ['b', 'a']), [{ id: 'b', sortOrder: 0 }, { id: 'a', sortOrder: 1 }])
+// Feier-Moment: Erkennung
+import { highestSeenLevel, reachedMilestones } from '../src/lib/celebrate'
+const rm = (value: number) => reachedMilestones([amountGoal], [ae('2026-11-17', value)], '2026-11-17').map((x) => x.key)
+eq('Feier: Etappe erst bei Erreichen', [rm(40), rm(100)], [[], ['ms:g1:m1']])
+eq('Feier: beide Etappen erreicht', rm(300), ['ms:g1:m1', 'ms:g1:m2'])
+eq('Feier: Ziel ohne Etappen/erledigt/gelöscht feiert nichts', [reachedMilestones([{ ...amountGoal, milestones: undefined }], [ae('2026-11-17', 300)], '2026-11-17').length, reachedMilestones([{ ...amountGoal, done: true }], [ae('2026-11-17', 300)], '2026-11-17').length, reachedMilestones([{ ...amountGoal, deleted: true }], [ae('2026-11-17', 300)], '2026-11-17').length], [0, 0, 0])
+eq('Feier: höchstes gefeiertes Level', [highestSeenLevel(new Set(['level:2', 'level:5', 'ms:x'])), highestSeenLevel(new Set())], [5, 0])
 process.exit(fail ? 1 : 0)

@@ -2,6 +2,7 @@ import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEven
 import { Link } from 'react-router-dom'
 import DisplayInfo from '../components/DisplayInfo'
 import RemindersCard from '../components/RemindersCard'
+import { setCelebrateEnabled, setCelebrateSound, useCelebrateEnabled, useCelebrateSound } from '../lib/celebrate'
 import { setCoachEnabled, useCoachEnabled } from '../lib/coachPrefs'
 import { setProfileName, useProfileName } from '../lib/profile'
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
@@ -32,6 +33,8 @@ const primary =
 export default function Settings() {
   const profileName = useProfileName()
   const coachOn = useCoachEnabled()
+  const celebrateOn = useCelebrateEnabled()
+  const soundOn = useCelebrateSound()
   const { session, loading } = useSession()
   const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
 
@@ -151,6 +154,24 @@ export default function Settings() {
             <span className="mt-0.5 block text-xs text-slate-500">
               Regelbasiert, ohne KI: entsteht aus deinen eigenen Zahlen auf diesem Gerät. Es werden keine Daten gesendet.
             </span>
+          </span>
+        </label>
+      </section>
+
+      <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-5">
+        <h2 className="font-medium">Feier-Moment</h2>
+        <label className="mt-3 flex cursor-pointer items-start gap-3">
+          <input type="checkbox" checked={celebrateOn} onChange={(e) => setCelebrateEnabled(e.target.checked)} className="mt-0.5 h-5 w-5 accent-accent-500" />
+          <span className="text-sm text-slate-300">
+            Konfetti und Glückwunsch bei Erfolgen
+            <span className="mt-0.5 block text-xs text-slate-500">Tag komplett, Etappe, Ziel, neue Streak-Stufe und Level-Up. Gilt nur für dieses Gerät.</span>
+          </span>
+        </label>
+        <label className={`mt-3 flex items-start gap-3 ${celebrateOn ? 'cursor-pointer' : 'opacity-40'}`}>
+          <input type="checkbox" checked={soundOn} disabled={!celebrateOn} onChange={(e) => setCelebrateSound(e.target.checked)} className="mt-0.5 h-5 w-5 accent-accent-500" />
+          <span className="text-sm text-slate-300">
+            Mit kurzem Ton
+            <span className="mt-0.5 block text-xs text-slate-500">Vibration gibt es auf dem iPhone für Web-Apps nicht.</span>
           </span>
         </label>
       </section>

@@ -9,6 +9,7 @@ import { InboxIcon, LinkIcon, PlusIcon } from '../components/icons'
 import { dayKey, db } from '../lib/db'
 import { activityDays } from '../lib/activities'
 import { completeGoal, deadlineInfo, goalProgress, goalTrend, milestoneStates, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
+import { celebrate } from '../lib/celebrate'
 import { WEEKDAYS, areaLabel, fmtQty } from '../lib/habits'
 import { GOAL_DONE_XP } from '../lib/progress'
 import type { Activity, Goal } from '../lib/types'
@@ -342,7 +343,7 @@ export default function Goals() {
                 </div>
 
                 {p.ratio >= 1 && (
-                  <button onClick={() => void completeGoal(g.id)} className="mt-3 w-full rounded-full bg-accent-500 px-4 py-3.5 font-semibold text-black">
+                  <button onClick={() => { void completeGoal(g.id); celebrate({ id: `goal:${g.id}`, title: 'Ziel erreicht!', text: g.title, glyph: 'trophy', color: '#facc15' }) }} className="mt-3 w-full rounded-full bg-accent-500 px-4 py-3.5 font-semibold text-black">
                     Abschließen (+{GOAL_DONE_XP} XP)
                   </button>
                 )}
