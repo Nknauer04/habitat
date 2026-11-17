@@ -84,7 +84,7 @@ export default function DisplayInfo() {
     ['Hülle (Body / Root)', `${info.bodyH} / ${info.rootH}`],
     ['Abstand oben / unten', `${info.safeTop} / ${info.safeBottom}`],
     ['Tab-Leiste oben / unten', `${info.barTop ?? '–'} / ${info.barBottom ?? '–'}`],
-    ['Leiste bis Bildschirmrand', gap === null ? '–' : String(gap)],
+    ['Leiste bis Bildschirmrand', gap === null ? '–' : `${gap}${info.safeTop === 0 ? ' (mit undurchs. Statusleiste normal)' : ''}`],
     ['Scroll Seite / Inhalt', `${info.scrollY} / ${info.mainScroll ?? '–'}`],
     ['Fehlende Fensterhöhe', String(info.gap)],
     ['Korrekturversuche', String(info.attempts)],

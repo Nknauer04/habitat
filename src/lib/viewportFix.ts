@@ -28,10 +28,22 @@ export function nudgeViewport() {
   requestAnimationFrame(() => window.scrollTo(0, 0))
 }
 
+// Oberer Sicherheitsabstand: 0 bei undurchsichtiger Statusleiste (App beginnt darunter, Fenster ist dann
+// absichtlich kürzer als der Bildschirm); > 0, wenn die App unter die Statusleiste reicht.
+function safeTop() {
+  const el = document.createElement('div')
+  el.style.cssText = 'position:fixed;visibility:hidden;padding-top:env(safe-area-inset-top);'
+  document.body.appendChild(el)
+  const v = parseFloat(getComputedStyle(el).paddingTop) || 0
+  el.remove()
+  return v
+}
+
 export function installViewportFix() {
   if (!isStandalone()) return
   const check = () => {
-    if (viewportGap() > 20) nudgeViewport()
+    // Nur wenn die App unter die Statusleiste reicht und trotzdem Höhe fehlt, ist das Fenster zu kurz.
+    if (safeTop() > 0 && viewportGap() > 20) nudgeViewport()
   }
   for (const t of [0, 120, 400, 900, 1800, 3500]) setTimeout(check, t)
   window.addEventListener('pageshow', check)
