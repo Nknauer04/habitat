@@ -4,6 +4,7 @@ import { copyText } from '../lib/copy'
 import { db } from '../lib/db'
 import { buildReport, recentRange } from '../lib/report'
 import SectionTitle from './widgets/SectionTitle'
+import { useCheckIns } from '../lib/useCheckIns'
 
 const PERIODS = [
   [7, '7 Tage'],
@@ -19,7 +20,7 @@ export default function ReportCard({ today, fixed }: { today: Date; fixed?: { fr
   const [state, setState] = useState<'idle' | 'ok' | 'fail'>('idle')
 
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
-  const checkIns = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checkIns = useCheckIns()
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
   const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).toArray(), [])
   const entries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])

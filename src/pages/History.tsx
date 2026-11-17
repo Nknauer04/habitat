@@ -13,12 +13,14 @@ import QuantitySheet from '../components/QuantitySheet'
 import ReportCard from '../components/ReportCard'
 import ReviewLinksCard from '../components/ReviewLinksCard'
 import StatsCard from '../components/StatsCard'
+import { isAvoid, toggleSlip } from '../lib/avoid'
 import { dayKey, db } from '../lib/db'
 import { checkInValue, isCheckInDone, isMini, isPartial, toggleCheckIn } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import { computeDayScores, computeStats, consistency, summarize } from '../lib/stats'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
+import { useCheckIns } from '../lib/useCheckIns'
 
 const card = 'rounded-3xl border border-slate-800 bg-slate-900'
 
@@ -53,7 +55,7 @@ export default function History() {
   const todayKey = dayKey(today)
   const progress = useProgress(today)
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).sortBy('createdAt'), [])
-  const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checks = useCheckIns()
   const [sel, setSel] = useState<string>('all')
   const [sheetDate, setSheetDate] = useState<string | null>(null)
 
@@ -167,7 +169,7 @@ export default function History() {
           partial={partial}
           minis={minis}
           today={today}
-          onToggle={selected && !selected.archived ? (key) => (selected.dailyTarget ? setSheetDate(key) : void toggleCheckIn(selected.id, key)) : undefined}
+          onToggle={selected && !selected.archived ? (key) => (isAvoid(selected) ? void toggleSlip(selected.id, key) : selected.dailyTarget ? setSheetDate(key) : void toggleCheckIn(selected.id, key)) : undefined}
         >
           {selected ? (
             <HabitStats p={progress?.byHabit.get(selected.id)} />

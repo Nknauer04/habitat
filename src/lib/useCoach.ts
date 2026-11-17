@@ -4,6 +4,7 @@ import { dailyTips, type Tip } from './coach'
 import { db } from './db'
 import { computeInsights } from './insights'
 import { useProgress } from './useProgress'
+import { useCheckIns } from './useCheckIns'
 
 // Aktuelle Uhrzeit, minütlich und beim Zurückkehren zur App aktualisiert (der Abend-Tipp hängt von der Uhrzeit ab).
 function useNow() {
@@ -23,7 +24,7 @@ function useNow() {
 export function useCoachTips(): Tip[] | null {
   const now = useNow()
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
-  const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checks = useCheckIns()
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
   const activityEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
   const progress = useProgress(now)

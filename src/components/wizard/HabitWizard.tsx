@@ -10,6 +10,7 @@ const num = (v: string) => Number(v.replace(',', '.'))
 
 // Gewohnheit anlegen: Name → Bereich → Symbol → Tageszeit → Häufigkeit → Messung → Mini-Version
 export default function HabitWizard({ onClose }: { onClose: () => void }) {
+  const [kind, setKind] = useState<'build' | 'avoid'>('build')
   const [name, setName] = useState('')
   const [area, setArea] = useState<Area>(() => getAreas()[0]?.key ?? 'sonstiges')
   const [icon, setIcon] = useState('i:check')
@@ -23,12 +24,24 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
   const [mini, setMini] = useState('')
   const [remind, setRemind] = useState('')
 
+  const avoid = kind === 'avoid'
+
   const steps: WizardStep[] = [
     {
+      key: 'kind',
+      question: 'Was möchtest du?',
+      content: (
+        <Tiles>
+          <Tile active={!avoid} onClick={() => setKind('build')} icon={<IconGlyph name="check" size={26} />} title="Etwas aufbauen" text="z. B. Laufen, Lesen, Dehnen – du hakst es ab" />
+          <Tile active={avoid} onClick={() => setKind('avoid')} icon={<IconGlyph name="leaf" size={26} />} title="Etwas vermeiden" text="z. B. kein Zucker, nicht rauchen – jeder Tag ohne Rückfall zählt automatisch" />
+        </Tiles>
+      ),
+    },
+    {
       key: 'name',
-      question: 'Was willst du dir angewöhnen?',
+      question: avoid ? 'Was willst du lassen?' : 'Was willst du dir angewöhnen?',
       validate: () => (name.trim() ? null : 'Bitte gib der Gewohnheit einen Namen.'),
-      content: <BigInput value={name} onChange={setName} placeholder="z. B. Morgens dehnen" />,
+      content: <BigInput value={name} onChange={setName} placeholder={avoid ? 'z. B. Kein Zucker' : 'z. B. Morgens dehnen'} />,
     },
     {
       key: 'area',
@@ -125,6 +138,10 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
   ]
 
   async function finish() {
+    if (avoid) {
+      await saveHabit({ name: name.trim(), icon, area, timeOfDay: 'beliebig', frequency: { type: 'daily' }, kind: 'avoid' })
+      return onClose()
+    }
     const frequency: Frequency = freq === 'daily' ? { type: 'daily' } : freq === 'weekdays' ? { type: 'weekdays', days: [...days].sort() } : { type: 'perWeek', count }
     await saveHabit({
       name: name.trim(),
@@ -140,5 +157,7 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
-  return <Wizard steps={steps} finishLabel="Gewohnheit anlegen" onFinish={finish} onClose={onClose} />
+  // Beim Vermeiden bleiben nur Art, Name, Bereich und Symbol
+  const visible = avoid ? steps.filter((s) => ['kind', 'name', 'area', 'icon'].includes(s.key)) : steps
+  return <Wizard steps={visible} finishLabel="Gewohnheit anlegen" onFinish={finish} onClose={onClose} />
 }

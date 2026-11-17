@@ -1,5 +1,6 @@
 import { dayKey, db, newId, now } from './db'
 import { entriesSum } from './activities'
+import { isPendingClean } from './avoid'
 import { isCheckInDone } from './habits'
 import type { ActivityEntry, CheckIn, Goal, Habit, Milestone } from './types'
 
@@ -66,7 +67,7 @@ export function goalProgress(
   } else {
     const seen = new Set<string>()
     for (const c of checkIns) {
-      if (c.deleted || !g.habitIds.includes(c.habitId)) continue
+      if (c.deleted || !g.habitIds.includes(c.habitId) || isPendingClean(c, todayKey)) continue
       const habit = habitById.get(c.habitId)
       if (habit && !isCheckInDone(habit, c)) continue
       if (c.date < (g.startDate ?? '') || c.date > todayKey) continue

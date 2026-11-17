@@ -18,6 +18,7 @@ import {
 import { useToday } from '../lib/useToday'
 import { TierMedal } from '../components/widgets/glyphs'
 import ReportCard from '../components/ReportCard'
+import { useCheckIns } from '../lib/useCheckIns'
 
 const fmt = (key: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', opts)
@@ -77,7 +78,7 @@ export default function Review() {
   const weekStart = requested && requested <= currentWeek ? requested : reviewWeekFor(today)
 
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
-  const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checks = useCheckIns()
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
   const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).toArray(), [])
   const actEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])

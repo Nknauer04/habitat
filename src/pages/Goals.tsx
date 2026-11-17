@@ -16,6 +16,7 @@ import type { Activity, Goal } from '../lib/types'
 import { useToday } from '../lib/useToday'
 import ItemIcon, { IconGlyph, areaColor } from '../components/ItemIcon'
 import ProgressRing from '../components/widgets/ProgressRing'
+import { useCheckIns } from '../lib/useCheckIns'
 
 const fmt = (key: string) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -47,7 +48,7 @@ export default function Goals() {
   })
 
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).sortBy('createdAt'), [])
-  const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checks = useCheckIns()
   const allHabits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
 
   const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).sortBy('createdAt'), [])

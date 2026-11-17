@@ -12,6 +12,7 @@ import { useProfileName } from '../lib/profile'
 import { areaScores, type ScoreMode } from '../lib/stats'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
+import { useCheckIns } from '../lib/useCheckIns'
 
 const roundBtn =
   'flex h-12 w-12 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-white active:bg-slate-800'
@@ -23,7 +24,7 @@ export default function Profile() {
   const [mode, setMode] = useState<ScoreMode>('current')
 
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
-  const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const checks = useCheckIns()
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
   const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).toArray(), [])
 

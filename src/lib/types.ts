@@ -21,6 +21,7 @@ export interface Habit extends Syncable {
   timeOfDay: TimeOfDay
   frequency: Frequency
   miniVersion?: string // 2-Minuten-Variante für schlechte Tage
+  kind?: 'avoid' // „Vermeiden“: Tage ohne Rückfall zählen automatisch; fehlt = normale Gewohnheit
   reminderTime?: string // eigene Erinnerung, HH:MM (Mitteilung nur wenn fällig und noch offen)
   unit?: string // Mengen-Gewohnheit: Einheit (min, h, Seiten …)
   dailyTarget?: number // Mengen-Gewohnheit: Tagesziel; Tag gilt ab diesem Wert als erledigt
@@ -34,6 +35,7 @@ export interface CheckIn extends Syncable {
   date: string // YYYY-MM-DD (lokaler Tag)
   value?: number // optional für Mengen (Minuten, Stunden …)
   mini?: boolean
+  slip?: boolean // Rückfall bei „Vermeiden“-Gewohnheiten (kein Haken, siehe lib/avoid.ts)
 }
 
 export interface GoalStep {

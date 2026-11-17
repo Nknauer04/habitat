@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { areaColor } from '../lib/areas'
 import { dayKey } from '../lib/db'
+import { isAvoid } from '../lib/avoid'
 import { weekdayIndex } from '../lib/habits'
 import { doneDaysIn, fullDays, heatAlpha, heatKeys, HEAT_COLUMNS, HEAT_DAYS } from '../lib/heat'
 import type { Habit } from '../lib/types'
@@ -100,7 +101,13 @@ export default function Heat90Card({
             {selected ? 'Zahl oben: deine erledigten Tage dieser Gewohnheit.' : 'Zahl oben: Tage, an denen du alles Fällige erledigt hast.'}
           </p>
           <ul className="mt-3 flex flex-col gap-2">
-            {(selected
+            {(selected && isAvoid(selected)
+              ? ([
+                  [color, 'sauber (kein Rückfall)'],
+                  [EMPTY, 'Rückfall'],
+                  [OFF, 'noch nicht angelegt'],
+                ] as const)
+              : selected
               ? ([
                   [color, 'erledigt'],
                   [mix(color, 55), 'Mini-Version'],
@@ -121,7 +128,7 @@ export default function Heat90Card({
               </li>
             ))}
           </ul>
-          {selected && !selected.archived && <p className="mt-3 text-slate-400">Tippe auf eine Kachel, um den Tag nachzutragen oder zurückzunehmen.</p>}
+          {selected && !selected.archived && <p className="mt-3 text-slate-400">{isAvoid(selected) ? 'Tippe auf eine Kachel, um einen Rückfall zu setzen oder zurückzunehmen.' : 'Tippe auf eine Kachel, um den Tag nachzutragen oder zurückzunehmen.'}</p>}
         </div>
       )}
 
@@ -133,7 +140,7 @@ export default function Heat90Card({
           if (selected) {
             const created = key >= dayKey(new Date(selected.createdAt))
             const done = dates.has(key)
-            const state = done ? (minis.has(key) ? 'Mini' : 'erledigt') : partial.has(key) ? 'teilweise' : created && isDue(selected, d) ? 'verpasst' : 'nicht fällig'
+            const state = done ? (minis.has(key) ? 'Mini' : isAvoid(selected) ? 'sauber' : 'erledigt') : isAvoid(selected) && created ? 'Rückfall' : partial.has(key) ? 'teilweise' : created && isDue(selected, d) ? 'verpasst' : 'nicht fällig'
             bg = done ? (minis.has(key) ? mix(color, 55) : color) : partial.has(key) ? mix(color, 35) : created && isDue(selected, d) ? EMPTY : OFF
             label = `${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}: ${state}`
           } else {

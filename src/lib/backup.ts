@@ -83,6 +83,7 @@ function checkHabit(r: Row): string | null {
       ? 'dailyTarget ungültig'
       : null) ??
     (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
+    (r.kind !== undefined && r.kind !== 'avoid' ? 'kind ungültig' : null) ??
     (r.reminderTime !== undefined && !(typeof r.reminderTime === 'string' && /^\d{1,2}:\d{2}$/.test(r.reminderTime)) ? 'reminderTime ungültig' : null) ??
     (typeof r.archived !== 'boolean' ? 'archived fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
@@ -95,7 +96,8 @@ function checkCheckIn(r: Row): string | null {
     (!isStr(r.habitId) ? 'habitId fehlt' : null) ??
     (!isDay(r.date) ? 'date ungültig' : null) ??
     (r.value !== undefined && !(typeof r.value === 'number' && r.value >= 0) ? 'value ungültig' : null) ??
-    (r.mini !== undefined && typeof r.mini !== 'boolean' ? 'mini ungültig' : null)
+    (r.mini !== undefined && typeof r.mini !== 'boolean' ? 'mini ungültig' : null) ??
+    (r.slip !== undefined && typeof r.slip !== 'boolean' ? 'slip ungültig' : null)
   )
 }
 

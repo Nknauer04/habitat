@@ -7,6 +7,7 @@ import HabitWizard from '../components/wizard/HabitWizard'
 import { PlusIcon } from '../components/icons'
 import DayHero from '../components/widgets/DayHero'
 import ActivityEntrySheet from '../components/ActivityEntrySheet'
+import SlipSheet from '../components/SlipSheet'
 import SortableList from '../components/widgets/SortableList'
 import QuantitySheet from '../components/QuantitySheet'
 import { dayKey, db } from '../lib/db'
@@ -24,6 +25,7 @@ import {
   weekdayIndex,
 } from '../lib/habits'
 import { isActivityDay } from '../lib/activities'
+import { isAvoid, toggleSlip, withCleanDays } from '../lib/avoid'
 import { byOrder, mergeVisibleOrder, orderChanges, saveOrder } from '../lib/order'
 import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
@@ -90,6 +92,7 @@ export default function Today() {
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
   const [sheetId, setSheetId] = useState<string | null>(null)
   const [sortMode, setSortMode] = useState(false)
+  const [slipFor, setSlipFor] = useState<Habit | null>(null)
   const [actSheetId, setActSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
   const coachOn = useCoachEnabled()
@@ -108,7 +111,7 @@ export default function Today() {
   const showReviewHint = isReviewDay(today) && reviewNote !== undefined && reviewNote.trim() === '' && !hintDismissed
 
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted && !h.archived).sortBy('createdAt'), [])
-  const checks = useLiveQuery(
+  const rawChecks = useLiveQuery(
     () =>
       db.checkIns
         .where('date')
@@ -117,6 +120,9 @@ export default function Today() {
         .toArray(),
     [weekStart, weekEnd],
   )
+  // „Vermeiden“: Rückfälle heraus, saubere Tage dieser Woche dazu
+  const checks = useMemo(() => (habits && rawChecks ? withCleanDays(habits, rawChecks, todayKey, weekStart) : undefined), [habits, rawChecks, todayKey, weekStart])
+  const slips = new Set((rawChecks ?? []).filter((c) => c.slip).map((c) => `${c.habitId}|${c.date}`))
 
   const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).sortBy('createdAt'), [])
   const actEntries = useLiveQuery(
@@ -150,7 +156,7 @@ export default function Today() {
       const current = mine.filter((c) => c.date === viewKey).reduce((sum, c) => sum + checkInValue(h, c), 0)
       const miniToday = mine.some((c) => c.date === viewKey && isMini(h, c))
       const existed = dayKey(new Date(h.createdAt)) <= viewKey || doneToday
-      return { id: h.id, h, doneToday, miniToday, weekCount, current, show: existed && isDue(h, viewDate, doneToday, weekCount) }
+      return { id: h.id, h, slipToday: slips.has(`${h.id}|${viewKey}`), doneToday, miniToday, weekCount, current, show: existed && isDue(h, viewDate, doneToday, weekCount) }
     })
     .filter((r) => r.show)
 
@@ -360,7 +366,7 @@ export default function Today() {
               active={sortMode}
               className="flex flex-col gap-3"
               onReorder={(ids) => reorderHabits(t.value, ids)}
-              renderItem={({ h, doneToday, miniToday, weekCount, current }, controls) => (
+              renderItem={({ h, slipToday, doneToday, miniToday, weekCount, current }, controls) => (
                 <div
                   className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${
                     doneToday ? 'border-done/25' : 'border-slate-800'
@@ -385,7 +391,18 @@ export default function Today() {
                             ))}
                           </span>
                         )}
-                        {isToday && <StreakChip {...(progress?.byHabit.get(h.id) ?? { streak: 0, unit: 'Tage' as const, freezes: 0 })} />}
+                        {isAvoid(h) ? (
+                          slipToday ? (
+                            <span className="font-semibold text-rose-300">Rückfall {isToday ? 'heute' : 'an diesem Tag'}</span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 font-semibold text-orange-400">
+                              <IconGlyph name="fire" size={15} />
+                              {progress?.byHabit.get(h.id)?.streak ?? 0} {(progress?.byHabit.get(h.id)?.streak ?? 0) === 1 ? 'Tag' : 'Tage'} sauber
+                            </span>
+                          )
+                        ) : (
+                          isToday && <StreakChip {...(progress?.byHabit.get(h.id) ?? { streak: 0, unit: 'Tage' as const, freezes: 0 })} />
+                        )}
                       </span>
                       {h.dailyTarget && !doneToday && (
                         <span className="mt-2 block h-1.5 overflow-hidden rounded-full bg-white/10">
@@ -395,7 +412,7 @@ export default function Today() {
                     </span>
                   </button>
 
-                  {!sortMode && h.miniVersion && (!doneToday || miniToday) && (
+                  {!sortMode && !isAvoid(h) && h.miniVersion && (!doneToday || miniToday) && (
                     <button
                       onClick={() => void toggleMini(h, viewKey)}
                       disabled={disabled}
@@ -410,7 +427,16 @@ export default function Today() {
                     </button>
                   )}
 
-                  {!sortMode && (
+                  {!sortMode && isAvoid(h) && !isFuture && (
+                    <button
+                      onClick={() => (slipToday ? void toggleSlip(h.id, viewKey) : setSlipFor(h))}
+                      aria-label={slipToday ? `${h.name}: Rückfall zurücknehmen` : `${h.name}: Rückfall melden`}
+                      className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold active:scale-95 ${slipToday ? 'border-rose-400/60 bg-rose-500/15 text-rose-300' : 'border-slate-700 text-slate-300 active:bg-slate-800'}`}
+                    >
+                      {slipToday ? 'Rückgängig' : 'Rückfall'}
+                    </button>
+                  )}
+                  {!sortMode && !isAvoid(h) && (
                   <button
                     onClick={() => (h.dailyTarget ? setSheetId(h.id) : void toggleCheckIn(h.id, viewKey))}
                     disabled={disabled}
@@ -505,6 +531,7 @@ export default function Today() {
       )}
 
       {dialog && (dialog.habit ? <HabitDialog habit={dialog.habit} onClose={() => setDialog(null)} /> : <HabitWizard onClose={() => setDialog(null)} />)}
+      {slipFor && <SlipSheet habit={slipFor} date={viewKey} onClose={() => setSlipFor(null)} />}
       {actSheetId &&
         (() => {
           const r = actRows.find((x) => x.a.id === actSheetId)

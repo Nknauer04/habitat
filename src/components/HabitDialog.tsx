@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { pickableAreas } from '../lib/areas'
+import { isAvoid } from '../lib/avoid'
 import { TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
 import ItemIcon from './ItemIcon'
@@ -109,6 +110,8 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
           ))}
         </div>
 
+        {!isAvoid(habit ?? ({} as Habit)) && (
+        <>
         <span className={`${label} mt-5`}>Tageszeit</span>
         <div className="flex flex-wrap gap-2">
           {TIMES.map((t) => (
@@ -223,6 +226,8 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
           </span>
         </label>
 
+        </>
+        )}
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         {confirmDelete && (
           <p className="mt-4 text-sm text-red-300">

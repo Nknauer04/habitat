@@ -1,6 +1,7 @@
 import { dayKey } from './db'
 import { isCheckInDone, isMini, weekRange, weekdayIndex } from './habits'
 import { activityXp } from './activities'
+import { isPendingClean } from './avoid'
 import type { Activity, ActivityEntry, Area, CheckIn, Goal, Habit } from './types'
 
 // Alles wird aus den Check-ins berechnet (nichts gespeichert) → kein Sync-Konflikt.
@@ -168,7 +169,7 @@ export function computeProgress(
   const minisByHabit = new Map<string, Set<string>>()
   const habitById = new Map(habits.map((h) => [h.id, h]))
   for (const c of checkIns) {
-    if (c.deleted || c.date > todayKey) continue
+    if (c.deleted || c.date > todayKey || isPendingClean(c, todayKey)) continue
     const habit = habitById.get(c.habitId)
     if (habit && !isCheckInDone(habit, c)) continue // Mengen-Gewohnheit: Ziel noch nicht erreicht
     if (!datesByHabit.has(c.habitId)) datesByHabit.set(c.habitId, new Set())

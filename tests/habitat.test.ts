@@ -476,4 +476,27 @@ eq('Bericht: Wochennotiz im Zeitraum', rep({ reviews: [{ id: 'r', weekStart: '20
 eq('Bericht: Notiz außerhalb des Zeitraums fehlt', rep({ reviews: [{ id: 'r', weekStart: '2026-10-05', note: 'alt', updatedAt: '', deleted: false }] }).includes('Meine Wochennotizen'), false)
 eq('Bericht: abgeschlossenes Ziel im Zeitraum', rep({ goals: [{ id: 'g2', title: 'Song fertig', area: 'musik', kind: 'steps', steps: [], habitIds: [], done: true, doneAt: '2026-11-12', createdAt: '2026-10-01T10:00:00', updatedAt: '', deleted: false }] }).includes('Song fertig (Musik): im Zeitraum abgeschlossen am 12.11.2026'), true)
 eq('Bericht: Zeitraum-Helfer 7/30/90 Tage', [recentRange(new Date(2026, 10, 17), 7), recentRange(new Date(2026, 10, 17), 90).from], [{ from: '2026-11-11', to: '2026-11-17' }, '2026-08-20'])
+// Vermeiden-Gewohnheiten
+import { isPendingClean, withCleanDays } from '../src/lib/avoid'
+import { computeDayScores as dayScoresA } from '../src/lib/stats'
+const av = hb('a', { name: 'Kein Zucker', kind: 'avoid', createdAt: '2026-11-10T08:00:00' })
+const slip = (date: string, extra: Partial<CheckIn> = {}): CheckIn => ({ ...c1('a', date), slip: true, ...extra })
+const TODAY_A = new Date(2026, 10, 17)
+const clean = (cis: CheckIn[]) => withCleanDays([av], cis, '2026-11-17').filter((c) => c.id.startsWith('clean:')).map((c) => c.date.slice(8))
+eq('Vermeiden: saubere Tage seit Anlegen bis heute', clean([]), ['10', '11', '12', '13', '14', '15', '16', '17'])
+eq('Vermeiden: Rückfall nimmt den Tag heraus', clean([slip('2026-11-13')]), ['10', '11', '12', '14', '15', '16', '17'])
+eq('Vermeiden: zurückgenommener Rückfall zählt nicht', clean([slip('2026-11-13', { deleted: true })]).length, 8)
+eq('Vermeiden: Rückfälle landen nicht in der Auswertungsliste', withCleanDays([av], [slip('2026-11-13')], '2026-11-17').some((c) => c.slip), false)
+eq('Vermeiden: normale Gewohnheiten und Haken bleiben unverändert', withCleanDays([hb('x'), av], [c1('x', '2026-11-16')], '2026-11-17').filter((c) => c.habitId === 'x').length, 1)
+eq('Vermeiden: gelöschte Gewohnheit liefert keine Tage', withCleanDays([{ ...av, deleted: true }], [], '2026-11-17').length, 0)
+eq('Vermeiden: Startpunkt from begrenzt', withCleanDays([av], [], '2026-11-17', '2026-11-15').filter((c) => c.id.startsWith('clean:')).length, 3)
+eq('Vermeiden: heute ist „offen“, früher nicht', [isPendingClean(withCleanDays([av], [], '2026-11-17').find((c) => c.date === '2026-11-17')!, '2026-11-17'), isPendingClean(withCleanDays([av], [], '2026-11-17').find((c) => c.date === '2026-11-16')!, '2026-11-17')], [true, false])
+const pa = computeProgress([av], withCleanDays([av], [slip('2026-11-13')], '2026-11-17'), TODAY_A)
+eq('Vermeiden: Streak nach Rückfall neu, heute zählt noch nicht', [pa.byHabit.get('a')!.streak, pa.byHabit.get('a')!.longest, pa.totalXp], [3, 3, 60])
+eq('Vermeiden: ohne Rückfall Streak bis gestern, XP je Tag', (() => { const p = computeProgress([av], withCleanDays([av], [], '2026-11-17'), TODAY_A); return [p.byHabit.get('a')!.streak, p.totalXp] })(), [7, 90]) // 7 Tage = 70 XP + 20 Bonus
+eq('Vermeiden: Rückfall heute ändert die Streak bis gestern nicht, Score heute 0', (() => { const cis = withCleanDays([av], [slip('2026-11-17')], '2026-11-17'); const p = computeProgress([av], cis, TODAY_A); const sc = dayScoresA([av], cis, TODAY_A, TODAY_A)[0]; return [p.byHabit.get('a')!.streak, sc.score] })(), [7, 0])
+eq('Vermeiden: Score heute 100, wenn kein Rückfall', dayScoresA([av], withCleanDays([av], [], '2026-11-17'), TODAY_A, TODAY_A)[0].score, 100)
+eq('Vermeiden: Score am Rückfalltag 0', dayScoresA([av], withCleanDays([av], [slip('2026-11-13')], '2026-11-17'), D('2026-11-13'), D('2026-11-14')).map((d) => d.score), [0, 100])
+const goalA: Goal = { id: 'ga', title: '7 Tage sauber', area: 'sport', kind: 'count', steps: [], habitIds: ['a'], target: 7, startDate: '2026-11-01', done: false, createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
+eq('Vermeiden: Zählziel zählt saubere Tage ohne heute', gp2(goalA, withCleanDays([av], [], '2026-11-17'), '2026-11-17', [av], []).value, 7)
 process.exit(fail ? 1 : 0)
