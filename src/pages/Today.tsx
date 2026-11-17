@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import CoachCard from '../components/CoachCard'
 import HabitDialog from '../components/HabitDialog'
 import { PlusIcon } from '../components/icons'
 import LevelCard from '../components/LevelCard'
@@ -23,7 +24,9 @@ import type { HabitProgress } from '../lib/progress'
 import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
 import type { Habit } from '../lib/types'
+import { dismissCoachFor, useCoachDismissedDay, useCoachEnabled } from '../lib/coachPrefs'
 import { useBadges, useNewBadges } from '../lib/useBadges'
+import { useCoachTips } from '../lib/useCoach'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
 
@@ -86,6 +89,9 @@ export default function Today() {
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
   const [sheetId, setSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
+  const coachOn = useCoachEnabled()
+  const coachDismissed = useCoachDismissedDay()
+  const coachTips = useCoachTips()
   const { fresh: freshBadges, dismiss: dismissBadges } = useNewBadges(useBadges(today))
   const reviewWeek = reviewWeekFor(today)
   const reviewNote = useLiveQuery(async () => (await db.reviews.get(reviewId(reviewWeek)))?.note ?? '', [reviewWeek])
@@ -193,6 +199,10 @@ export default function Today() {
             Zurück zu heute
           </button>
         </p>
+      )}
+
+      {coachOn && isToday && coachDismissed !== todayKey && coachTips && coachTips.length > 0 && (
+        <CoachCard tips={coachTips} onDismiss={() => dismissCoachFor(todayKey)} />
       )}
 
       {showReviewHint && isToday && (

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TIER_ICONS } from '../lib/badges'
 import { dayKey, db } from '../lib/db'
+import { weekFeedback } from '../lib/coach'
 import { computeInsights } from '../lib/insights'
 import {
   isoWeek,
@@ -216,18 +217,18 @@ export default function Review() {
         </>
       )}
 
-      {insights?.enoughData && insights.sentences.length > 0 && (
+      {summary && insights && habits && (
         <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-4">
-          <h2 className="font-medium">Auffälligkeiten</h2>
-          <ul className="mt-2 flex flex-col gap-2 text-sm">
-            {insights.sentences.slice(0, 2).map((s) => (
-              <li key={s} className="flex gap-2">
-                <span>💡</span>
-                <span>{s}</span>
+          <h2 className="font-medium">Wochenfazit</h2>
+          <ul className="mt-2 flex flex-col gap-2 text-sm text-slate-200">
+            {weekFeedback(summary, insights, habits).map((line) => (
+              <li key={line} className="flex gap-2">
+                <span className="text-accent-400">•</span>
+                <span>{line}</span>
               </li>
             ))}
           </ul>
-          <Link to="/verlauf" className="mt-2 inline-block text-xs text-accent-400">
+          <Link to="/verlauf" className="mt-3 inline-block text-xs text-accent-400">
             Alle Insights in der Statistik
           </Link>
         </section>

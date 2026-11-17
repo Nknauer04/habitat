@@ -2,6 +2,7 @@ import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEven
 import { Link } from 'react-router-dom'
 import DisplayInfo from '../components/DisplayInfo'
 import RemindersCard from '../components/RemindersCard'
+import { setCoachEnabled, useCoachEnabled } from '../lib/coachPrefs'
 import { setProfileName, useProfileName } from '../lib/profile'
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
@@ -30,6 +31,7 @@ const primary =
 
 export default function Settings() {
   const profileName = useProfileName()
+  const coachOn = useCoachEnabled()
   const { session, loading } = useSession()
   const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
 
@@ -132,6 +134,24 @@ export default function Settings() {
             maxLength={30}
             className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white outline-none focus:border-accent-500"
           />
+        </label>
+      </section>
+
+      <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-5">
+        <h2 className="font-medium">Coach</h2>
+        <label className="mt-3 flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={coachOn}
+            onChange={(e) => setCoachEnabled(e.target.checked)}
+            className="mt-0.5 h-5 w-5 accent-accent-500"
+          />
+          <span className="text-sm text-slate-300">
+            Tipp des Tages in „Heute“ anzeigen
+            <span className="mt-0.5 block text-xs text-slate-500">
+              Regelbasiert, ohne KI: entsteht aus deinen eigenen Zahlen auf diesem Gerät. Es werden keine Daten gesendet.
+            </span>
+          </span>
         </label>
       </section>
 
