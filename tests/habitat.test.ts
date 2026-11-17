@@ -454,4 +454,26 @@ eq('Heat: volle Tage zählen nur Score 100', fullDays(new Map<string, number | n
 eq('Heat: Tage außerhalb des Zeitraums zählen nicht', fullDays(new Map<string, number | null>([['2025-01-01', 100]]), hk), 0)
 eq('Heat: erledigte Tage einer Gewohnheit', doneDaysIn(new Set(['2026-11-17', '2026-11-16', '2020-01-01']), hk), 2)
 eq('Heat: Deckkraft 0 / 50 / 100 / über 100', [heatAlpha(0), heatAlpha(50), heatAlpha(100), heatAlpha(150)], [0, 0.64, 1, 1])
+// Bericht kopieren
+import { buildReport, recentRange, REPORT_TASK } from '../src/lib/report'
+const rep = (over: object = {}) => buildReport({ habits: [hb('h', { name: 'Laufen', createdAt: '2026-01-01T08:00:00' })], checkIns: dates('2026-11-10', '2026-11-14').map((d) => c1('h', d)), goals: [], activities: [], entries: [], reviews: [], today: new Date(2026, 10, 17), from: '2026-11-10', to: '2026-11-16', ...over } as never)
+const r1 = rep()
+eq('Bericht: beginnt mit dem Auftrag', r1.startsWith(REPORT_TASK), true)
+eq('Bericht: Zeitraum und Tage', r1.includes('Zeitraum: 10.11.2026 bis 16.11.2026 (7 Tage)'), true)
+eq('Bericht: Quote 5 von 7 Tagen', r1.includes('Laufen (Sport, täglich): Quote 71 % (5 von 7 Tagen voll erledigt)'), true)
+eq('Bericht: Gesamt-Score und volle Tage', r1.includes('Ø Tages-Score: 71 %') && r1.includes('Tage mit allem Fälligen erledigt: 5 von 7 Tagen mit Fälligem'), true)
+eq('Bericht: heute zählt nicht, wenn Zeitraum bis heute reicht', rep({ to: '2026-11-17' }).includes('heute läuft noch und zählt nicht in die Durchschnitte'), true)
+eq('Bericht: Wochentage-Gewohnheit nennt Tage', rep({ habits: [hb('h', { name: 'Yoga', createdAt: '2026-01-01T08:00:00', frequency: { type: 'weekdays', days: [0, 2] } })], checkIns: [] }).includes('Yoga (Sport, an Mo, Mi): Quote 0 % (0 von 2 Tagen voll erledigt)'), true)
+eq('Bericht: neue Gewohnheit zählt erst ab Anlegen', rep({ habits: [hb('h', { name: 'Neu', createdAt: '2026-11-15T08:00:00' })], checkIns: [] }).includes('Neu (Sport, täglich): Quote 0 % (0 von 2 Tagen voll erledigt)'), true)
+eq('Bericht: X× pro Woche zählt abgeschlossene Wochen', rep({ habits: [hb('h', { name: 'Gym', createdAt: '2026-01-01T08:00:00', frequency: { type: 'perWeek', count: 2 } })], checkIns: [c1('h', '2026-11-10'), c1('h', '2026-11-12')], from: '2026-11-09', to: '2026-11-16' }).includes('Gym (Sport, 2× pro Woche): Ziel in 1 von 1 abgeschlossenen Wochen erreicht'), true)
+const rg = rep({
+  goals: [{ id: 'g', title: '500 km laufen', area: 'sport', kind: 'amount', steps: [], habitIds: [], target: 500, startDate: '2026-11-02', targetDate: '2027-03-31', activityIds: ['a1'], unit: 'km', milestones: [{ id: 'm', date: '2026-11-30', value: 100 }], done: false, createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }],
+  activities: [act], entries: [ae('2026-11-12', 12), ae('2026-11-03', 5)],
+})
+eq('Bericht: Einheiten mit Summe im Zeitraum und Vorperiode', rg.includes('Laufen (Sport): 12 km in 1 Eintrag (Vorperiode: 5 km)'), true)
+eq('Bericht: Ziel mit Stand, Frist und Etappe', rg.includes('500 km laufen (Sport): 17 von 500 km (3 %), Frist 31.03.2027, auf Kurs, Etappen: 100 km bis 30.11. (offen)'), true)
+eq('Bericht: Wochennotiz im Zeitraum', rep({ reviews: [{ id: 'r', weekStart: '2026-11-09', note: 'Knie  zwickt\nsonst gut', updatedAt: '', deleted: false }] }).includes('- KW 46 (09.11.–15.11.): „Knie zwickt sonst gut“'), true)
+eq('Bericht: Notiz außerhalb des Zeitraums fehlt', rep({ reviews: [{ id: 'r', weekStart: '2026-10-05', note: 'alt', updatedAt: '', deleted: false }] }).includes('Meine Wochennotizen'), false)
+eq('Bericht: abgeschlossenes Ziel im Zeitraum', rep({ goals: [{ id: 'g2', title: 'Song fertig', area: 'musik', kind: 'steps', steps: [], habitIds: [], done: true, doneAt: '2026-11-12', createdAt: '2026-10-01T10:00:00', updatedAt: '', deleted: false }] }).includes('Song fertig (Musik): im Zeitraum abgeschlossen am 12.11.2026'), true)
+eq('Bericht: Zeitraum-Helfer 7/30/90 Tage', [recentRange(new Date(2026, 10, 17), 7), recentRange(new Date(2026, 10, 17), 90).from], [{ from: '2026-11-11', to: '2026-11-17' }, '2026-08-20'])
 process.exit(fail ? 1 : 0)

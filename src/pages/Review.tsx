@@ -17,6 +17,7 @@ import {
 } from '../lib/review'
 import { useToday } from '../lib/useToday'
 import { TierMedal } from '../components/widgets/glyphs'
+import ReportCard from '../components/ReportCard'
 
 const fmt = (key: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', opts)
@@ -242,6 +243,12 @@ export default function Review() {
       <section className="mt-4 rounded-3xl border border-slate-800 bg-slate-900 p-4">
         {reviewReady && <NoteEditor key={weekStart} weekStart={weekStart} initial={review.note} />}
       </section>
+
+      <ReportCard
+        key={weekStart}
+        today={today}
+        fixed={{ from: weekStart, to: weekEndOf(weekStart) < todayKey ? weekEndOf(weekStart) : todayKey, label: `KW ${isoWeek(weekStart)} (${label})` }}
+      />
     </div>
   )
 }

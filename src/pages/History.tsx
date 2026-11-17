@@ -10,6 +10,7 @@ import KpiCard from '../components/widgets/KpiCard'
 import InsightsCard from '../components/InsightsCard'
 import GoalAmountStats from '../components/GoalAmountStats'
 import QuantitySheet from '../components/QuantitySheet'
+import ReportCard from '../components/ReportCard'
 import ReviewLinksCard from '../components/ReviewLinksCard'
 import StatsCard from '../components/StatsCard'
 import { dayKey, db } from '../lib/db'
@@ -187,6 +188,8 @@ export default function History() {
       </div>
 
       <ReviewLinksCard today={today} />
+
+      <ReportCard today={today} />
 
       {selected && sheetDate && (
         <QuantitySheet habit={selected} date={sheetDate} current={valueOn(sheetDate)} onClose={() => setSheetDate(null)} />
