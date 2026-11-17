@@ -42,7 +42,7 @@ export default function UpdatePrompt() {
           </button>
           <button
             onClick={() => void updateServiceWorker(true)}
-            className="rounded-full bg-accent-500 px-3 py-2 text-sm font-medium text-white"
+            className="rounded-full bg-accent-500 px-3 py-2 text-sm font-medium text-black"
           >
             Aktualisieren
           </button>

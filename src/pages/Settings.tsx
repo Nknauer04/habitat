@@ -25,7 +25,7 @@ function syncText(s: SyncStatus) {
 const input =
   'min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-accent-500'
 const primary =
-  'rounded-full bg-accent-500 px-4 py-2 font-medium text-white disabled:opacity-50'
+  'rounded-full bg-accent-500 px-4 py-2 font-medium text-black disabled:opacity-50'
 
 export default function Settings() {
   const profileName = useProfileName()
@@ -119,7 +119,7 @@ export default function Settings() {
       <Link to="/profil" className="text-sm text-slate-400 hover:text-slate-200">
         ‹ Profil
       </Link>
-      <h1 className="mt-2 text-4xl font-bold tracking-tight">Einstellungen</h1>
+      <h1 className="mt-2 text-4xl font-bold tracking-tight text-accent-400">Einstellungen</h1>
 
       <section className="mt-6 rounded-3xl border border-slate-800 bg-slate-900 p-5">
         <h2 className="font-medium">Profil</h2>

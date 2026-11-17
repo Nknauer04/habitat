@@ -33,7 +33,7 @@ export default function Goals() {
     <div>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Ziele</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-accent-400">Ziele</h1>
           <p className="mt-1 text-sm text-slate-400">
             Ein abgeschlossenes Ziel bringt {GOAL_DONE_XP} XP in seinen Bereich.
           </p>
@@ -41,7 +41,7 @@ export default function Goals() {
         <button
           onClick={() => setDialog({})}
           aria-label="Neues Ziel"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-2xl leading-none text-white"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-2xl leading-none text-black"
         >
           +
         </button>
@@ -107,7 +107,7 @@ export default function Goals() {
               {p.ratio >= 1 && (
                 <button
                   onClick={() => void completeGoal(g.id)}
-                  className="mt-4 w-full rounded-full bg-accent-500 px-4 py-2 font-medium text-white"
+                  className="mt-4 w-full rounded-full bg-accent-500 px-4 py-2 font-medium text-black"
                 >
                   Abschließen (+{GOAL_DONE_XP} XP)
                 </button>

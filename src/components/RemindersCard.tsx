@@ -14,7 +14,7 @@ import { useSession } from '../lib/useSession'
 
 const timeInput =
   'rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-accent-500 disabled:opacity-40'
-const primary = 'rounded-full bg-accent-500 px-4 py-2 font-medium text-white disabled:opacity-50'
+const primary = 'rounded-full bg-accent-500 px-4 py-2 font-medium text-black disabled:opacity-50'
 const secondary = 'rounded-full bg-slate-800 px-4 py-2 hover:bg-slate-700 disabled:opacity-50'
 
 export default function RemindersCard() {

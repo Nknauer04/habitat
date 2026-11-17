@@ -142,7 +142,7 @@ export default function Today() {
     <div>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-4xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-accent-400">{title}</h1>
           <p className="mt-1.5 text-sm text-slate-400">
             {dateText}
             {rows.length > 0 && !isFuture && ` · ${done} von ${rows.length} erledigt`}
@@ -215,7 +215,7 @@ export default function Today() {
           >
             Später
           </button>
-          <Link to={`/rueckblick/${reviewWeek}`} className="shrink-0 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-white">
+          <Link to={`/rueckblick/${reviewWeek}`} className="shrink-0 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-black">
             Ansehen
           </Link>
         </div>

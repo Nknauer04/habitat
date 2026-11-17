@@ -102,7 +102,7 @@ export default function QuantitySheet({
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
             Abbrechen
           </button>
-          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-white">Hinzufügen</button>
+          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Hinzufügen</button>
         </div>
       </form>
     </div>

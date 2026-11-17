@@ -101,7 +101,7 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold tracking-tight">Verlauf</h1>
+      <h1 className="text-4xl font-bold tracking-tight text-accent-400">Verlauf</h1>
       <p className="mt-1 text-sm text-slate-400">
         Letzte 12 Wochen. Tippe auf ein Feld, um einen Tag nachzutragen oder zurückzunehmen.
       </p>

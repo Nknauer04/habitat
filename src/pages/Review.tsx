@@ -105,7 +105,7 @@ export default function Review() {
       <Link to="/verlauf" className="text-sm text-slate-400 hover:text-slate-200">
         ‹ Verlauf
       </Link>
-      <h1 className="mt-2 text-4xl font-bold tracking-tight">Wochenrückblick</h1>
+      <h1 className="mt-2 text-4xl font-bold tracking-tight text-accent-400">Wochenrückblick</h1>
 
       <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 py-1">
         <button

@@ -42,7 +42,7 @@ export default function Profile() {
         <div className="flex h-28 w-28 items-center justify-center rounded-full border border-slate-800 bg-slate-900 text-slate-500">
           <PersonIcon width={58} height={58} />
         </div>
-        <h1 className="mt-5 text-3xl font-bold tracking-tight">{name}</h1>
+        <h1 className="mt-5 text-3xl font-bold tracking-tight text-accent-400">{name}</h1>
         {total && (
           <p className="mt-1 text-sm text-slate-400">
             Level {total.level} · {total.into} / {total.needed} XP bis Level {total.level + 1}

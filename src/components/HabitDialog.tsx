@@ -248,7 +248,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
             Abbrechen
           </button>
-          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-white">Speichern</button>
+          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
         </div>
       </form>
     </div>
