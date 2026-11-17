@@ -1,11 +1,11 @@
 # Roadmap
 
-Status: Phase 0 – wartet auf Freigabe. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 läuft – Grundgerüst steht, Supabase-Login + Sync + Vercel offen. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
-- [ ] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
-- [ ] PWA (Manifest, Service Worker, Icons, Splash)
-- [ ] Datenmodell (Habits, Check-ins, Ziele) + Dexie
+- [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
+- [x] PWA (Manifest, Service Worker, Icons, Splash)
+- [x] Datenmodell (Habits, Check-ins, Ziele) + Dexie
 - [ ] Supabase: Magic-Link-Login, RLS, Sync (last write wins)
 - [ ] Vercel-Deployment via GitHub
 
