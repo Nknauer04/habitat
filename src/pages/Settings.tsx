@@ -65,8 +65,23 @@ export default function Settings() {
     e.preventDefault()
     if (!supabase) return
     setCodeError('')
-    const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
-    if (error) setCodeError(error.message)
+    let result
+    if (/^https?:\/\//i.test(code)) {
+      // Eingefügter Link aus der Mail: Token-Hash auslesen und direkt einlösen.
+      let hash: string | null = null
+      try {
+        const u = new URL(code)
+        hash = u.searchParams.get('token_hash') ?? u.searchParams.get('token')
+      } catch {
+        /* ungültige URL */
+      }
+      if (!hash) return setCodeError('Kein gültiger Anmelde-Link.')
+      result = await supabase.auth.verifyOtp({ token_hash: hash, type: 'email' })
+      if (result.error) result = await supabase.auth.verifyOtp({ token_hash: hash, type: 'magiclink' })
+    } else {
+      result = await supabase.auth.verifyOtp({ email, token: code, type: 'email' })
+    }
+    if (result.error) setCodeError(result.error.message)
   }
 
   return (
@@ -109,18 +124,16 @@ export default function Settings() {
         ) : status === 'sent' ? (
           <div className="mt-2 text-sm">
             <p className="text-emerald-400">
-              E-Mail gesendet. Tippe auf den Link – oder gib hier den Code aus der E-Mail ein (nötig
-              in der installierten iPhone-App).
+              E-Mail gesendet. Am Mac: Link in der Mail anklicken. In der installierten iPhone-App:
+              Link in der Mail lange drücken → „Link kopieren“ und hier einfügen.
             </p>
             <form onSubmit={verifyCode} className="mt-3 flex flex-col gap-2 sm:flex-row">
               <input
-                inputMode="numeric"
-                autoComplete="one-time-code"
                 required
                 value={code}
                 onChange={(e) => setCode(e.target.value.trim())}
-                placeholder="Code"
-                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base tracking-widest outline-none focus:border-emerald-500"
+                placeholder="Link oder Code einfügen"
+                className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500"
               />
               <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">
                 Anmelden
