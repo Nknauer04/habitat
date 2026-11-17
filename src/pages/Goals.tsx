@@ -1,15 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import GoalDialog from '../components/GoalDialog'
-import PlanDialog from '../components/PlanDialog'
-import PlanEntrySheet from '../components/PlanEntrySheet'
+import ActivityDialog from '../components/ActivityDialog'
+import ActivityEntrySheet from '../components/ActivityEntrySheet'
 import { InboxIcon, LinkIcon, PlusIcon } from '../components/icons'
 import { dayKey, db } from '../lib/db'
-import { completeGoal, goalProgress, goalTrend, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
-import { areaLabel, fmtQty } from '../lib/habits'
-import { planProgress } from '../lib/plans'
+import { activityDays } from '../lib/activities'
+import { completeGoal, goalProgress, goalTrend, milestoneStates, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
+import { WEEKDAYS, areaLabel, fmtQty } from '../lib/habits'
 import { GOAL_DONE_XP } from '../lib/progress'
-import type { Goal, Plan } from '../lib/types'
+import type { Activity, Goal } from '../lib/types'
 import { useToday } from '../lib/useToday'
 
 const fmt = (key: string) =>
@@ -31,8 +31,8 @@ export default function Goals() {
   const todayKey = dayKey(today)
   const [dialog, setDialog] = useState<{ goal?: Goal } | null>(null)
   const [archive, setArchive] = useState(false)
-  const [planDialog, setPlanDialog] = useState<{ plan?: Plan } | null>(null)
-  const [entrySheet, setEntrySheet] = useState<{ plan: Plan; date: string } | null>(null)
+  const [actDialog, setActDialog] = useState<{ activity?: Activity } | null>(null)
+  const [entrySheet, setEntrySheet] = useState<{ activity: Activity; date: string } | null>(null)
   const [tipHidden, setTipHidden] = useState(() => {
     try {
       return localStorage.getItem(TIP_KEY) === '1'
@@ -45,8 +45,8 @@ export default function Goals() {
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
   const allHabits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
 
-  const plans = useLiveQuery(() => db.plans.filter((p) => !p.deleted).sortBy('createdAt'), [])
-  const planEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
+  const activities = useLiveQuery(() => db.plans.filter((a) => !a.deleted).sortBy('createdAt'), [])
+  const actEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
 
   const open = (goals ?? []).filter((g) => !g.done)
   const done = (goals ?? []).filter((g) => g.done)
@@ -98,75 +98,55 @@ export default function Goals() {
       )}
 
       {!archive && (
-        <section className="mt-6" aria-label="Pläne">
+        <section className="mt-6" aria-label="Einheiten">
           <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Pläne</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Einheiten</h2>
             <button
-              onClick={() => setPlanDialog({})}
+              onClick={() => setActDialog({})}
               className="rounded-full border border-slate-700 px-3.5 py-1.5 text-sm font-medium text-accent-400 active:bg-slate-800"
             >
-              + Plan
+              + Einheit
             </button>
           </div>
-          {plans && plans.length === 0 && (
+          {activities && activities.length === 0 && (
             <p className="rounded-3xl border border-dashed border-slate-700 p-5 text-center text-sm text-slate-400">
-              Pläne sind Wochenpläne mit Gesamtziel, z. B. „100 km laufen“ mit Soll je Wochentag. Du trägst nach jeder Einheit den Ist-Wert ein.
+              Einheiten sind Dinge, die du tust und mit einem Wert einträgst, z. B. „Laufen“ in km. Das Soll legst du in einem Ziel „Menge aus Einheiten“ fest, z. B. 500 km bis März.
             </p>
           )}
-          <ul className="flex flex-col gap-4">
-            {(plans ?? []).map((pl) => {
-              const mine = (planEntries ?? []).filter((e) => e.planId === pl.id)
-              const pr = planProgress(pl, mine, todayKey)
-              const recent = mine.filter((e) => e.date >= pl.startDate).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6)
+          <ul className="flex flex-col gap-3">
+            {(activities ?? []).map((a) => {
+              const mine = (actEntries ?? []).filter((e) => e.planId === a.id)
+              const total = mine.reduce((sum, e) => sum + e.value, 0)
+              const recent = [...mine].sort((x, y) => (x.date < y.date ? 1 : -1)).slice(0, 6)
+              const days = activityDays(a)
               return (
-                <li key={pl.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
-                  <button onClick={() => setPlanDialog({ plan: pl })} className="block w-full text-left">
-                    <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
-                      <div className="min-w-0 max-w-full">
-                        <div className="text-[22px] font-bold leading-tight tracking-tight">
-                          {pl.icon} {pl.name}
-                        </div>
-                        <div className="mt-1 text-base text-slate-400">
-                          {pl.targetDate ? `Frist ${fmt(pl.targetDate)}` : areaLabel(pl.area)}
-                          {` · ${fmtQty(pl.schedule.reduce((a, b) => a + b, 0))} ${pl.unit}/Woche geplant`}
-                        </div>
+                <li key={a.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <button onClick={() => setActDialog({ activity: a })} className="min-w-0 flex-1 text-left">
+                      <div className="truncate text-[19px] font-semibold">
+                        {a.icon} {a.name}
                       </div>
-                      <span className="glow-accent ml-auto shrink-0 rounded-full bg-accent-500 px-3.5 py-1.5 text-sm font-semibold text-black">
-                        {Math.round(pr.ratio * 100)} %
-                      </span>
-                    </div>
-                    <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-700" role="progressbar" aria-valuenow={pr.total} aria-valuemax={pr.target}>
-                      <div className="h-full rounded-full bg-accent-500" style={{ width: `${pr.ratio * 100}%` }} />
-                    </div>
-                  </button>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-[15px] text-slate-300">
-                    <span>
-                      {fmtQty(pr.total)} von {fmtQty(pr.target)} {pl.unit}
-                    </span>
-                    {pr.reached ? (
-                      <span className="text-done">✓ Ziel erreicht</span>
-                    ) : pr.onTrack === null ? (
-                      <span className="text-slate-500">noch {fmtQty(pr.remaining)} {pl.unit}</span>
-                    ) : pr.onTrack ? (
-                      <span className="text-done">↗ Auf Kurs</span>
-                    ) : (
-                      <span className="text-amber-400">↘ Plan reicht nicht</span>
-                    )}
+                      <div className="mt-0.5 text-sm text-slate-400">
+                        gesamt {fmtQty(total)} {a.unit}
+                        {days.length > 0 && ` · ${days.map((d) => WEEKDAYS[d]).join(', ')}`}
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => setEntrySheet({ activity: a, date: todayKey })}
+                      className="shrink-0 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-black"
+                    >
+                      + Heute
+                    </button>
                   </div>
-                  {pr.daysLeft !== null && !pr.reached && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      Noch {pr.daysLeft} {pr.daysLeft === 1 ? 'Tag' : 'Tage'} · nötig {pr.perWeekNeeded === null ? '–' : fmtQty(pr.perWeekNeeded)} {pl.unit}/Woche · laut Plan noch {fmtQty(pr.plannedLeft ?? 0)} {pl.unit}
-                    </p>
-                  )}
                   {recent.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {recent.map((e) => (
                         <button
                           key={e.id}
-                          onClick={() => setEntrySheet({ plan: pl, date: e.date })}
+                          onClick={() => setEntrySheet({ activity: a, date: e.date })}
                           className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 active:bg-slate-800"
                         >
-                          {new Date(`${e.date}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })} · {fmtQty(e.value)} {pl.unit}
+                          {new Date(`${e.date}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })} · {fmtQty(e.value)} {a.unit}
                         </button>
                       ))}
                     </div>
@@ -210,7 +190,9 @@ export default function Goals() {
       ) : (
         <ul className="mt-5 flex flex-col gap-4">
           {open.map((g) => {
-            const p = goalProgress(g, checks ?? [], todayKey, allHabits ?? [])
+            const p = goalProgress(g, checks ?? [], todayKey, allHabits ?? [], actEntries ?? [])
+            const states = milestoneStates(g, p.value, todayKey)
+            const unit = g.unit ? ` ${g.unit}` : ''
             const percent = Math.round(p.ratio * 100)
             const overdue = !!g.targetDate && g.targetDate < todayKey
             const trend = TREND[goalTrend(g, p.ratio, todayKey)]
@@ -246,6 +228,23 @@ export default function Goals() {
                   </div>
                 </button>
 
+                {states.length > 0 && (
+                  <ul className="mt-4 flex flex-wrap gap-2" aria-label="Etappenziele">
+                    {states.map(({ m, reached, overdue }) => (
+                      <li
+                        key={m.id}
+                        className={`rounded-full border px-3 py-1 text-xs ${
+                          reached ? 'border-done/40 text-done' : overdue ? 'border-amber-400/50 text-amber-300' : 'border-slate-700 text-slate-300'
+                        }`}
+                      >
+                        {reached ? '✓ ' : ''}
+                        {fmtQty(m.value)}
+                        {unit} bis {fmt(m.date)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 {g.kind === 'steps' && (
                   <ul className="mt-4 flex flex-col gap-1">
                     {g.steps.map((s) => (
@@ -266,7 +265,13 @@ export default function Goals() {
 
                 <div className="mt-4 flex items-center justify-between gap-3 text-[15px] text-slate-300">
                   <span className="flex items-center gap-2">
-                    {g.kind === 'count' ? (
+                    {g.kind === 'amount' ? (
+                      <>
+                        <LinkIcon width={20} height={20} />
+                        {fmtQty(p.value)} / {fmtQty(p.total)}
+                        {unit}
+                      </>
+                    ) : g.kind === 'count' ? (
                       <>
                         <LinkIcon width={20} height={20} />
                         {g.habitIds.length} {g.habitIds.length === 1 ? 'Gewohnheit' : 'Gewohnheiten'} · {p.value} / {p.total}
@@ -294,12 +299,12 @@ export default function Goals() {
         </ul>
       )}
 
-      {planDialog && <PlanDialog plan={planDialog.plan} onClose={() => setPlanDialog(null)} />}
+      {actDialog && <ActivityDialog activity={actDialog.activity} onClose={() => setActDialog(null)} />}
       {entrySheet && (
-        <PlanEntrySheet
-          plan={entrySheet.plan}
+        <ActivityEntrySheet
+          activity={entrySheet.activity}
           date={entrySheet.date}
-          current={(planEntries ?? []).find((e) => e.planId === entrySheet.plan.id && e.date === entrySheet.date)?.value ?? 0}
+          current={(actEntries ?? []).find((e) => e.planId === entrySheet.activity.id && e.date === entrySheet.date)?.value ?? 0}
           onClose={() => setEntrySheet(null)}
         />
       )}

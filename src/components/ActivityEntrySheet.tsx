@@ -1,24 +1,23 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { dayKey } from '../lib/db'
 import { fmtQty } from '../lib/habits'
-import { plannedOn, setPlanEntry } from '../lib/plans'
-import type { Plan } from '../lib/types'
+import { setActivityEntry } from '../lib/activities'
+import type { Activity } from '../lib/types'
 
-// Ist-Wert für einen Plan-Tag eintragen (ersetzt den bisherigen Wert).
-export default function PlanEntrySheet({
-  plan,
+// Ist-Wert einer Einheit für einen Tag eintragen (ersetzt den bisherigen Wert).
+export default function ActivityEntrySheet({
+  activity,
   date,
   current,
   onClose,
 }: {
-  plan: Plan
+  activity: Activity
   date: string
   current: number // bisher eingetragen (0 = nichts)
   onClose: () => void
 }) {
-  const soll = plannedOn(plan, date)
-  const step = plan.unit === 'h' ? 0.5 : plan.unit === 'km' ? 0.5 : 1
-  const [amount, setAmount] = useState(fmtQty(current > 0 ? current : soll > 0 ? soll : step))
+  const step = activity.unit === 'h' || activity.unit === 'km' ? 0.5 : 1
+  const [amount, setAmount] = useState(current > 0 ? fmtQty(current) : '')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -37,12 +36,12 @@ export default function PlanEntrySheet({
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!Number.isFinite(parsed) || parsed <= 0) return setError('Bitte einen Wert größer 0 eingeben.')
-    await setPlanEntry(plan.id, date, parsed)
+    await setActivityEntry(activity.id, date, parsed)
     onClose()
   }
 
   async function reset() {
-    await setPlanEntry(plan.id, date, 0)
+    await setActivityEntry(activity.id, date, 0)
     onClose()
   }
 
@@ -54,21 +53,22 @@ export default function PlanEntrySheet({
         className="w-full max-w-sm rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
       >
         <h2 className="text-lg font-semibold">
-          {plan.icon} {plan.name}
+          {activity.icon} {activity.name}
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          {dateText}: {soll > 0 ? `Soll ${fmtQty(soll)} ${plan.unit}` : 'freier Tag (Zusatz-Einheit)'}
-          {current > 0 && ` · Ist ${fmtQty(current)} ${plan.unit}`}
+          {dateText}
+          {current > 0 ? ` · bisher ${fmtQty(current)} ${activity.unit}` : ''}
         </p>
 
         <label className="mt-5 block text-sm text-slate-400">
-          Tatsächlich ({plan.unit})
+          Wie viel? ({activity.unit})
           <div className="mt-2 flex items-center gap-2">
             <button type="button" onClick={() => bump(-step)} aria-label="Weniger" className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 text-lg">
               −
             </button>
             <input
               autoFocus
+              placeholder={activity.unit}
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

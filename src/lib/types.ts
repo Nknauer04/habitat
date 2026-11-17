@@ -39,37 +39,51 @@ export interface GoalStep {
   done: boolean
 }
 
+// Etappenziel: Zwischenstand (kumuliert) bis zu einem Datum, z. B. 100 km bis 30.11.
+export interface Milestone {
+  id: string
+  date: string // YYYY-MM-DD
+  value: number // kumulativer Wert in der Einheit des Ziels
+}
+
 export interface Goal extends Syncable {
   title: string
   note?: string
   area: Area
-  kind: 'steps' | 'count' // Teilschritte-Checkliste oder Zählziel aus Gewohnheiten
+  kind: 'steps' | 'count' | 'amount' // Teilschritte, Zählziel aus Gewohnheiten oder Menge aus Einheiten (z. B. 500 km)
   steps: GoalStep[] // kind = steps
   habitIds: string[] // kind = count
-  target?: number // kind = count: Anzahl Check-ins
-  startDate?: string // kind = count: Zählen ab (YYYY-MM-DD)
+  target?: number // count: Anzahl Check-ins; amount: Soll in `unit`
+  startDate?: string // count/amount: Zählen ab (YYYY-MM-DD)
+  activityIds?: string[] // kind = amount: Einheiten, deren Ist-Werte das Ziel füllen
+  unit?: string // kind = amount: Einheit des Ziels (aus den Einheiten übernommen)
+  milestones?: Milestone[] // kind = amount: Etappenziele (optional)
   targetDate?: string // Frist (YYYY-MM-DD)
   done: boolean
   doneAt?: string // YYYY-MM-DD
   createdAt: string
 }
 
-// Plan: Wochenplan mit Soll je Wochentag und Gesamtziel (z. B. 100 km laufen). Eingetragen wird der Ist-Wert je Tag.
-export interface Plan extends Syncable {
+// Einheit: etwas, das du tust (z. B. Laufen in km). Hat nur Ist-Werte, kein Soll – das Soll steckt im Ziel (kind = 'amount').
+// Speicherung: Dexie-Tabelle `plans`, Supabase-Tabelle `plans` (Name stammt aus der ersten Version und bleibt, damit kein neues SQL nötig ist).
+export interface Activity extends Syncable {
   name: string
   icon: string // Emoji
   area: Area
   unit: string // km, h, Seiten …
-  target: number // Gesamtziel in Einheiten
-  startDate: string // Zählen ab (YYYY-MM-DD)
-  targetDate?: string // Frist (YYYY-MM-DD)
-  schedule: number[] // Soll je Wochentag, Index 0 = Montag … 6 = Sonntag; 0 = frei
+  days?: number[] // Erinnerungs-Wochentage, 0 = Montag … 6 = Sonntag (optional; ohne Soll)
   createdAt: string
+  // Altdaten der ersten Version („Plan“ mit Soll) – werden ignoriert
+  schedule?: number[]
+  target?: number
+  startDate?: string
+  targetDate?: string
 }
 
-// Ist-Wert eines Plans an einem Tag (höchstens ein aktiver Eintrag je Plan und Tag).
-export interface PlanEntry extends Syncable {
-  planId: string
+// Ist-Wert einer Einheit an einem Tag (höchstens ein aktiver Eintrag je Einheit und Tag).
+// Speicherung: Tabelle `planEntries` / Supabase `plan_entries`.
+export interface ActivityEntry extends Syncable {
+  planId: string // = Activity.id
   date: string // YYYY-MM-DD
   value: number // > 0
 }

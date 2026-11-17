@@ -1,7 +1,7 @@
 import { dayKey } from './db'
 import { isCheckInDone, isMini, weekRange, weekdayIndex } from './habits'
-import { planXp } from './plans'
-import type { Area, CheckIn, Goal, Habit, Plan, PlanEntry } from './types'
+import { activityXp } from './activities'
+import type { Activity, ActivityEntry, Area, CheckIn, Goal, Habit } from './types'
 
 // Alles wird aus den Check-ins berechnet (nichts gespeichert) → kein Sync-Konflikt.
 export const XP_PER_CHECKIN = 10
@@ -161,7 +161,7 @@ export function computeProgress(
   checkIns: CheckIn[],
   today: Date,
   goals: Goal[] = [],
-  planData?: { plans: Plan[]; entries: PlanEntry[] },
+  activityData?: { activities: Activity[]; entries: ActivityEntry[] },
 ): Progress {
   const todayKey = dayKey(today)
   const datesByHabit = new Map<string, Set<string>>()
@@ -201,8 +201,8 @@ export function computeProgress(
     areaXp[g.area] = (areaXp[g.area] ?? 0) + GOAL_DONE_XP
     totalXp += GOAL_DONE_XP
   }
-  if (planData) {
-    const px = planXp(planData.plans, planData.entries, todayKey)
+  if (activityData) {
+    const px = activityXp(activityData.activities, activityData.entries, todayKey)
     for (const [a, v] of Object.entries(px.areaXp)) areaXp[a as Area] = (areaXp[a as Area] ?? 0) + v
     totalXp += px.total
   }

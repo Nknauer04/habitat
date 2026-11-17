@@ -1,7 +1,7 @@
 import { dayKey, db } from './db'
 import { AREAS, TIMES } from './habits'
 import { scheduleSync } from './sync'
-import type { CheckIn, Goal, Habit, Plan, PlanEntry, Review } from './types'
+import type { Activity, ActivityEntry, CheckIn, Goal, Habit, Review } from './types'
 
 export const BACKUP_VERSION = 1
 
@@ -13,8 +13,8 @@ export interface BackupFile {
   checkIns: CheckIn[]
   goals: Goal[]
   reviews?: Review[] // ältere Sicherungen haben keine Rückblicke
-  plans?: Plan[] // ältere Sicherungen haben keine Pläne
-  planEntries?: PlanEntry[]
+  plans?: Activity[] // Einheiten (Name aus der ersten Version); ältere Sicherungen haben keine
+  planEntries?: ActivityEntry[] // Ist-Werte der Einheiten
 }
 
 // Alles, auch Archiviertes und weich Gelöschtes (damit Löschungen beim Zusammenführen erhalten bleiben).
@@ -99,12 +99,18 @@ function checkGoal(r: Row): string | null {
     checkSync(r) ??
     (!isStr(r.title) ? 'title fehlt' : null) ??
     (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
-    (r.kind !== 'steps' && r.kind !== 'count' ? 'kind ungültig' : null) ??
+    (r.kind !== 'steps' && r.kind !== 'count' && r.kind !== 'amount' ? 'kind ungültig' : null) ??
     (!Array.isArray(r.steps) || !r.steps.every((s) => isObj(s) && isStr(s.id) && typeof s.text === 'string' && typeof s.done === 'boolean')
       ? 'steps ungültig'
       : null) ??
     (!Array.isArray(r.habitIds) ? 'habitIds fehlt' : null) ??
-    (r.target !== undefined && !(typeof r.target === 'number' && r.target >= 1) ? 'target ungültig' : null) ??
+    (r.target !== undefined && !(typeof r.target === 'number' && r.target > 0) ? 'target ungültig' : null) ??
+    (r.activityIds !== undefined && !(Array.isArray(r.activityIds) && r.activityIds.every(isStr)) ? 'activityIds ungültig' : null) ??
+    (r.unit !== undefined && typeof r.unit !== 'string' ? 'unit ungültig' : null) ??
+    (r.milestones !== undefined &&
+    !(Array.isArray(r.milestones) && r.milestones.every((m) => isObj(m) && isStr(m.id) && isDay(m.date) && typeof m.value === 'number' && m.value > 0))
+      ? 'milestones ungültig'
+      : null) ??
     (r.startDate !== undefined && !isDay(r.startDate) ? 'startDate ungültig' : null) ??
     (r.targetDate !== undefined && !isDay(r.targetDate) ? 'targetDate ungültig' : null) ??
     (typeof r.done !== 'boolean' ? 'done fehlt' : null) ??
@@ -116,24 +122,21 @@ function checkReview(r: Row): string | null {
   return checkSync(r) ?? (!isDay(r.weekStart) ? 'weekStart ungültig' : null) ?? (typeof r.note !== 'string' ? 'note fehlt' : null)
 }
 
-function checkPlan(r: Row): string | null {
+function checkActivity(r: Row): string | null {
   return (
     checkSync(r) ??
     (!isStr(r.name) ? 'name fehlt' : null) ??
     (typeof r.icon !== 'string' ? 'icon fehlt' : null) ??
     (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
     (typeof r.unit !== 'string' ? 'unit fehlt' : null) ??
-    (!(typeof r.target === 'number' && r.target > 0) ? 'target ungültig' : null) ??
-    (!isDay(r.startDate) ? 'startDate ungültig' : null) ??
-    (r.targetDate !== undefined && !isDay(r.targetDate) ? 'targetDate ungültig' : null) ??
-    (!Array.isArray(r.schedule) || r.schedule.length !== 7 || !r.schedule.every((x) => typeof x === 'number' && x >= 0)
-      ? 'schedule ungültig'
+    (r.days !== undefined && !(Array.isArray(r.days) && r.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6))
+      ? 'days ungültig'
       : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )
 }
 
-function checkPlanEntry(r: Row): string | null {
+function checkActivityEntry(r: Row): string | null {
   return (
     checkSync(r) ??
     (!isStr(r.planId) ? 'planId fehlt' : null) ??
@@ -159,8 +162,8 @@ export function parseBackup(text: string): BackupFile {
     ['checkIns', checkCheckIn],
     ['goals', checkGoal],
     ['reviews', checkReview],
-    ['plans', checkPlan],
-    ['planEntries', checkPlanEntry],
+    ['plans', checkActivity],
+    ['planEntries', checkActivityEntry],
   ]
   // ältere Sicherungen ohne Rückblicke bzw. Pläne
   for (const k of ['reviews', 'plans', 'planEntries']) if (data[k] === undefined) data[k] = []

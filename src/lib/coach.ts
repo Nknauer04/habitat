@@ -1,11 +1,11 @@
 import { STREAK_DAYS, TIER_ICONS } from './badges'
 import { dayKey } from './db'
 import { checkInValue, fmtQty, isCheckInDone, isDue, weekdayIndex, weekRange } from './habits'
-import { goalProgress, goalTrend } from './goals'
+import { goalProgress, goalTrend, milestoneStates } from './goals'
 import type { Insights } from './insights'
 import type { Progress } from './progress'
 import type { WeekSummary } from './review'
-import type { CheckIn, Goal, Habit } from './types'
+import type { ActivityEntry, CheckIn, Goal, Habit } from './types'
 
 // Regelbasierter Coach: Tipps und Fazit entstehen aus festen Regeln auf deinen eigenen Zahlen.
 // Keine KI, kein Netzwerk – alles läuft auf dem Gerät.
@@ -21,6 +21,7 @@ export interface CoachInput {
   habits: Habit[]
   checkIns: CheckIn[]
   goals: Goal[]
+  activityEntries?: ActivityEntry[] // Ist-Werte der Einheiten (für Mengen-Ziele)
   progress: Progress
   insights: Insights
   today: Date // inkl. Uhrzeit
@@ -62,7 +63,7 @@ function habitsToday(habits: Habit[], checkIns: CheckIn[], today: Date): HabitTo
 const miniHint = (h: Habit) => (h.miniVersion ? ` Die Mini-Version („${h.miniVersion}“) reicht schon.` : '')
 
 export function dailyTips(input: CoachInput, limit = 2): Tip[] {
-  const { habits, checkIns, goals, progress, insights, today } = input
+  const { habits, checkIns, goals, activityEntries = [], progress, insights, today } = input
   const todayKey = dayKey(today)
   const hour = today.getHours()
   const wd = weekdayIndex(today)
@@ -142,20 +143,27 @@ export function dailyTips(input: CoachInput, limit = 2): Tip[] {
     })
   }
 
-  // 5) Ziel liegt hinter dem Zeitplan
+  // 5) Ziel liegt hinter dem Zeitplan (Mengen-Ziele: hinter einer Etappe)
   const behind = goals
-    .filter((g) => !g.deleted && !g.done && g.targetDate)
-    .map((g) => ({ g, p: goalProgress(g, checkIns, todayKey, habits) }))
+    .filter((g) => !g.deleted && !g.done && (g.targetDate || g.milestones?.length))
+    .map((g) => ({ g, p: goalProgress(g, checkIns, todayKey, habits, activityEntries) }))
     .filter(({ g, p }) => goalTrend(g, p.ratio, todayKey) === 'behind')
-    .sort((a, b) => (a.g.targetDate ?? '').localeCompare(b.g.targetDate ?? ''))
+    .sort((a, b) => (a.g.targetDate ?? '9').localeCompare(b.g.targetDate ?? '9'))
   if (behind.length) {
     const { g, p } = behind[0]
     const rest = Math.max(0, p.total - p.value)
+    const overdue = milestoneStates(g, p.value, todayKey).find((s) => s.overdue)
+    const unit = g.unit ? ` ${g.unit}` : ''
     tips.push({
       id: 'goal-behind',
       icon: '🎯',
       priority: 30,
-      text: `Dein Ziel „${g.title}“ liegt hinter dem Zeitplan: noch ${rest} ${g.kind === 'steps' ? plural(rest, 'Schritt', 'Schritte') : plural(rest, 'Haken', 'Haken')} bis ${fmtDate(g.targetDate!)}.`,
+      text:
+        g.kind === 'amount'
+          ? overdue
+            ? `Bei „${g.title}“ ist die Etappe ${fmtQty(overdue.m.value)}${unit} (bis ${fmtDate(overdue.m.date)}) noch offen: es fehlen ${fmtQty(overdue.m.value - p.value)}${unit}.`
+            : `Dein Ziel „${g.title}“ liegt hinter dem Zeitplan: noch ${fmtQty(rest)}${unit} bis ${fmtDate(g.targetDate!)}.`
+          : `Dein Ziel „${g.title}“ liegt hinter dem Zeitplan: noch ${rest} ${g.kind === 'steps' ? plural(rest, 'Schritt', 'Schritte') : plural(rest, 'Haken', 'Haken')} bis ${fmtDate(g.targetDate!)}.`,
     })
   }
 

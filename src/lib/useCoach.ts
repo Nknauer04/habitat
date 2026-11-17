@@ -25,12 +25,13 @@ export function useCoachTips(): Tip[] | null {
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).toArray(), [])
+  const activityEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
   const progress = useProgress(now)
   const minuteKey = Math.floor(now.getTime() / 60_000)
 
   return useMemo(() => {
-    if (!habits || !checks || !goals || !progress) return null
-    return dailyTips({ habits, checkIns: checks, goals, progress, insights: computeInsights(habits, checks, now), today: now })
+    if (!habits || !checks || !goals || !activityEntries || !progress) return null
+    return dailyTips({ habits, checkIns: checks, goals, activityEntries, progress, insights: computeInsights(habits, checks, now), today: now })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habits, checks, goals, progress, minuteKey])
+  }, [habits, checks, goals, activityEntries, progress, minuteKey])
 }

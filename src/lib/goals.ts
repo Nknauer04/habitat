@@ -1,10 +1,22 @@
 import { dayKey, db, newId, now } from './db'
+import { entriesSum } from './activities'
 import { isCheckInDone } from './habits'
-import type { CheckIn, Goal, Habit } from './types'
+import type { ActivityEntry, CheckIn, Goal, Habit, Milestone } from './types'
 
 export type GoalInput = Pick<
   Goal,
-  'title' | 'note' | 'area' | 'kind' | 'steps' | 'habitIds' | 'target' | 'startDate' | 'targetDate'
+  | 'title'
+  | 'note'
+  | 'area'
+  | 'kind'
+  | 'steps'
+  | 'habitIds'
+  | 'target'
+  | 'startDate'
+  | 'targetDate'
+  | 'activityIds'
+  | 'unit'
+  | 'milestones'
 >
 
 export async function saveGoal(input: GoalInput, id?: string) {
@@ -34,14 +46,23 @@ export interface GoalProgress {
   ratio: number // 0–1
 }
 
-// Zählziel: verschiedene (Gewohnheit, Tag)-Check-ins ab startDate bis heute.
-export function goalProgress(g: Goal, checkIns: CheckIn[], todayKey: string, habits: Habit[] = []): GoalProgress {
+// Teilschritte, Zählziel (verschiedene (Gewohnheit, Tag)-Check-ins ab startDate bis heute) oder Menge (Summe der Ist-Werte der Einheiten ab startDate).
+export function goalProgress(
+  g: Goal,
+  checkIns: CheckIn[],
+  todayKey: string,
+  habits: Habit[] = [],
+  entries: ActivityEntry[] = [],
+): GoalProgress {
   const habitById = new Map(habits.map((h) => [h.id, h]))
   let value = 0
   let total = 0
   if (g.kind === 'steps') {
     value = g.steps.filter((s) => s.done).length
     total = g.steps.length
+  } else if (g.kind === 'amount') {
+    value = entriesSum(entries, g.activityIds ?? [], g.startDate ?? '', todayKey)
+    total = g.target ?? 0
   } else {
     const seen = new Set<string>()
     for (const c of checkIns) {
@@ -65,9 +86,35 @@ const utcDay = (k: string) => {
   return Date.UTC(y, m - 1, d)
 }
 
+// Etappenziele eines Mengen-Ziels: erreicht, überfällig (Datum vorbei, Wert fehlt) oder noch offen; nach Datum sortiert.
+export interface MilestoneState {
+  m: Milestone
+  reached: boolean
+  overdue: boolean
+}
+
+export function milestoneStates(g: Goal, value: number, todayKey: string): MilestoneState[] {
+  if (g.kind !== 'amount') return []
+  return [...(g.milestones ?? [])]
+    .sort((a, b) => a.date.localeCompare(b.date) || a.value - b.value)
+    .map((m) => {
+      const reached = value + 1e-9 >= m.value
+      return { m, reached, overdue: !reached && m.date < todayKey }
+    })
+}
+
+// Nächste offene Etappe (die früheste, die noch nicht erreicht ist)
+export const nextMilestone = (states: MilestoneState[]) => states.find((s) => !s.reached) ?? null
+
 export function goalTrend(g: Goal, ratio: number, todayKey: string): GoalTrend {
-  if (g.done || !g.targetDate) return 'none'
-  const start = g.kind === 'count' && g.startDate ? g.startDate : dayKey(new Date(g.createdAt))
+  if (g.done) return 'none'
+  // Mengen-Ziel mit Etappen: überfällige Etappe = Rückstand, sonst auf Kurs
+  if (g.kind === 'amount' && g.milestones?.length) {
+    const states = milestoneStates(g, ratio * (g.target ?? 0), todayKey)
+    return states.some((s) => s.overdue) ? 'behind' : 'ahead'
+  }
+  if (!g.targetDate) return 'none'
+  const start = g.kind !== 'steps' && g.startDate ? g.startDate : dayKey(new Date(g.createdAt))
   const total = (utcDay(g.targetDate) - utcDay(start)) / 86_400_000
   const elapsed = (utcDay(todayKey) - utcDay(start)) / 86_400_000
   if (total <= 0 || elapsed <= 0) return 'none'

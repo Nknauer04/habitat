@@ -349,36 +349,52 @@ eq('Tipp: 11:00 = morning-plan', coach(two, [], [], at(TUE, 11))[0].id, 'morning
 eq('Tipp: 17:00 = day-open, 18:00 = evening-open', [coach(two, [], [], at(TUE, 17))[0].id, coach(two, [], [], at(TUE, 18))[0].id], ['day-open', 'evening-open'])
 eq('Tipp: Lücke geschlossen, zu jeder Stunde bei offener Gewohnheit mindestens ein Tipp', Array.from({ length: 24 }, (_, h) => coach(two, [], [], at(TUE, h)).length).every((n) => n >= 1), true)
 eq('Tipp: alles erledigt zu jeder Stunde ein Tipp', Array.from({ length: 24 }, (_, h) => coach(two, [c1('a', TUE), c1('b', TUE)], [], at(TUE, h)).length).every((n) => n >= 1), true)
-// --- Pläne (Wochenplan mit Soll/Ist)
-import { isUnitDone, planProgress, planTotal, planXp, plannedOn } from '../src/lib/plans'
+// --- Einheiten (nur Ist) und Mengen-Ziele mit Etappen
+import { activityDays, activityXp, entriesSum, isActivityDay } from '../src/lib/activities'
+import { goalProgress as gp2, goalTrend as gt2, milestoneStates, nextMilestone } from '../src/lib/goals'
 import { computeProgress as computeProgressP } from '../src/lib/progress'
-import type { Plan, PlanEntry } from '../src/lib/types'
-const plan: Plan = { id: 'p1', name: 'Laufen', icon: '🏃', area: 'sport', unit: 'km', target: 100, startDate: '2026-11-02', targetDate: '2026-11-30', schedule: [0, 5, 0, 8, 0, 12, 0], createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
-const pe = (date: string, value: number, extra: Partial<PlanEntry> = {}): PlanEntry => ({ id: 'e' + date + value, planId: 'p1', date, value, updatedAt: '', deleted: false, ...extra })
-const entries: PlanEntry[] = [
-  pe('2026-11-01', 4), // vor dem Start
-  pe('2026-11-03', 5), pe('2026-11-04', 3), pe('2026-11-05', 8), pe('2026-11-07', 10), pe('2026-11-10', 6),
-  pe('2026-11-12', 8), pe('2026-11-14', 12), pe('2026-11-17', 4.5),
-  pe('2026-11-18', 9), // Zukunft
-  pe('2026-11-13', 7, { deleted: true }), // gelöscht
-  { ...pe('2026-11-03', 99), planId: 'andere' }, // anderer Plan
+import type { Activity, ActivityEntry, Goal } from '../src/lib/types'
+const act: Activity = { id: 'a1', name: 'Laufen', icon: '🏃', area: 'sport', unit: 'km', days: [1, 3, 5], createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
+const ae = (date: string, value: number, extra: Partial<ActivityEntry> = {}): ActivityEntry => ({ id: 'e' + date + value, planId: 'a1', date, value, updatedAt: '', deleted: false, ...extra })
+const aEntries: ActivityEntry[] = [
+  ae('2026-11-01', 4), // vor dem Start
+  ae('2026-11-03', 5), ae('2026-11-04', 3), ae('2026-11-05', 8), ae('2026-11-07', 10), ae('2026-11-10', 6),
+  ae('2026-11-12', 8), ae('2026-11-14', 12), ae('2026-11-17', 4.5),
+  ae('2026-11-18', 9), // Zukunft
+  ae('2026-11-13', 7, { deleted: true }), // gelöscht
+  { ...ae('2026-11-03', 99), planId: 'andere' }, // andere Einheit
 ]
-eq('Plan: Soll am Dienstag/Mittwoch', [plannedOn(plan, '2026-11-17'), plannedOn(plan, '2026-11-18')], [5, 0])
-eq('Plan: Summe ohne Start-davor, Zukunft, gelöscht, fremd', planTotal(plan, entries, '2026-11-17'), 56.5)
-eq('Plan: Soll erreicht = erledigt', isUnitDone(plan, pe('2026-11-03', 5)), true)
-eq('Plan: unter Soll = nicht erledigt', isUnitDone(plan, pe('2026-11-07', 10)), false)
-eq('Plan: Zusatz an freiem Tag zählt', isUnitDone(plan, pe('2026-11-04', 3)), true)
-eq('Plan: gelöschter Eintrag zählt nicht', isUnitDone(plan, pe('2026-11-03', 5, { deleted: true })), false)
-const pr = planProgress(plan, entries, '2026-11-17')
-eq('Plan: Fortschritt', { total: pr.total, remaining: pr.remaining, ratio: pr.ratio, reached: pr.reached }, { total: 56.5, remaining: 43.5, ratio: 0.565, reached: false })
-eq('Plan: Frist, nötig/Woche, geplant', { d: pr.daysLeft, w: pr.perWeekNeeded, pl: pr.plannedLeft, ok: pr.onTrack }, { d: 14, w: 21.8, pl: 45, ok: true })
-eq('Plan: Ziel zu hoch = nicht auf Kurs', planProgress({ ...plan, target: 120 }, entries, '2026-11-17').onTrack, false)
-eq('Plan: heute ohne Eintrag zählt als noch geplant', planProgress(plan, entries.filter((e) => e.date !== '2026-11-17'), '2026-11-17').plannedLeft, 50)
-eq('Plan: erreicht → keine Frist-Prognose', (() => { const r = planProgress({ ...plan, target: 50 }, entries, '2026-11-17'); return [r.reached, r.ratio, r.remaining, r.onTrack, r.daysLeft] })(), [true, 1, 0, null, null])
-eq('Plan: ohne Frist keine Prognose', (() => { const r = planProgress({ ...plan, targetDate: undefined }, entries, '2026-11-17'); return [r.daysLeft, r.onTrack] })(), [null, null])
-eq('Plan: Frist vorbei', planProgress({ ...plan, targetDate: '2026-11-10' }, entries, '2026-11-17').daysLeft, 0)
-eq('Plan-XP: 6 erledigte Einheiten × 10', planXp([plan], entries, '2026-11-17'), { areaXp: { sport: 60 }, total: 60 })
-eq('Plan-XP: gelöschter Plan zählt nicht', planXp([{ ...plan, deleted: true }], entries, '2026-11-17').total, 0)
-eq('Plan-XP in Gesamt-Fortschritt', computeProgressP([], [], new Date(2026, 10, 17), [], { plans: [plan], entries }).totalXp, 60)
-eq('Plan-XP: ohne Plandaten unverändert', computeProgressP([], [], new Date(2026, 10, 17)).totalXp, 0)
+const amountGoal: Goal = { id: 'g1', title: '500 km laufen', area: 'sport', kind: 'amount', steps: [], habitIds: [], target: 500, startDate: '2026-11-02', targetDate: '2027-03-31', activityIds: ['a1'], unit: 'km', milestones: [{ id: 'm2', date: '2026-12-31', value: 250 }, { id: 'm1', date: '2026-11-30', value: 100 }], done: false, createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
+eq('Einheit: Erinnerungstage aus days', activityDays(act), [1, 3, 5])
+eq('Einheit: Altdaten (Wochenplan) ergeben Tage', activityDays({ ...act, days: undefined, schedule: [0, 5, 0, 8, 0, 12, 0] }), [1, 3, 5])
+eq('Einheit: Dienstag ist Tag, Mittwoch nicht', [isActivityDay(act, '2026-11-17'), isActivityDay(act, '2026-11-18')], [true, false])
+eq('Einheit: Summe im Zeitraum ohne Vorher/Zukunft/gelöscht/fremd', entriesSum(aEntries, ['a1'], '2026-11-02', '2026-11-17'), 56.5)
+eq('Einheit: Summe ohne Auswahl ist 0', entriesSum(aEntries, [], '2026-11-02', '2026-11-17'), 0)
+eq('Einheit-XP: 10 je Eintrag (8 gültige, ohne Vorher-Tag zählt hier mit)', activityXp([act], aEntries, '2026-11-17'), { areaXp: { sport: 90 }, total: 90 })
+eq('Einheit-XP: gelöschte Einheit zählt nicht', activityXp([{ ...act, deleted: true }], aEntries, '2026-11-17').total, 0)
+eq('Einheit-XP in Gesamt-Fortschritt', computeProgressP([], [], new Date(2026, 10, 17), [], { activities: [act], entries: aEntries }).totalXp, 90)
+eq('Einheit-XP: ohne Daten unverändert', computeProgressP([], [], new Date(2026, 10, 17)).totalXp, 0)
+const gp = gp2(amountGoal, [], '2026-11-17', [], aEntries)
+eq('Menge-Ziel: Fortschritt', { v: gp.value, t: gp.total, r: gp.ratio }, { v: 56.5, t: 500, r: 0.113 })
+eq('Menge-Ziel: Fortschritt ohne Einträge', gp2(amountGoal, [], '2026-11-17', [], []).value, 0)
+eq('Menge-Ziel: Startdatum begrenzt', gp2({ ...amountGoal, startDate: '2026-11-10' }, [], '2026-11-17', [], aEntries).value, 30.5)
+eq('Menge-Ziel: gedeckelt bei 100 %', gp2({ ...amountGoal, target: 50 }, [], '2026-11-17', [], aEntries).ratio, 1)
+const ms = milestoneStates(amountGoal, 56.5, '2026-11-17')
+eq('Etappen: nach Datum sortiert, offen', ms.map((x) => [x.m.id, x.reached, x.overdue]), [['m1', false, false], ['m2', false, false]])
+eq('Etappen: nächste offene', nextMilestone(ms)?.m.id, 'm1')
+eq('Etappen: erreicht + nächste', (() => { const x = milestoneStates(amountGoal, 120, '2026-11-17'); return [x.map((y) => y.reached), nextMilestone(x)?.m.id] })(), [[true, false], 'm2'])
+eq('Etappen: überfällig nach Datum', milestoneStates(amountGoal, 56.5, '2026-12-01').map((x) => x.overdue), [true, false])
+eq('Etappen: am Stichtag noch nicht überfällig', milestoneStates(amountGoal, 56.5, '2026-11-30')[0].overdue, false)
+eq('Etappen: alle erreicht, keine nächste', nextMilestone(milestoneStates(amountGoal, 300, '2026-11-17')), null)
+eq('Etappen: bei Nicht-Mengenziel leer', milestoneStates({ ...amountGoal, kind: 'count' }, 1, '2026-11-17'), [])
+eq('Trend Menge: auf Kurs bei offener Etappe in der Zukunft', gt2(amountGoal, gp.ratio, '2026-11-17'), 'ahead')
+eq('Trend Menge: Rückstand bei überfälliger Etappe', gt2(amountGoal, gp.ratio, '2026-12-01'), 'behind')
+eq('Trend Menge: Etappe erreicht = kein Rückstand', gt2({ ...amountGoal, milestones: [{ id: 'm1', date: '2026-11-10', value: 50 }] }, gp.ratio, '2026-11-17'), 'ahead')
+eq('Trend Menge ohne Etappen: lange Frist = auf Kurs', gt2({ ...amountGoal, milestones: undefined }, gp.ratio, '2026-11-17'), 'ahead')
+eq('Trend Menge ohne Etappen: kurze Frist = Rückstand (linear)', gt2({ ...amountGoal, milestones: undefined, targetDate: '2026-12-02' }, gp.ratio, '2026-11-17'), 'behind')
+eq('Trend Menge ohne Etappen und ohne Frist: kein Trend', gt2({ ...amountGoal, milestones: undefined, targetDate: undefined }, gp.ratio, '2026-11-17'), 'none')
+eq('Trend Menge: erledigt = kein Trend', gt2({ ...amountGoal, done: true }, gp.ratio, '2026-12-01'), 'none')
+const coachAmt = (g: Goal, when: Date) => dailyTips({ habits: [lauf], checkIns: [], goals: [g], activityEntries: aEntries, progress: computeProgress([lauf], [], when, [g]), insights: computeInsights([lauf], [], when), today: when }, 10)
+eq('Tipp Menge: überfällige Etappe wird genannt', coachAmt(amountGoal, at('2026-12-01')).find((t) => t.id === 'goal-behind')?.text, 'Bei „500 km laufen“ ist die Etappe 100 km (bis 30. November) noch offen: es fehlen 34,5 km.')
+eq('Tipp Menge: ohne Rückstand kein Hinweis', coachAmt(amountGoal, at(TUE)).some((t) => t.id === 'goal-behind'), false)
 process.exit(fail ? 1 : 0)

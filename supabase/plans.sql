@@ -1,4 +1,4 @@
--- Habitat: Pläne (Wochenplan mit Soll/Ist) – zwei Tabellen + Row Level Security
+-- Habitat: Einheiten (Tabelle plans) und ihre Ist-Einträge (plan_entries) – zwei Tabellen + Row Level Security
 -- Im Supabase-Dashboard unter "SQL Editor" einmal ausführen (wie schema.sql).
 
 create table if not exists public.plans (
