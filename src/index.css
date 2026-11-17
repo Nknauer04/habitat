@@ -42,9 +42,9 @@
   --safe-bottom: min(env(safe-area-inset-bottom, 0px), 34px);
 }
 
-/* App-Hülle fest am Bildschirm verankert: die Seite selbst scrollt und wackelt nie (auch nicht beim
-   Wischen auf dem iPhone), nur der Inhalt in <main> scrollt. Keine berechnete Höhe (100vh/dvh),
-   die beim Start einer installierten iPhone-App falsch sein kann. */
+/* App-Hülle: fest am Bildschirm (die Oberfläche wackelt nie, nur <main> scrollt). Das Dokument selbst
+   ist bewusst 1 px höher als der Bildschirm: so kann iOS (installierte Web-App) das Fenster beim Start
+   neu messen (siehe lib/viewportFix.ts). Overscroll ist aus, es gibt kein Gummiband. */
 html {
   height: 100%;
   background: #000;
@@ -52,15 +52,14 @@ html {
 }
 
 body {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
+  min-height: calc(100% + 1px);
   overscroll-behavior: none;
   background: #000;
 }
 
 #root {
-  height: 100%;
+  position: fixed;
+  inset: 0;
 }
 
 body {

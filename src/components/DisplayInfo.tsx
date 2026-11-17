@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { viewportFixAttempts, viewportGap } from '../lib/viewportFix'
 
 interface Info {
   innerW: number
@@ -16,6 +17,8 @@ interface Info {
   barBottom: number | null
   scrollY: number
   mainScroll: number | null
+  attempts: number
+  gap: number
 }
 
 // Misst Sicherheitsabstände, indem ein unsichtbares Element mit env()-Padding gelesen wird.
@@ -50,6 +53,8 @@ function read(): Info {
     barBottom: r ? Math.round(r.bottom) : null,
     scrollY: Math.round(window.scrollY),
     mainScroll: main ? Math.round(main.scrollTop) : null,
+    attempts: viewportFixAttempts(),
+    gap: viewportGap(),
   }
 }
 
@@ -81,6 +86,8 @@ export default function DisplayInfo() {
     ['Tab-Leiste oben / unten', `${info.barTop ?? '–'} / ${info.barBottom ?? '–'}`],
     ['Leiste bis Bildschirmrand', gap === null ? '–' : String(gap)],
     ['Scroll Seite / Inhalt', `${info.scrollY} / ${info.mainScroll ?? '–'}`],
+    ['Fehlende Fensterhöhe', String(info.gap)],
+    ['Korrekturversuche', String(info.attempts)],
     ['Installierte App', info.standalone ? 'ja' : 'nein'],
   ]
   return (
