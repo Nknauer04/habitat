@@ -41,4 +41,4 @@ Nur ein Nutzer (ich), läuft als PWA auf meinem **iPhone** (Safari → „Zum Ho
 - Projektstand steht in `docs/roadmap.md` – nach `/clear` dort weitermachen statt alles neu zu analysieren
 
 ## Definition of Done pro Schritt
-`npm run build` ohne Fehler, keine TypeScript-Fehler, auf iPhone-Breite (390 px) und Mac-Breite (1280 px) brauchbar, committet.
+`npm run build` und `npm test` ohne Fehler, keine TypeScript-Fehler, auf iPhone-Breite (390 px) und Mac-Breite (1280 px) brauchbar, committet.
