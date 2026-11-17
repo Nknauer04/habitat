@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Phase 1 fast fertig – App deployed; offen: iPhone-Test (Installation, Login, Sync). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 fertig (iPhone + Mac getestet: Login, Sync, Installation). Nächstes Feature: Gewohnheiten anlegen + Heute-Ansicht. Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
