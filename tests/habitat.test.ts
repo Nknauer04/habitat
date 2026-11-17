@@ -404,4 +404,13 @@ eq('Rückblick: ohne Einheiten-Daten unverändert', weekSummary([lh], [], [], '2
 // Verknüpfung Einheit ↔ Ziel: setActivityGoalLinks nutzt db (IndexedDB), hier nur die Zählung über activityIds
 eq('Ziel ohne verknüpfte Einheit zählt 0', gp2({ ...amountGoal, activityIds: [] }, [], '2026-11-17', [], aEntries).value, 0)
 eq('Ziel zählt nur verknüpfte Einheiten', gp2({ ...amountGoal, activityIds: ['a1', 'a2'] }, [], '2026-11-17', [], [...aEntries, ae('2026-11-16', 7, { planId: 'a2' })]).value, 63.5)
+// Frist-Rechnung im Ziel-Assistenten
+import { addMonthsKey, deadlineInfo } from '../src/lib/goals'
+eq('Frist: 14 Tage = 2 Wochen', deadlineInfo('2026-12-01', '2026-11-17'), { days: 14, weeks: 2 })
+eq('Frist: über Zeitumstellung (Okt→Nov) rundet korrekt', deadlineInfo('2026-11-02', '2026-10-24').days, 9)
+eq('Frist: heute = 0 Tage, vergangen negativ', [deadlineInfo('2026-11-17', '2026-11-17').days, deadlineInfo('2026-11-10', '2026-11-17').days], [0, -7])
+eq('+1 Monat', addMonthsKey('2026-11-17', 1), '2026-12-17')
+eq('+3 Monate über Jahreswechsel', addMonthsKey('2026-11-17', 3), '2027-02-17')
+eq('31.01. + 1 Monat = 28.02.', addMonthsKey('2027-01-31', 1), '2027-02-28')
+eq('+12 Monate', addMonthsKey('2026-11-17', 12), '2027-11-17')
 process.exit(fail ? 1 : 0)

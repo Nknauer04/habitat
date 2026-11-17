@@ -38,6 +38,12 @@
 
 :root {
   color-scheme: dark;
+  /* Bereichsfarben (Kacheln, Ringe, Karten); hier statt in @theme, weil sie nur per var() genutzt werden */
+  --color-area-sport: #1fdcf0;
+  --color-area-lernen: #a78bfa;
+  --color-area-schlaf: #60a5fa;
+  --color-area-musik: #f472b6;
+  --color-area-sonstiges: #a1a1aa;
   /* Abstand zur Home-Anzeige des iPhones: normal 34 px; nie mehr, falls iOS einen zu großen Wert meldet */
   --safe-bottom: min(env(safe-area-inset-bottom, 0px), 34px);
 }

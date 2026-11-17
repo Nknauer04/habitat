@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AREAS, TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
-
-const EMOJIS = ['🏃', '💪', '🧘', '🚴', '📚', '🎓', '🎹', '🎸', '🎧', '😴', '🌅', '💧', '✍️', '🥗', '🧠', '✅']
+import ItemIcon from './ItemIcon'
+import { IconGrid } from './wizard/parts'
 
 const chip = (active: boolean) =>
   `rounded-lg border px-3 py-2 text-sm ${
@@ -15,7 +15,7 @@ const label = 'mb-2 block text-sm text-slate-400'
 
 export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose: () => void }) {
   const [name, setName] = useState(habit?.name ?? '')
-  const [icon, setIcon] = useState(habit?.icon ?? '✅')
+  const [icon, setIcon] = useState(habit?.icon ?? 'i:check')
   const [area, setArea] = useState<Area>(habit?.area ?? 'sport')
   const [time, setTime] = useState<TimeOfDay>(habit?.timeOfDay ?? 'morgen')
   const [freq, setFreq] = useState<Frequency['type']>(habit?.frequency.type ?? 'daily')
@@ -51,7 +51,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
     await saveHabit(
       {
         name: name.trim(),
-        icon: icon.trim() || '✅',
+        icon: icon || 'i:check',
         area,
         timeOfDay: time,
         frequency,
@@ -91,13 +91,8 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
       >
         <h2 className="text-lg font-semibold">{habit ? 'Gewohnheit bearbeiten' : 'Neue Gewohnheit'}</h2>
 
-        <div className="mt-4 flex gap-2">
-          <input
-            value={icon}
-            onChange={(e) => setIcon(e.target.value)}
-            aria-label="Icon"
-            className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-center text-xl outline-none focus:border-accent-500"
-          />
+        <div className="mt-4 flex items-center gap-3">
+          <ItemIcon icon={icon} area={area} size={52} />
           <input
             autoFocus={!habit}
             value={name}
@@ -106,17 +101,8 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
           />
         </div>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {EMOJIS.map((e) => (
-            <button
-              type="button"
-              key={e}
-              onClick={() => setIcon(e)}
-              className={`h-9 w-9 rounded-lg text-lg ${icon === e ? 'bg-accent-500/20' : 'hover:bg-slate-800'}`}
-            >
-              {e}
-            </button>
-          ))}
+        <div className="mt-3">
+          <IconGrid value={icon} area={area} onChange={setIcon} />
         </div>
 
         <span className={`${label} mt-5`}>Bereich</span>

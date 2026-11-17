@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CoachCard from '../components/CoachCard'
 import HabitDialog from '../components/HabitDialog'
+import HabitWizard from '../components/wizard/HabitWizard'
 import { PlusIcon } from '../components/icons'
 import LevelCard from '../components/LevelCard'
 import ActivityEntrySheet from '../components/ActivityEntrySheet'
@@ -31,6 +32,7 @@ import { useBadges, useNewBadges } from '../lib/useBadges'
 import { useCoachTips } from '../lib/useCoach'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
+import ItemIcon from '../components/ItemIcon'
 
 const LETTERS = ['M', 'D', 'M', 'D', 'F', 'S', 'S']
 
@@ -304,7 +306,7 @@ export default function Today() {
                   }`}
                 >
                   <button onClick={() => setDialog({ habit: h })} className="flex min-w-0 flex-1 items-center gap-4 text-left">
-                    <span className="text-[2rem] leading-none">{h.icon}</span>
+                    <ItemIcon icon={h.icon} area={h.area} size={48} />
                     <span className="min-w-0">
                       <span className={`block truncate text-[19px] font-semibold ${doneToday ? 'text-slate-300' : ''}`}>{h.name}</span>
                       <span className="mt-0.5 block text-sm text-slate-400">
@@ -381,7 +383,7 @@ export default function Today() {
                 className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${entry ? 'border-done/25' : 'border-slate-800'}`}
               >
                 <Link to="/ziele" className="flex min-w-0 flex-1 items-center gap-4 text-left">
-                  <span className="text-[2rem] leading-none">{a.icon}</span>
+                  <ItemIcon icon={a.icon} area={a.area} size={48} />
                   <span className="min-w-0">
                     <span className={`block truncate text-[19px] font-semibold ${entry ? 'text-slate-300' : ''}`}>{a.name}</span>
                     <span className="mt-0.5 block text-sm text-slate-400">
@@ -406,7 +408,7 @@ export default function Today() {
         </section>
       )}
 
-      {dialog && <HabitDialog habit={dialog.habit} onClose={() => setDialog(null)} />}
+      {dialog && (dialog.habit ? <HabitDialog habit={dialog.habit} onClose={() => setDialog(null)} /> : <HabitWizard onClose={() => setDialog(null)} />)}
       {actSheetId &&
         (() => {
           const r = actRows.find((x) => x.a.id === actSheetId)

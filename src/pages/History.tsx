@@ -17,6 +17,7 @@ import type { HabitProgress } from '../lib/progress'
 import { computeDayScores, computeStats, consistency, summarize } from '../lib/stats'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
+import { iconText } from '../components/ItemIcon'
 
 const card = 'rounded-3xl border border-slate-800 bg-slate-900'
 
@@ -174,14 +175,14 @@ export default function History() {
                 <option value="all">Alle Gewohnheiten</option>
                 {active.map((h) => (
                   <option key={h.id} value={h.id}>
-                    {h.icon} {h.name}
+                    {iconText(h.icon)} {h.name}
                   </option>
                 ))}
                 {archived.length > 0 && (
                   <optgroup label="Archiviert">
                     {archived.map((h) => (
                       <option key={h.id} value={h.id}>
-                        {h.icon} {h.name}
+                        {iconText(h.icon)} {h.name}
                       </option>
                     ))}
                   </optgroup>

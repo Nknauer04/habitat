@@ -3,6 +3,7 @@ import { dayKey } from '../lib/db'
 import { fmtQty } from '../lib/habits'
 import { setActivityEntry } from '../lib/activities'
 import type { Activity } from '../lib/types'
+import ItemIcon from './ItemIcon'
 
 // Ist-Wert einer Einheit für einen Tag eintragen (ersetzt den bisherigen Wert).
 export default function ActivityEntrySheet({
@@ -52,8 +53,9 @@ export default function ActivityEntrySheet({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
       >
-        <h2 className="text-lg font-semibold">
-          {activity.icon} {activity.name}
+        <h2 className="flex items-center gap-3 text-lg font-semibold">
+          <ItemIcon icon={activity.icon} area={activity.area} size={32} />
+          {activity.name}
         </h2>
         <p className="mt-1 text-sm text-slate-400">
           {dateText}

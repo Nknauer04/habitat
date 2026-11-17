@@ -4,8 +4,8 @@ import { activityDays, deleteActivity, saveActivity, setActivityGoalLinks } from
 import { db } from '../lib/db'
 import { AREAS, WEEKDAYS } from '../lib/habits'
 import type { Activity, Area } from '../lib/types'
+import { IconGrid } from './wizard/parts'
 
-const EMOJIS = ['🏃', '🚴', '🏊', '💪', '🧘', '📚', '🎹', '🎸', '🎧', '✍️', '🥾', '⚽', '🎯', '✅']
 const UNITS = ['km', 'h', 'min', 'Seiten', 'Einheiten']
 
 const chip = (active: boolean) =>
@@ -18,7 +18,7 @@ const label = 'mb-2 block text-sm text-slate-400'
 // Einheit anlegen/bearbeiten (z. B. „Laufen“ in km). Hat nur Ist-Werte; das Soll legst du in einem Ziel fest.
 export default function ActivityDialog({ activity, onClose }: { activity?: Activity; onClose: () => void }) {
   const [name, setName] = useState(activity?.name ?? '')
-  const [icon, setIcon] = useState(activity?.icon ?? '🏃')
+  const [icon, setIcon] = useState(activity?.icon ?? 'i:run')
   const [area, setArea] = useState<Area>(activity?.area ?? 'sport')
   const [unit, setUnit] = useState(activity?.unit ?? 'km')
   const [days, setDays] = useState<number[]>(activity ? activityDays(activity) : [])
@@ -42,7 +42,7 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
     e.preventDefault()
     if (!name.trim()) return setError('Bitte einen Namen eingeben.')
     if (!unit.trim()) return setError('Bitte eine Einheit angeben.')
-    const id = await saveActivity({ name: name.trim(), icon: icon.trim() || '🏃', area, unit: unit.trim(), days: [...days].sort() }, activity?.id)
+    const id = await saveActivity({ name: name.trim(), icon: icon || 'i:run', area, unit: unit.trim(), days: [...days].sort() }, activity?.id)
     if (linked !== null && goals) await setActivityGoalLinks(id, unit.trim(), linked, goals)
     onClose()
   }
@@ -68,13 +68,7 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
         <input autoFocus={!activity} value={name} onChange={(e) => setName(e.target.value)} placeholder="Name, z. B. Laufen" className={`${field} mt-4`} />
 
         <span className={`${label} mt-5`}>Symbol</span>
-        <div className="flex flex-wrap gap-2">
-          {EMOJIS.map((e) => (
-            <button type="button" key={e} onClick={() => setIcon(e)} aria-label={`Symbol ${e}`} className={`${chip(icon === e)} text-xl leading-none`}>
-              {e}
-            </button>
-          ))}
-        </div>
+        <IconGrid value={icon} area={area} onChange={setIcon} />
 
         <span className={`${label} mt-5`}>Bereich</span>
         <div className="flex flex-wrap gap-2">

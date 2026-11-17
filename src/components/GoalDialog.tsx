@@ -4,6 +4,7 @@ import { dayKey, db, newId } from '../lib/db'
 import { deleteGoal, saveGoal } from '../lib/goals'
 import { AREAS, fmtQty } from '../lib/habits'
 import type { Area, Goal, GoalStep, Milestone } from '../lib/types'
+import ItemIcon from './ItemIcon'
 
 const chip = (active: boolean) =>
   `rounded-lg border px-3 py-2 text-sm ${
@@ -172,7 +173,8 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
                         title={blocked ? `Andere Einheit (${a.unit})` : undefined}
                         className={`${chip(activityIds.includes(a.id))} disabled:opacity-40`}
                       >
-                        {a.icon} {a.name} ({a.unit})
+                        <ItemIcon icon={a.icon} area={a.area} size={22} className="mr-2 align-middle" />
+                        {a.name} ({a.unit})
                       </button>
                     )
                   })}
@@ -277,7 +279,8 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
                     onClick={() => toggleHabit(h.id)}
                     className={chip(habitIds.includes(h.id))}
                   >
-                    {h.icon} {h.name}
+                    <ItemIcon icon={h.icon} area={h.area} size={22} className="mr-2 align-middle" />
+                    {h.name}
                   </button>
                 ))}
               </div>

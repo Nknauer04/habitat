@@ -1,5 +1,6 @@
 import { nextBadge, reachedBadges, TIER_ICONS } from '../lib/badges'
 import { useBadges } from '../lib/useBadges'
+import ItemIcon from './ItemIcon'
 
 // „Noch 3 Tage bis 🥉 7 Tage“, „Noch 2 Level bis 🥉 Level 5“, „Noch 1 Ziel bis 🥉 1 Ziel“
 const unitLabel = (unit: string, n: number) => (unit === 'Ziele' && n === 1 ? 'Ziel' : unit === 'Tage' && n === 1 ? 'Tag' : unit === 'Wochen' && n === 1 ? 'Woche' : unit)
@@ -29,7 +30,7 @@ export default function BadgesCard({ today }: { today: Date }) {
           return (
             <li key={g.key} className="py-3 first:pt-0 last:pb-0">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{g.icon}</span>
+                <ItemIcon icon={g.icon} size={40} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate">{g.title}</div>
                   <div className="text-xs text-slate-500">

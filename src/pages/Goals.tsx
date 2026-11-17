@@ -2,6 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import GoalDialog from '../components/GoalDialog'
 import ActivityDialog from '../components/ActivityDialog'
+import ActivityWizard from '../components/wizard/ActivityWizard'
+import GoalWizard from '../components/wizard/GoalWizard'
 import ActivityEntrySheet from '../components/ActivityEntrySheet'
 import { InboxIcon, LinkIcon, PlusIcon } from '../components/icons'
 import { dayKey, db } from '../lib/db'
@@ -11,6 +13,7 @@ import { WEEKDAYS, areaLabel, fmtQty } from '../lib/habits'
 import { GOAL_DONE_XP } from '../lib/progress'
 import type { Activity, Goal } from '../lib/types'
 import { useToday } from '../lib/useToday'
+import ItemIcon, { iconText } from '../components/ItemIcon'
 
 const fmt = (key: string) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -123,8 +126,9 @@ export default function Goals() {
                 <li key={a.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
                   <div className="flex items-center justify-between gap-3">
                     <button onClick={() => setActDialog({ activity: a })} className="min-w-0 flex-1 text-left">
-                      <div className="truncate text-[19px] font-semibold">
-                        {a.icon} {a.name}
+                      <div className="flex items-center gap-3">
+                        <ItemIcon icon={a.icon} area={a.area} size={40} />
+                        <span className="truncate text-[19px] font-semibold">{a.name}</span>
                       </div>
                       <div className="mt-0.5 text-sm text-slate-400">
                         gesamt {fmtQty(total)} {a.unit}
@@ -238,7 +242,7 @@ export default function Goals() {
                     {(g.activityIds ?? [])
                       .map((id) => (activities ?? []).find((a) => a.id === id))
                       .filter((a) => !!a)
-                      .map((a) => `${a!.icon} ${a!.name}`)
+                      .map((a) => `${iconText(a!.icon)} ${a!.name}`.trim())
                       .join(', ') || 'noch keine Einheit verknüpft'}
                   </p>
                 )}
@@ -318,7 +322,7 @@ export default function Goals() {
         </ul>
       )}
 
-      {actDialog && <ActivityDialog activity={actDialog.activity} onClose={() => setActDialog(null)} />}
+      {actDialog && (actDialog.activity ? <ActivityDialog activity={actDialog.activity} onClose={() => setActDialog(null)} /> : <ActivityWizard onClose={() => setActDialog(null)} />)}
       {entrySheet && (
         <ActivityEntrySheet
           activity={entrySheet.activity}
@@ -327,7 +331,7 @@ export default function Goals() {
           onClose={() => setEntrySheet(null)}
         />
       )}
-      {dialog && <GoalDialog goal={dialog.goal} onClose={() => setDialog(null)} />}
+      {dialog && (dialog.goal ? <GoalDialog goal={dialog.goal} onClose={() => setDialog(null)} /> : <GoalWizard onClose={() => setDialog(null)} />)}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { dayKey } from '../lib/db'
 import { addQuantity, fmtQty, resetDay } from '../lib/habits'
 import type { Habit } from '../lib/types'
+import ItemIcon from './ItemIcon'
 
 export default function QuantitySheet({
   habit,
@@ -53,8 +54,9 @@ export default function QuantitySheet({
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-sm rounded-t-2xl border border-slate-800 bg-slate-900 p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:rounded-2xl"
       >
-        <h2 className="text-lg font-semibold">
-          {habit.icon} {habit.name}
+        <h2 className="flex items-center gap-3 text-lg font-semibold">
+          <ItemIcon icon={habit.icon} area={habit.area} size={32} />
+          {habit.name}
         </h2>
         <p className="mt-1 text-sm text-slate-400">
           {dateText}: {fmtQty(current)} / {fmtQty(target)} {unit}

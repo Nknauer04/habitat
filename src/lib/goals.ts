@@ -121,3 +121,17 @@ export function goalTrend(g: Goal, ratio: number, todayKey: string): GoalTrend {
   const expected = Math.min(1, elapsed / total)
   return ratio + 1e-9 >= expected ? 'ahead' : 'behind'
 }
+
+// Frist-Rechnung für den Ziel-Assistenten: Tage ab heute bis zum Datum (negativ = vorbei) und Wochen
+export function deadlineInfo(targetDate: string, todayKey: string) {
+  const days = Math.round((utcDay(targetDate) - utcDay(todayKey)) / 86_400_000)
+  return { days, weeks: days / 7 }
+}
+
+// Datum in n Monaten (Tag wird auf den letzten Tag des Zielmonats begrenzt, z. B. 31.01. + 1 Monat = 28.02.)
+export function addMonthsKey(key: string, n: number): string {
+  const [y, m, d] = key.split('-').map(Number)
+  const first = new Date(y, m - 1 + n, 1)
+  const last = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate()
+  return dayKey(new Date(first.getFullYear(), first.getMonth(), Math.min(d, last)))
+}

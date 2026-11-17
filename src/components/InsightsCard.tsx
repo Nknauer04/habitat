@@ -3,6 +3,7 @@ import { dayKey } from '../lib/db'
 import { WEEKDAYS } from '../lib/habits'
 import { computeInsights, MIN_DAYS } from '../lib/insights'
 import type { CheckIn, Habit } from '../lib/types'
+import ItemIcon from './ItemIcon'
 
 const rateColor = (r: number | null) =>
   r === null ? 'bg-slate-800' : r >= 80 ? 'bg-done' : r >= 50 ? 'bg-done/60' : r > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
@@ -41,8 +42,9 @@ export default function InsightsCard({ habits, checkIns, today }: { habits: Habi
             {insights.habits.map((i) => (
               <div key={i.habit.id}>
                 <div className="flex items-baseline justify-between gap-3 text-sm">
-                  <span className="truncate">
-                    {i.habit.icon} {i.habit.name}
+                  <span className="flex min-w-0 items-center gap-2">
+                    <ItemIcon icon={i.habit.icon} area={i.habit.area} size={26} />
+                    <span className="truncate">{i.habit.name}</span>
                   </span>
                   <span className="shrink-0 text-xs text-slate-500">Ø {i.overall ?? '–'} %</span>
                 </div>
