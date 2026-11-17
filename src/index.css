@@ -38,12 +38,19 @@
 
 :root {
   color-scheme: dark;
+  /* Abstand zur Home-Anzeige des iPhones: normal 34 px; nie mehr, falls iOS einen zu großen Wert meldet */
+  --safe-bottom: min(env(safe-area-inset-bottom, 0px), 34px);
 }
 
 html,
-body,
+body {
+  height: 100%;
+  background: #000;
+}
+
 #root {
   height: 100%;
+  height: 100dvh;
 }
 
 body {

@@ -1,5 +1,6 @@
 import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import DisplayInfo from '../components/DisplayInfo'
 import RemindersCard from '../components/RemindersCard'
 import { setProfileName, useProfileName } from '../lib/profile'
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
@@ -246,6 +247,8 @@ export default function Settings() {
         Version vom{' '}
         {new Date(__BUILD_TIME__).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}
       </p>
+
+      <DisplayInfo />
     </div>
   )
 }

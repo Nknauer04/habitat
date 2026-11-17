@@ -36,7 +36,7 @@ export default function Layout() {
         })}
       </nav>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-28 pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
+      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-[calc(5.5rem+var(--safe-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
         <div className="mx-auto max-w-2xl">
           <Outlet />
         </div>
@@ -45,7 +45,7 @@ export default function Layout() {
       {/* Feste Tab-Leiste am unteren Rand unter 1024 px (reicht bis unter die Home-Anzeige des iPhones) */}
       <nav
         aria-label="Hauptnavigation"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-950/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-800 bg-slate-950/95 pb-[var(--safe-bottom)] backdrop-blur-xl lg:hidden"
       >
         <div className="mx-auto flex max-w-md items-center justify-around px-3 pb-1 pt-2">
           {items.map(({ to, label, Icon, match }) => {
