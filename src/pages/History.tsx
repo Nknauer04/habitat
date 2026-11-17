@@ -1,9 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import Heatmap from '../components/Heatmap'
+import QuantitySheet from '../components/QuantitySheet'
 import { db } from '../lib/db'
-import { areaLabel, toggleCheckIn } from '../lib/habits'
+import { areaLabel, checkInValue, isCheckInDone, isPartial, toggleCheckIn } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
-import type { Habit } from '../lib/types'
+import type { CheckIn, Habit } from '../lib/types'
 import { useProgress } from '../lib/useProgress'
 import { useToday } from '../lib/useToday'
 
@@ -35,17 +37,23 @@ function Stats({ p }: { p?: HabitProgress }) {
 
 function Card({
   habit,
-  dates,
+  checks,
   today,
   progress,
   readOnly,
 }: {
   habit: Habit
-  dates: Set<string>
+  checks: CheckIn[]
   today: Date
   progress?: HabitProgress
   readOnly?: boolean
 }) {
+  const [sheetDate, setSheetDate] = useState<string | null>(null)
+  const dates = new Set(checks.filter((c) => isCheckInDone(habit, c)).map((c) => c.date))
+  const partial = new Set(checks.filter((c) => isPartial(habit, c)).map((c) => c.date))
+  const valueOn = (date: string) =>
+    checks.filter((c) => c.date === date && !c.deleted).reduce((s, c) => s + checkInValue(habit, c), 0)
+
   return (
     <li className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
       <div className="mb-3 flex items-center gap-3">
@@ -58,10 +66,18 @@ function Card({
       <Heatmap
         habit={habit}
         dates={dates}
+        partial={partial}
         today={today}
-        onToggle={readOnly ? undefined : (key) => void toggleCheckIn(habit.id, key)}
+        onToggle={
+          readOnly
+            ? undefined
+            : (key) => (habit.dailyTarget ? setSheetDate(key) : void toggleCheckIn(habit.id, key))
+        }
       />
       <Stats p={progress} />
+      {sheetDate && (
+        <QuantitySheet habit={habit} date={sheetDate} current={valueOn(sheetDate)} onClose={() => setSheetDate(null)} />
+      )}
     </li>
   )
 }
@@ -72,8 +88,7 @@ export default function History() {
   const habits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).sortBy('createdAt'), [])
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
 
-  const datesOf = (id: string) =>
-    new Set((checks ?? []).filter((c) => c.habitId === id).map((c) => c.date))
+  const checksOf = (id: string) => (checks ?? []).filter((c) => c.habitId === id)
 
   const active = (habits ?? []).filter((h) => !h.archived)
   const archived = (habits ?? []).filter((h) => h.archived)
@@ -93,7 +108,7 @@ export default function History() {
 
       <ul className="mt-5 flex flex-col gap-3">
         {active.map((h) => (
-          <Card key={h.id} habit={h} dates={datesOf(h.id)} today={today} progress={progress?.byHabit.get(h.id)} />
+          <Card key={h.id} habit={h} checks={checksOf(h.id)} today={today} progress={progress?.byHabit.get(h.id)} />
         ))}
       </ul>
 
@@ -105,7 +120,7 @@ export default function History() {
               <Card
                 key={h.id}
                 habit={h}
-                dates={datesOf(h.id)}
+                checks={checksOf(h.id)}
                 today={today}
                 progress={progress?.byHabit.get(h.id)}
                 readOnly

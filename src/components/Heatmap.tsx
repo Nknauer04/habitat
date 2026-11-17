@@ -10,11 +10,13 @@ const isDue = (h: Habit, d: Date) =>
 export default function Heatmap({
   habit,
   dates,
+  partial,
   today,
   onToggle,
 }: {
   habit: Habit
   dates: Set<string>
+  partial?: Set<string> // Mengen-Gewohnheit: Wert erfasst, Ziel noch nicht erreicht
   today: Date
   onToggle?: (key: string) => void
 }) {
@@ -26,7 +28,7 @@ export default function Heatmap({
     const d = new Date(start)
     d.setDate(start.getDate() + i)
     const key = dayKey(d)
-    return { d, key, future: key > todayKey, done: dates.has(key), due: isDue(habit, d) }
+    return { d, key, future: key > todayKey, done: dates.has(key), part: partial?.has(key) ?? false, due: isDue(habit, d) }
   })
 
   return (
@@ -38,12 +40,14 @@ export default function Heatmap({
         gridAutoFlow: 'column',
       }}
     >
-      {cells.map(({ d, key, future, done, due }) => {
+      {cells.map(({ d, key, future, done, part, due }) => {
         if (future) return <span key={key} className="aspect-square" />
-        const state = done ? 'erledigt' : due ? 'verpasst' : 'nicht fällig'
+        const state = done ? 'erledigt' : part ? 'teilweise' : due ? 'verpasst' : 'nicht fällig'
         const color = done
           ? 'bg-emerald-500'
-          : due
+          : part
+            ? 'bg-emerald-500/40'
+            : due
             ? 'bg-slate-700'
             : 'bg-slate-800/60'
         const label = `${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}: ${state}`

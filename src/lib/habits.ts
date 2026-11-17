@@ -1,5 +1,5 @@
 import { dayKey, db, newId, now } from './db'
-import type { Area, Habit, TimeOfDay } from './types'
+import type { Area, CheckIn, Habit, TimeOfDay } from './types'
 
 export const AREAS: { value: Area; label: string }[] = [
   { value: 'sport', label: 'Sport' },
@@ -30,7 +30,43 @@ export function weekRange(d: Date) {
   return [dayKey(start), dayKey(end)] as const
 }
 
-export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency'>
+export type HabitInput = Pick<Habit, 'name' | 'icon' | 'area' | 'timeOfDay' | 'frequency' | 'unit' | 'dailyTarget'>
+
+// Erledigt: normale Gewohnheit = Check-in vorhanden; Mengen-Gewohnheit = Wert ≥ Tagesziel.
+// Alte Check-ins ohne Wert (vor Umstellung auf Menge) zählen weiter als erledigt.
+export const isCheckInDone = (h: Habit, c: CheckIn) =>
+  !c.deleted && (!h.dailyTarget || c.value === undefined || c.value >= h.dailyTarget)
+
+// Teilwert: Menge erfasst, Ziel aber noch nicht erreicht.
+export const isPartial = (h: Habit, c: CheckIn) =>
+  !c.deleted && !!h.dailyTarget && c.value !== undefined && c.value > 0 && c.value < h.dailyTarget
+
+export const fmtQty = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
+
+// Tagesmenge einer Gewohnheit; alte Check-ins ohne Wert zählen als volles Tagesziel.
+export const checkInValue = (h: Habit, c: CheckIn) => c.value ?? h.dailyTarget ?? 0
+
+export async function resetDay(habitId: string, date: string) {
+  const existing = await db.checkIns.where('[habitId+date]').equals([habitId, date]).toArray()
+  const active = existing.filter((c) => !c.deleted)
+  const t = now()
+  if (active.length) await db.checkIns.bulkPut(active.map((c) => ({ ...c, deleted: true, updatedAt: t })))
+}
+
+// Menge zum Tageswert addieren (mehrere Teilwerte pro Tag summieren sich).
+export async function addQuantity(habitId: string, date: string, amount: number) {
+  const existing = await db.checkIns.where('[habitId+date]').equals([habitId, date]).toArray()
+  const active = existing.filter((c) => !c.deleted)
+  const t = now()
+  if (active.length) {
+    const sum = active.reduce((s, c) => s + (c.value ?? 0), 0) + amount
+    await db.checkIns.bulkPut([
+      { ...active[0], value: sum, updatedAt: t },
+      ...active.slice(1).map((c) => ({ ...c, deleted: true, updatedAt: t })),
+    ])
+  } else if (existing.length) await db.checkIns.put({ ...existing[0], deleted: false, value: amount, updatedAt: t })
+  else await db.checkIns.add({ id: newId(), habitId, date, value: amount, deleted: false, updatedAt: t })
+}
 
 export async function saveHabit(input: HabitInput, id?: string) {
   const t = now()

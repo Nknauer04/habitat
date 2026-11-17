@@ -1,5 +1,6 @@
 import { dayKey, db, newId, now } from './db'
-import type { CheckIn, Goal } from './types'
+import { isCheckInDone } from './habits'
+import type { CheckIn, Goal, Habit } from './types'
 
 export type GoalInput = Pick<
   Goal,
@@ -34,7 +35,8 @@ export interface GoalProgress {
 }
 
 // Zählziel: verschiedene (Gewohnheit, Tag)-Check-ins ab startDate bis heute.
-export function goalProgress(g: Goal, checkIns: CheckIn[], todayKey: string): GoalProgress {
+export function goalProgress(g: Goal, checkIns: CheckIn[], todayKey: string, habits: Habit[] = []): GoalProgress {
+  const habitById = new Map(habits.map((h) => [h.id, h]))
   let value = 0
   let total = 0
   if (g.kind === 'steps') {
@@ -44,6 +46,8 @@ export function goalProgress(g: Goal, checkIns: CheckIn[], todayKey: string): Go
     const seen = new Set<string>()
     for (const c of checkIns) {
       if (c.deleted || !g.habitIds.includes(c.habitId)) continue
+      const habit = habitById.get(c.habitId)
+      if (habit && !isCheckInDone(habit, c)) continue
       if (c.date < (g.startDate ?? '') || c.date > todayKey) continue
       seen.add(`${c.habitId}|${c.date}`)
     }

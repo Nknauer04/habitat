@@ -24,6 +24,7 @@ export default function Goals() {
 
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).sortBy('createdAt'), [])
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
+  const allHabits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
 
   const open = (goals ?? []).filter((g) => !g.done)
   const done = (goals ?? []).filter((g) => g.done)
@@ -56,7 +57,7 @@ export default function Goals() {
 
       <ul className="mt-5 flex flex-col gap-3">
         {open.map((g) => {
-          const p = goalProgress(g, checks ?? [], todayKey)
+          const p = goalProgress(g, checks ?? [], todayKey, allHabits ?? [])
           const dl = deadline(g, todayKey)
           return (
             <li key={g.id} className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">

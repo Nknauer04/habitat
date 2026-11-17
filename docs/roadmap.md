@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Phase 1 fertig. Must-Punkte + Ziele fertig. Nächstes: weitere Should-Features (Vorschlag: Mengen-Gewohnheiten). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
+Status: Phase 1 fertig. Must-Punkte, Ziele und Mengen-Gewohnheiten fertig. Nächstes: weitere Should-Features (Vorschlag: Mini-Version "schlechter Tag"). Annahmen: Tracken: Sport, Lernen, Schlaf, Musikproduktion · Motivation: Streaks + Level · Nutzung: morgens/abends, iPhone + Mac.
 
 ## Phase 1 – Grundgerüst (Stopp danach)
 - [x] Vite + React + TS + Tailwind, Dark Mode, Layout (Tab-Bar 390 px / Seitenleiste ≥ 1024 px)
@@ -21,7 +21,7 @@ Status: Phase 1 fertig. Must-Punkte + Ziele fertig. Nächstes: weitere Should-Fe
 
 ## Should
 - [x] Ziele (z. B. „Song fertigstellen“, „10 h/Woche lernen“) mit Fortschritt, verknüpft mit Gewohnheiten
-- [ ] Mengen-Gewohnheiten (Minuten, Anzahl; z. B. Schlafstunden, Lernzeit)
+- [x] Mengen-Gewohnheiten (Einheit + Tagesziel; Tag zählt ab Ziel; Teilwerte addieren sich)
 - [ ] Mini-Version/2-Minuten-Variante je Gewohnheit („schlechter Tag“-Modus)
 - [ ] Wochen-/Monatsstatistik, Tages-Score
 - [ ] Erinnerungen per Web-Push (Morgen/Abend)

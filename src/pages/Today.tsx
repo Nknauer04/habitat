@@ -2,9 +2,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import HabitDialog from '../components/HabitDialog'
 import LevelCard from '../components/LevelCard'
+import QuantitySheet from '../components/QuantitySheet'
 import { useProgress } from '../lib/useProgress'
 import { dayKey, db } from '../lib/db'
-import { TIMES, areaLabel, isDue, toggleCheckIn, weekRange } from '../lib/habits'
+import { TIMES, areaLabel, checkInValue, fmtQty, isCheckInDone, isDue, toggleCheckIn, weekRange } from '../lib/habits'
 import type { HabitProgress } from '../lib/progress'
 import type { Habit } from '../lib/types'
 import { useToday } from '../lib/useToday'
@@ -20,6 +21,7 @@ export default function Today() {
   const key = dayKey(today)
   const [weekStart, weekEnd] = weekRange(today)
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
+  const [sheetId, setSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
 
   const habits = useLiveQuery(
@@ -39,9 +41,11 @@ export default function Today() {
   const rows = (habits ?? [])
     .map((h) => {
       const mine = (checks ?? []).filter((c) => c.habitId === h.id)
-      const doneToday = mine.some((c) => c.date === key)
-      const weekCount = new Set(mine.map((c) => c.date)).size
-      return { h, doneToday, weekCount, due: isDue(h, today, doneToday, weekCount) }
+      const doneDays = mine.filter((c) => isCheckInDone(h, c))
+      const doneToday = doneDays.some((c) => c.date === key)
+      const weekCount = new Set(doneDays.map((c) => c.date)).size
+      const current = mine.filter((c) => c.date === key).reduce((sum, c) => sum + checkInValue(h, c), 0)
+      return { h, doneToday, weekCount, current, due: isDue(h, today, doneToday, weekCount) }
     })
     .filter((r) => r.due)
 
@@ -88,7 +92,7 @@ export default function Today() {
           <section key={t.value} className="mt-6">
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">{t.label}</h2>
             <ul className="flex flex-col gap-2">
-              {section.map(({ h, doneToday, weekCount }) => (
+              {section.map(({ h, doneToday, weekCount, current }) => (
                 <li
                   key={h.id}
                   className={`flex items-center gap-3 rounded-xl border p-3 ${
@@ -96,16 +100,37 @@ export default function Today() {
                   }`}
                 >
                   <button
-                    onClick={() => void toggleCheckIn(h.id, key)}
-                    aria-label={doneToday ? `${h.name} zurücknehmen` : `${h.name} abhaken`}
+                    onClick={() => (h.dailyTarget ? setSheetId(h.id) : void toggleCheckIn(h.id, key))}
+                    aria-label={
+                      h.dailyTarget
+                        ? `${h.name}: Menge eintragen`
+                        : doneToday
+                          ? `${h.name} zurücknehmen`
+                          : `${h.name} abhaken`
+                    }
                     aria-pressed={doneToday}
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 text-xl ${
+                    style={
+                      h.dailyTarget && !doneToday
+                        ? {
+                            background: `conic-gradient(#10b981 ${Math.min(100, (current / h.dailyTarget) * 100)}%, #475569 0)`,
+                          }
+                        : undefined
+                    }
+                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${
                       doneToday
-                        ? 'border-emerald-500 bg-emerald-500 text-slate-950'
-                        : 'border-slate-600 text-transparent hover:border-emerald-500'
+                        ? 'border-2 border-emerald-500 bg-emerald-500 text-slate-950'
+                        : h.dailyTarget
+                          ? ''
+                          : 'border-2 border-slate-600 text-transparent hover:border-emerald-500'
                     }`}
                   >
-                    ✓
+                    {h.dailyTarget && !doneToday ? (
+                      <span className="flex h-[38px] w-[38px] items-center justify-center rounded-full bg-[#0b0f14] text-xs text-slate-300">
+                        {Math.round((current / h.dailyTarget) * 100)}%
+                      </span>
+                    ) : (
+                      '✓'
+                    )}
                   </button>
                   <button
                     onClick={() => setDialog({ habit: h })}
@@ -118,6 +143,7 @@ export default function Today() {
                       </span>
                       <span className="block text-xs text-slate-500">
                         {areaLabel(h.area)}
+                        {h.dailyTarget && ` · ${fmtQty(current)}/${fmtQty(h.dailyTarget)} ${h.unit ?? ''}`}
                         {h.frequency.type === 'perWeek' && ` · ${weekCount}/${h.frequency.count} diese Woche`}
                         {streakText(progress?.byHabit.get(h.id))}
                       </span>
@@ -131,6 +157,11 @@ export default function Today() {
       })}
 
       {dialog && <HabitDialog habit={dialog.habit} onClose={() => setDialog(null)} />}
+      {sheetId &&
+        (() => {
+          const r = rows.find((x) => x.h.id === sheetId)
+          return r ? <QuantitySheet habit={r.h} date={key} current={r.current} onClose={() => setSheetId(null)} /> : null
+        })()}
     </div>
   )
 }

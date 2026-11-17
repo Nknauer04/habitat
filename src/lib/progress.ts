@@ -1,5 +1,5 @@
 import { dayKey } from './db'
-import { weekRange, weekdayIndex } from './habits'
+import { isCheckInDone, weekRange, weekdayIndex } from './habits'
 import type { Area, CheckIn, Goal, Habit } from './types'
 
 // Alles wird aus den Check-ins berechnet (nichts gespeichert) → kein Sync-Konflikt.
@@ -150,8 +150,11 @@ export const GOAL_DONE_XP = 100 // einmalig je abgeschlossenem Ziel, in den Bere
 export function computeProgress(habits: Habit[], checkIns: CheckIn[], today: Date, goals: Goal[] = []): Progress {
   const todayKey = dayKey(today)
   const datesByHabit = new Map<string, Set<string>>()
+  const habitById = new Map(habits.map((h) => [h.id, h]))
   for (const c of checkIns) {
     if (c.deleted || c.date > todayKey) continue
+    const habit = habitById.get(c.habitId)
+    if (habit && !isCheckInDone(habit, c)) continue // Mengen-Gewohnheit: Ziel noch nicht erreicht
     if (!datesByHabit.has(c.habitId)) datesByHabit.set(c.habitId, new Set())
     datesByHabit.get(c.habitId)!.add(c.date)
   }

@@ -58,13 +58,22 @@ function checkHabit(r: Row): string | null {
     (!AREAS.some((a) => a.value === r.area) ? 'area ungültig' : null) ??
     (!TIMES.some((t) => t.value === r.timeOfDay) ? 'timeOfDay ungültig' : null) ??
     (!checkFrequency(r.frequency) ? 'frequency ungültig' : null) ??
+    (r.unit !== undefined && typeof r.unit !== 'string' ? 'unit ungültig' : null) ??
+    (r.dailyTarget !== undefined && !(typeof r.dailyTarget === 'number' && r.dailyTarget > 0)
+      ? 'dailyTarget ungültig'
+      : null) ??
     (typeof r.archived !== 'boolean' ? 'archived fehlt' : null) ??
     (!isDate(r.createdAt) ? 'createdAt ungültig' : null)
   )
 }
 
 function checkCheckIn(r: Row): string | null {
-  return checkSync(r) ?? (!isStr(r.habitId) ? 'habitId fehlt' : null) ?? (!isDay(r.date) ? 'date ungültig' : null)
+  return (
+    checkSync(r) ??
+    (!isStr(r.habitId) ? 'habitId fehlt' : null) ??
+    (!isDay(r.date) ? 'date ungültig' : null) ??
+    (r.value !== undefined && !(typeof r.value === 'number' && r.value >= 0) ? 'value ungültig' : null)
+  )
 }
 
 function checkGoal(r: Row): string | null {

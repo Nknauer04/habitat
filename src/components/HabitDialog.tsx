@@ -23,6 +23,9 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
     habit?.frequency.type === 'weekdays' ? habit.frequency.days : [0, 1, 2, 3, 4],
   )
   const [count, setCount] = useState(habit?.frequency.type === 'perWeek' ? habit.frequency.count : 3)
+  const [qty, setQty] = useState(!!habit?.dailyTarget)
+  const [unit, setUnit] = useState(habit?.unit ?? 'min')
+  const [target, setTarget] = useState(String(habit?.dailyTarget ?? 30).replace('.', ','))
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -41,7 +44,20 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
         : freq === 'weekdays'
           ? { type: 'weekdays', days: [...days].sort() }
           : { type: 'perWeek', count }
-    await saveHabit({ name: name.trim(), icon: icon.trim() || '✅', area, timeOfDay: time, frequency }, habit?.id)
+    const dailyTarget = Number(target.replace(',', '.'))
+    if (qty && !(dailyTarget > 0)) return setError('Bitte ein Tagesziel größer 0 eingeben.')
+    await saveHabit(
+      {
+        name: name.trim(),
+        icon: icon.trim() || '✅',
+        area,
+        timeOfDay: time,
+        frequency,
+        unit: qty ? unit.trim() || undefined : undefined,
+        dailyTarget: qty ? dailyTarget : undefined,
+      },
+      habit?.id,
+    )
     onClose()
   }
 
@@ -155,6 +171,49 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             >
               +
             </button>
+          </div>
+        )}
+
+        <span className={`${label} mt-5`}>Menge</span>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setQty(false)} className={chip(!qty)}>
+            Nur abhaken
+          </button>
+          <button type="button" onClick={() => setQty(true)} className={chip(qty)}>
+            Menge erfassen
+          </button>
+        </div>
+        {qty && (
+          <div className="mt-3">
+            <div className="flex flex-wrap gap-2">
+              {['min', 'h', 'Seiten', 'Wdh.'].map((u) => (
+                <button type="button" key={u} onClick={() => setUnit(u)} className={chip(unit === u)}>
+                  {u}
+                </button>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <label className="text-sm text-slate-400">
+                Tagesziel
+                <input
+                  inputMode="decimal"
+                  value={target}
+                  onChange={(e) => setTarget(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+                />
+              </label>
+              <label className="text-sm text-slate-400">
+                Einheit
+                <input
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+                />
+              </label>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Der Tag zählt erst, wenn das Tagesziel erreicht ist (für Streak, XP, Verlauf und Ziele).
+            </p>
           </div>
         )}
 

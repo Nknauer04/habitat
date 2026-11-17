@@ -20,6 +20,8 @@ export interface Habit extends Syncable {
   timeOfDay: TimeOfDay
   frequency: Frequency
   miniVersion?: string // 2-Minuten-Variante für schlechte Tage
+  unit?: string // Mengen-Gewohnheit: Einheit (min, h, Seiten …)
+  dailyTarget?: number // Mengen-Gewohnheit: Tagesziel; Tag gilt ab diesem Wert als erledigt
   archived: boolean
   createdAt: string
 }
