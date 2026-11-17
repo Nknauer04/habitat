@@ -1,57 +1,70 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import type { ComponentType, SVGProps } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { BarsIcon, CalendarIcon, PersonIcon, TrendIcon } from './icons'
 
-const items = [
-  { to: '/', label: 'Heute', icon: '✓' },
-  { to: '/ziele', label: 'Ziele', icon: '◎' },
-  { to: '/verlauf', label: 'Verlauf', icon: '▦' },
-  { to: '/einstellungen', label: 'Einstellungen', icon: '⚙' },
+type Item = { to: string; label: string; Icon: ComponentType<SVGProps<SVGSVGElement>>; match: (path: string) => boolean }
+
+const items: Item[] = [
+  { to: '/', label: 'Heute', Icon: CalendarIcon, match: (p) => p === '/' },
+  { to: '/ziele', label: 'Ziele', Icon: TrendIcon, match: (p) => p.startsWith('/ziele') },
+  { to: '/verlauf', label: 'Verlauf', Icon: BarsIcon, match: (p) => p.startsWith('/verlauf') || p.startsWith('/rueckblick') },
+  { to: '/profil', label: 'Profil', Icon: PersonIcon, match: (p) => p.startsWith('/profil') || p.startsWith('/einstellungen') },
 ]
 
-const link = (isActive: boolean) =>
-  isActive ? 'text-emerald-400' : 'text-slate-400 hover:text-slate-200'
-
 export default function Layout() {
+  const { pathname } = useLocation()
+
   return (
     <div className="flex h-full flex-col lg:flex-row">
       {/* Seitenleiste ab 1024 px */}
-      <nav className="hidden w-60 shrink-0 flex-col gap-1 border-r border-slate-800 p-4 lg:flex">
-        <div className="mb-4 px-3 text-lg font-semibold">Habitat</div>
-        {items.map((i) => (
-          <NavLink
-            key={i.to}
-            to={i.to}
-            end={i.to === '/'}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 ${link(isActive)} ${isActive ? 'bg-slate-800/60' : ''}`
-            }
-          >
-            <span className="w-5 text-center">{i.icon}</span>
-            {i.label}
-          </NavLink>
-        ))}
+      <nav aria-label="Hauptnavigation" className="hidden w-64 shrink-0 flex-col gap-1 border-r border-slate-800 p-5 lg:flex">
+        <div className="mb-5 px-3 text-xl font-bold tracking-tight">Habitat</div>
+        {items.map(({ to, label, Icon, match }) => {
+          const active = match(pathname)
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              className={`flex items-center gap-3 rounded-full px-4 py-3 text-[15px] font-medium transition-colors ${
+                active ? 'bg-slate-800 text-white' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+              }`}
+            >
+              <Icon width={22} height={22} />
+              {label}
+            </NavLink>
+          )
+        })}
       </nav>
 
-      <main className="min-h-0 flex-1 overflow-y-auto p-4 pt-[max(1rem,env(safe-area-inset-top))] lg:p-8">
+      <main className="min-h-0 flex-1 overflow-y-auto px-5 pb-32 pt-[max(1.25rem,env(safe-area-inset-top))] lg:px-10 lg:pb-10 lg:pt-10">
         <div className="mx-auto max-w-2xl">
           <Outlet />
         </div>
       </main>
 
-      {/* Tab-Bar unter 1024 px */}
-      <nav className="flex shrink-0 border-t border-slate-800 bg-[#0b0f14] pb-[env(safe-area-inset-bottom)] lg:hidden">
-        {items.map((i) => (
-          <NavLink
-            key={i.to}
-            to={i.to}
-            end={i.to === '/'}
-            className={({ isActive }) =>
-              `flex flex-1 flex-col items-center gap-0.5 py-2 text-xs ${link(isActive)}`
-            }
-          >
-            <span className="text-lg leading-none">{i.icon}</span>
-            {i.label}
-          </NavLink>
-        ))}
+      {/* Schwebende Tab-Leiste unter 1024 px */}
+      <nav
+        aria-label="Hauptnavigation"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden"
+      >
+        <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-1 rounded-full border border-slate-800 bg-slate-900/85 p-2 shadow-2xl shadow-black/60 backdrop-blur-xl">
+          {items.map(({ to, label, Icon, match }) => {
+            const active = match(pathname)
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                aria-label={label}
+                aria-current={active ? 'page' : undefined}
+                className={`flex h-[3.25rem] flex-1 items-center justify-center rounded-full transition-colors ${
+                  active ? 'bg-slate-700 text-white' : 'text-slate-400 active:bg-slate-800'
+                }`}
+              >
+                <Icon width={26} height={26} />
+              </NavLink>
+            )
+          })}
+        </div>
       </nav>
     </div>
   )

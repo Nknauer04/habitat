@@ -15,7 +15,7 @@ export default function BadgesCard({ today }: { today: Date }) {
   // Gewohnheiten ohne Fortschritt blenden wir nicht aus: so sieht man, was noch kommt.
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div className="flex items-baseline justify-between gap-3">
         <h2 className="font-medium">Abzeichen</h2>
         <span className="text-sm text-slate-400">

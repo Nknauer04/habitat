@@ -21,7 +21,7 @@ const fmt = (key: string, opts: Intl.DateTimeFormatOptions) =>
   new Date(`${key}T12:00:00`).toLocaleDateString('de-DE', opts)
 
 const barColor = (s: number | null) =>
-  s === null ? 'bg-slate-800' : s >= 80 ? 'bg-emerald-500' : s >= 50 ? 'bg-emerald-500/60' : s > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
+  s === null ? 'bg-slate-800' : s >= 80 ? 'bg-done' : s >= 50 ? 'bg-done/60' : s > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
 
 function NoteEditor({ weekStart, initial }: { weekStart: string; initial: string }) {
   const [text, setText] = useState(initial)
@@ -59,7 +59,7 @@ function NoteEditor({ weekStart, initial }: { weekStart: string; initial: string
           timer.current = setTimeout(flush, 700)
         }}
         onBlur={flush}
-        className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500"
+        className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-accent-500"
       />
       <p className="mt-1 h-4 text-xs text-slate-500">{saved && text.trim() ? 'Gespeichert ✓' : ''}</p>
     </div>
@@ -105,9 +105,9 @@ export default function Review() {
       <Link to="/verlauf" className="text-sm text-slate-400 hover:text-slate-200">
         ‹ Verlauf
       </Link>
-      <h1 className="mt-2 text-2xl font-semibold">Wochenrückblick</h1>
+      <h1 className="mt-2 text-4xl font-bold tracking-tight">Wochenrückblick</h1>
 
-      <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900/40 px-2 py-1">
+      <div className="mt-3 flex items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-900 px-2 py-1">
         <button
           onClick={() => go(prevWeek(weekStart))}
           aria-label="Vorige Woche"
@@ -134,7 +134,7 @@ export default function Review() {
 
       {summary && (
         <>
-          <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+          <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <div className="text-xs text-slate-500">Score der Woche (Ø)</div>
@@ -144,7 +144,7 @@ export default function Review() {
                 <div
                   className={`rounded-full px-3 py-1 text-sm ${
                     summary.delta > 0
-                      ? 'bg-emerald-500/15 text-emerald-300'
+                      ? 'bg-done/15 text-done'
                       : summary.delta < 0
                         ? 'bg-amber-500/15 text-amber-300'
                         : 'bg-slate-800 text-slate-300'
@@ -217,7 +217,7 @@ export default function Review() {
       )}
 
       {insights?.enoughData && insights.sentences.length > 0 && (
-        <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+        <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4">
           <h2 className="font-medium">Auffälligkeiten</h2>
           <ul className="mt-2 flex flex-col gap-2 text-sm">
             {insights.sentences.slice(0, 2).map((s) => (
@@ -227,13 +227,13 @@ export default function Review() {
               </li>
             ))}
           </ul>
-          <Link to="/verlauf" className="mt-2 inline-block text-xs text-emerald-400">
+          <Link to="/verlauf" className="mt-2 inline-block text-xs text-accent-400">
             Alle Insights im Verlauf
           </Link>
         </section>
       )}
 
-      <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+      <section className="mt-4 rounded-xl border border-slate-800 bg-slate-900 p-4">
         {reviewReady && <NoteEditor key={weekStart} weekStart={weekStart} initial={review.note} />}
       </section>
     </div>

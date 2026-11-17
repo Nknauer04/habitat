@@ -16,9 +16,9 @@ const barColor = (s: number | null) =>
   s === null
     ? 'bg-transparent border border-dashed border-slate-700'
     : s >= 80
-      ? 'bg-emerald-500'
+      ? 'bg-done'
       : s >= 50
-        ? 'bg-emerald-500/60'
+        ? 'bg-done/60'
         : s > 0
           ? 'bg-amber-500/70'
           : 'bg-slate-600'
@@ -39,7 +39,7 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
   const { best } = stats.current
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div className="flex items-center justify-between gap-3">
         <h2 className="font-medium">Tages-Score</h2>
         <div className="flex rounded-lg border border-slate-700 p-0.5 text-sm" role="group" aria-label="Zeitraum">
@@ -112,7 +112,7 @@ export default function StatsCard({ habits, checkIns, today }: { habits: Habit[]
           <dt className="text-xs text-slate-500">Vorperiode</dt>
           <dd
             className={`text-lg font-semibold ${
-              stats.delta === null ? '' : stats.delta > 0 ? 'text-emerald-400' : stats.delta < 0 ? 'text-amber-400' : ''
+              stats.delta === null ? '' : stats.delta > 0 ? 'text-done' : stats.delta < 0 ? 'text-amber-400' : ''
             }`}
           >
             {stats.delta === null ? '–' : `${stats.delta > 0 ? '+' : ''}${stats.delta}`}

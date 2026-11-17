@@ -13,9 +13,9 @@ import {
 import { useSession } from '../lib/useSession'
 
 const timeInput =
-  'rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500 disabled:opacity-40'
-const primary = 'rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950 disabled:opacity-50'
-const secondary = 'rounded-lg bg-slate-800 px-4 py-2 hover:bg-slate-700 disabled:opacity-50'
+  'rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-accent-500 disabled:opacity-40'
+const primary = 'rounded-full bg-accent-500 px-4 py-2 font-medium text-white disabled:opacity-50'
+const secondary = 'rounded-full bg-slate-800 px-4 py-2 hover:bg-slate-700 disabled:opacity-50'
 
 export default function RemindersCard() {
   const { session } = useSession()
@@ -108,7 +108,7 @@ export default function RemindersCard() {
                   type="checkbox"
                   checked={prefs[`${k}_on`]}
                   onChange={(e) => void update({ [`${k}_on`]: e.target.checked })}
-                  className="h-5 w-5 accent-emerald-500"
+                  className="h-5 w-5 accent-accent-500"
                 />
                 <span className="w-16 text-slate-300">{k === 'morning' ? 'Morgens' : 'Abends'}</span>
                 <input
@@ -155,7 +155,7 @@ export default function RemindersCard() {
         </div>
       )}
 
-      {msg && <p className={`mt-3 text-sm ${msg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{msg.text}</p>}
+      {msg && <p className={`mt-3 text-sm ${msg.ok ? 'text-accent-400' : 'text-red-400'}`}>{msg.text}</p>}
     </section>
   )
 }

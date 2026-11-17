@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import UpdatePrompt from './components/UpdatePrompt'
 import Goals from './pages/Goals'
+import Profile from './pages/Profile'
 import History from './pages/History'
 import Review from './pages/Review'
 import Settings from './pages/Settings'
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="verlauf" element={<History />} />
           <Route path="rueckblick" element={<Review />} />
           <Route path="rueckblick/:week" element={<Review />} />
+          <Route path="profil" element={<Profile />} />
           <Route path="einstellungen" element={<Settings />} />
         </Route>
       </Routes>

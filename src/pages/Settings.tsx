@@ -1,5 +1,7 @@
 import { useRef, useState, useSyncExternalStore, type ChangeEvent, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import RemindersCard from '../components/RemindersCard'
+import { setProfileName, useProfileName } from '../lib/profile'
 import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/backup'
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
@@ -21,11 +23,12 @@ function syncText(s: SyncStatus) {
 }
 
 const input =
-  'min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-emerald-500'
+  'min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-base outline-none focus:border-accent-500'
 const primary =
-  'rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950 disabled:opacity-50'
+  'rounded-full bg-accent-500 px-4 py-2 font-medium text-white disabled:opacity-50'
 
 export default function Settings() {
+  const profileName = useProfileName()
   const { session, loading } = useSession()
   const sync = useSyncExternalStore(subscribeSync, getSyncStatus)
 
@@ -113,7 +116,23 @@ export default function Settings() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Einstellungen</h1>
+      <Link to="/profil" className="text-sm text-slate-400 hover:text-slate-200">
+        ‹ Profil
+      </Link>
+      <h1 className="mt-2 text-4xl font-bold tracking-tight">Einstellungen</h1>
+
+      <section className="mt-6 rounded-3xl border border-slate-800 bg-slate-900 p-5">
+        <h2 className="font-medium">Profil</h2>
+        <label className="mt-3 block text-sm text-slate-400">
+          Name (wird im Profil angezeigt)
+          <input
+            value={profileName}
+            onChange={(e) => setProfileName(e.target.value)}
+            maxLength={30}
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base text-white outline-none focus:border-accent-500"
+          />
+        </label>
+      </section>
 
       <section className="mt-6 rounded-xl border border-slate-800 p-4">
         <h2 className="font-medium">Konto & Sync</h2>
@@ -138,7 +157,7 @@ export default function Settings() {
               </button>
               <button
                 onClick={() => void supabase!.auth.signOut()}
-                className="rounded-lg bg-slate-800 px-3 py-2 hover:bg-slate-700"
+                className="rounded-full bg-slate-800 px-3 py-2 hover:bg-slate-700"
               >
                 Abmelden
               </button>
@@ -161,7 +180,7 @@ export default function Settings() {
                   Speichern
                 </button>
               </div>
-              {info && <p className="mt-2 text-emerald-400">{info}</p>}
+              {info && <p className="mt-2 text-accent-400">{info}</p>}
             </form>
           </div>
         ) : (
@@ -206,7 +225,7 @@ export default function Settings() {
           </button>
           <button
             onClick={() => fileRef.current?.click()}
-            className="rounded-lg bg-slate-800 px-4 py-2 hover:bg-slate-700"
+            className="rounded-full bg-slate-800 px-4 py-2 hover:bg-slate-700"
           >
             Importieren
           </button>
@@ -219,7 +238,7 @@ export default function Settings() {
           />
         </div>
         {backupMsg && (
-          <p className={`mt-3 text-sm ${backupMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>{backupMsg.text}</p>
+          <p className={`mt-3 text-sm ${backupMsg.ok ? 'text-accent-400' : 'text-red-400'}`}>{backupMsg.text}</p>
         )}
       </section>
 

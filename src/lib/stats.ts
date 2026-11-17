@@ -1,6 +1,6 @@
 import { dayKey } from './db'
 import { isCheckInDone, isFull, isMini, weekRange, weekdayIndex } from './habits'
-import type { CheckIn, Habit } from './types'
+import type { Area, CheckIn, Habit } from './types'
 
 // Tages-Score = Summe der Anteile erledigter Fälligkeiten / Anzahl fälliger Gewohnheiten (0–100 %).
 // Voll = 1, Mini = 0,5, Teilwert bei Mengen = Wert / Tagesziel. Es zählen aktive Gewohnheiten
@@ -135,4 +135,48 @@ export function weeklyGoals(habits: Habit[], checkIns: CheckIn[], today: Date, m
     }
   }
   return { reached, total }
+}
+
+// ---------- Bereichs-Scores (Profil) ----------
+
+export type ScoreMode = 'current' | 'start'
+
+export interface AreaScore {
+  area: Area
+  rate: number | null // Ø Tages-Score der Gewohnheiten dieses Bereichs, 0–100
+  days: number // Tage mit Score
+}
+
+const AREA_ORDER: Area[] = ['sport', 'lernen', 'schlaf', 'musik', 'sonstiges']
+const AREA_WINDOW = 30
+
+// "current": die letzten 30 abgeschlossenen Tage. "start": die ersten 30 Tage seit Anlegen der
+// ersten Gewohnheit des Bereichs. Heute zählt nie mit. Nur Bereiche mit täglich/Wochentage-Gewohnheiten.
+export function areaScores(habits: Habit[], checkIns: CheckIn[], today: Date, mode: ScoreMode): AreaScore[] {
+  const yesterday = shift(today, -1)
+  const out: AreaScore[] = []
+  for (const area of AREA_ORDER) {
+    const hs = habits.filter(
+      (h) => h.area === area && !h.deleted && !h.archived && (h.frequency.type === 'daily' || h.frequency.type === 'weekdays'),
+    )
+    if (!hs.length) continue
+    let from: Date
+    let to: Date
+    if (mode === 'current') {
+      to = yesterday
+      from = shift(yesterday, -(AREA_WINDOW - 1))
+    } else {
+      const first = hs.map((h) => dayKey(new Date(h.createdAt))).sort()[0]
+      from = parse(first)
+      to = shift(from, AREA_WINDOW - 1)
+      if (to > yesterday) to = yesterday
+    }
+    if (to < from) {
+      out.push({ area, rate: null, days: 0 })
+      continue
+    }
+    const s = summarize(computeDayScores(hs, checkIns, from, to))
+    out.push({ area, rate: s.avg, days: s.days })
+  }
+  return out
 }

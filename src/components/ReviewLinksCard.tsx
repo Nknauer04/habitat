@@ -17,12 +17,12 @@ export default function ReviewLinksCard({ today }: { today: Date }) {
   for (let i = 0; i < 4; i++) weeks.push(prevWeek(weeks[weeks.length - 1]))
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <h2 className="font-medium">Wochenrückblick</h2>
       <ul className="mt-3 flex flex-col divide-y divide-slate-800">
         {weeks.map((w, i) => (
           <li key={w}>
-            <Link to={`/rueckblick/${w}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-emerald-300">
+            <Link to={`/rueckblick/${w}`} className="flex items-center justify-between gap-3 py-2.5 text-sm hover:text-accent-300">
               <span>
                 KW {isoWeek(w)}{' '}
                 <span className="text-slate-500">

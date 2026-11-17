@@ -6,21 +6,21 @@ export default function LevelCard({ progress }: { progress: Progress }) {
   const areas = AREAS.filter((a) => (progress.areaXp[a.value] ?? 0) > 0)
 
   return (
-    <div className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <div className="mt-5 rounded-3xl border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-baseline justify-between">
-        <span className="text-lg font-semibold">Level {total.level}</span>
+        <span className="text-2xl font-bold tracking-tight">Level {total.level}</span>
         <span className="text-sm text-slate-400">
           {total.into} / {total.needed} XP
         </span>
       </div>
       <div
-        className="mt-2 h-2 overflow-hidden rounded-full bg-slate-800"
+        className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800"
         role="progressbar"
         aria-valuenow={total.into}
         aria-valuemax={total.needed}
       >
         <div
-          className="h-full rounded-full bg-emerald-500 transition-all"
+          className="h-full rounded-full bg-accent-500 transition-all"
           style={{ width: `${Math.min(100, (total.into / total.needed) * 100)}%` }}
         />
       </div>

@@ -7,7 +7,7 @@ const EMOJIS = ['🏃', '💪', '🧘', '🚴', '📚', '🎓', '🎹', '🎸', 
 const chip = (active: boolean) =>
   `rounded-lg border px-3 py-2 text-sm ${
     active
-      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300'
+      ? 'border-accent-500 bg-accent-500/15 text-accent-300'
       : 'border-slate-700 text-slate-300 hover:border-slate-500'
   }`
 
@@ -89,14 +89,14 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             value={icon}
             onChange={(e) => setIcon(e.target.value)}
             aria-label="Icon"
-            className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-center text-xl outline-none focus:border-emerald-500"
+            className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-center text-xl outline-none focus:border-accent-500"
           />
           <input
             autoFocus={!habit}
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Name, z. B. Laufen"
-            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+            className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
           />
         </div>
         <div className="mt-2 flex flex-wrap gap-1">
@@ -105,7 +105,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
               type="button"
               key={e}
               onClick={() => setIcon(e)}
-              className={`h-9 w-9 rounded-lg text-lg ${icon === e ? 'bg-emerald-500/20' : 'hover:bg-slate-800'}`}
+              className={`h-9 w-9 rounded-lg text-lg ${icon === e ? 'bg-accent-500/20' : 'hover:bg-slate-800'}`}
             >
               {e}
             </button>
@@ -201,7 +201,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
                   inputMode="decimal"
                   value={target}
                   onChange={(e) => setTarget(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
                 />
               </label>
               <label className="text-sm text-slate-400">
@@ -209,7 +209,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
                 <input
                   value={unit}
                   onChange={(e) => setUnit(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
                 />
               </label>
             </div>
@@ -225,7 +225,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
             value={miniText}
             onChange={(e) => setMiniText(e.target.value)}
             placeholder="z. B. 2 Minuten dehnen"
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500"
+            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500"
           />
           <span className="mt-1 block text-xs text-slate-500">
             Hält die Streak, bringt aber nur halbe XP.
@@ -248,7 +248,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
             Abbrechen
           </button>
-          <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">Speichern</button>
+          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-white">Speichern</button>
         </div>
       </form>
     </div>

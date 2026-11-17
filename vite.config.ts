@@ -17,8 +17,8 @@ export default defineConfig({
         short_name: 'Habitat',
         description: 'Gewohnheiten aufbauen, Ziele erreichen',
         lang: 'de',
-        theme_color: '#0b0f14',
-        background_color: '#0b0f14',
+        theme_color: '#000000',
+        background_color: '#000000',
         display: 'standalone',
         start_url: '/',
         icons: [

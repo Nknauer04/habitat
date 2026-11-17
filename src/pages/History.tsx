@@ -60,7 +60,7 @@ function Card({
     checks.filter((c) => c.date === date && !c.deleted).reduce((s, c) => s + checkInValue(habit, c), 0)
 
   return (
-    <li className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <li className="rounded-xl border border-slate-800 bg-slate-900 p-4">
       <div className="mb-3 flex items-center gap-3">
         <span className="text-2xl">{habit.icon}</span>
         <div className="min-w-0">
@@ -101,7 +101,7 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Verlauf</h1>
+      <h1 className="text-4xl font-bold tracking-tight">Verlauf</h1>
       <p className="mt-1 text-sm text-slate-400">
         Letzte 12 Wochen. Tippe auf ein Feld, um einen Tag nachzutragen oder zurückzunehmen.
       </p>

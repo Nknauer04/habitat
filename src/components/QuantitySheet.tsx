@@ -77,7 +77,7 @@ export default function QuantitySheet({
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-center text-xl outline-none focus:border-emerald-500"
+              className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-center text-xl outline-none focus:border-accent-500"
             />
             <button
               type="button"
@@ -102,7 +102,7 @@ export default function QuantitySheet({
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
             Abbrechen
           </button>
-          <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">Hinzufügen</button>
+          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-white">Hinzufügen</button>
         </div>
       </form>
     </div>

@@ -28,7 +28,7 @@ export default function UpdatePrompt() {
       role="alert"
       className="fixed inset-x-0 top-0 z-[60] flex justify-center px-4 pt-[max(0.75rem,env(safe-area-inset-top))]"
     >
-      <div className="flex w-full max-w-md flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-emerald-500/40 bg-slate-900 p-3 shadow-lg">
+      <div className="flex w-full max-w-md flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-accent-500/40 bg-slate-900 p-3 shadow-lg">
         <div className="min-w-[11rem] flex-1 text-sm">
           <div className="font-medium">Neue Version verfügbar</div>
           <div className="text-slate-400">Aktualisieren lädt die App neu.</div>
@@ -42,7 +42,7 @@ export default function UpdatePrompt() {
           </button>
           <button
             onClick={() => void updateServiceWorker(true)}
-            className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-slate-950"
+            className="rounded-full bg-accent-500 px-3 py-2 text-sm font-medium text-white"
           >
             Aktualisieren
           </button>

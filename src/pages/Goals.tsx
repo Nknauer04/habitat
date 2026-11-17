@@ -33,7 +33,7 @@ export default function Goals() {
     <div>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Ziele</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Ziele</h1>
           <p className="mt-1 text-sm text-slate-400">
             Ein abgeschlossenes Ziel bringt {GOAL_DONE_XP} XP in seinen Bereich.
           </p>
@@ -41,7 +41,7 @@ export default function Goals() {
         <button
           onClick={() => setDialog({})}
           aria-label="Neues Ziel"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-2xl leading-none text-slate-950"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-2xl leading-none text-white"
         >
           +
         </button>
@@ -51,7 +51,7 @@ export default function Goals() {
         <div className="mt-8 rounded-xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
           Noch keine Ziele.
           <br />
-          Tippe auf <span className="text-emerald-400">+</span>, um das erste anzulegen.
+          Tippe auf <span className="text-accent-400">+</span>, um das erste anzulegen.
         </div>
       )}
 
@@ -60,7 +60,7 @@ export default function Goals() {
           const p = goalProgress(g, checks ?? [], todayKey, allHabits ?? [])
           const dl = deadline(g, todayKey)
           return (
-            <li key={g.id} className="rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+            <li key={g.id} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
               <button onClick={() => setDialog({ goal: g })} className="block w-full text-left">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="font-medium">{g.title}</span>
@@ -82,7 +82,7 @@ export default function Goals() {
                   aria-valuenow={p.value}
                   aria-valuemax={p.total}
                 >
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${p.ratio * 100}%` }} />
+                  <div className="h-full rounded-full bg-accent-500" style={{ width: `${p.ratio * 100}%` }} />
                 </div>
               </button>
 
@@ -95,7 +95,7 @@ export default function Goals() {
                           type="checkbox"
                           checked={s.done}
                           onChange={() => void toggleStep(g.id, s.id)}
-                          className="h-5 w-5 accent-emerald-500"
+                          className="h-5 w-5 accent-accent-500"
                         />
                         <span className={s.done ? 'text-slate-500 line-through' : ''}>{s.text}</span>
                       </label>
@@ -107,7 +107,7 @@ export default function Goals() {
               {p.ratio >= 1 && (
                 <button
                   onClick={() => void completeGoal(g.id)}
-                  className="mt-4 w-full rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950"
+                  className="mt-4 w-full rounded-full bg-accent-500 px-4 py-2 font-medium text-white"
                 >
                   Abschließen (+{GOAL_DONE_XP} XP)
                 </button>
@@ -124,7 +124,7 @@ export default function Goals() {
             {done.map((g) => (
               <li
                 key={g.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3"
+                className="flex items-center justify-between gap-3 rounded-xl border border-done/30 bg-done/10 p-3"
               >
                 <div className="min-w-0">
                   <div className="truncate">✓ {g.title}</div>

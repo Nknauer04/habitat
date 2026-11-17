@@ -5,7 +5,7 @@ import { computeInsights, MIN_DAYS } from '../lib/insights'
 import type { CheckIn, Habit } from '../lib/types'
 
 const rateColor = (r: number | null) =>
-  r === null ? 'bg-slate-800' : r >= 80 ? 'bg-emerald-500' : r >= 50 ? 'bg-emerald-500/60' : r > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
+  r === null ? 'bg-slate-800' : r >= 80 ? 'bg-done' : r >= 50 ? 'bg-done/60' : r > 0 ? 'bg-amber-500/70' : 'bg-slate-600'
 
 export default function InsightsCard({ habits, checkIns, today }: { habits: Habit[]; checkIns: CheckIn[]; today: Date }) {
   const todayKey = dayKey(today)
@@ -15,7 +15,7 @@ export default function InsightsCard({ habits, checkIns, today }: { habits: Habi
   if (insights.habits.length === 0) return null
 
   return (
-    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900/40 p-4">
+    <section className="mt-5 rounded-xl border border-slate-800 bg-slate-900 p-4">
       <h2 className="font-medium">Insights</h2>
 
       {!insights.enoughData ? (

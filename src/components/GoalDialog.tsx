@@ -8,11 +8,11 @@ import type { Area, Goal, GoalStep } from '../lib/types'
 const chip = (active: boolean) =>
   `rounded-lg border px-3 py-2 text-sm ${
     active
-      ? 'border-emerald-500 bg-emerald-500/15 text-emerald-300'
+      ? 'border-accent-500 bg-accent-500/15 text-accent-300'
       : 'border-slate-700 text-slate-300 hover:border-slate-500'
   }`
 const field =
-  'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-emerald-500'
+  'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-base outline-none focus:border-accent-500'
 const label = 'mb-2 block text-sm text-slate-400'
 
 export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
@@ -136,7 +136,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
             <button
               type="button"
               onClick={() => setSteps((x) => [...x, { id: newId(), text: '', done: false }])}
-              className="self-start rounded-lg px-3 py-2 text-sm text-emerald-400 hover:bg-slate-800"
+              className="self-start rounded-lg px-3 py-2 text-sm text-accent-400 hover:bg-slate-800"
             >
               + Schritt hinzufügen
             </button>
@@ -206,7 +206,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
           <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
             Abbrechen
           </button>
-          <button className="rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950">Speichern</button>
+          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-white">Speichern</button>
         </div>
       </form>
     </div>

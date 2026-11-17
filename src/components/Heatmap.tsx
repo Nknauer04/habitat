@@ -47,10 +47,10 @@ export default function Heatmap({
         const state = done ? (isMini ? 'Mini' : 'erledigt') : part ? 'teilweise' : due ? 'verpasst' : 'nicht fällig'
         const color = done
           ? isMini
-            ? 'bg-emerald-500/60'
-            : 'bg-emerald-500'
+            ? 'bg-done/60'
+            : 'bg-done'
           : part
-            ? 'bg-emerald-500/40'
+            ? 'bg-done/40'
             : due
             ? 'bg-slate-700'
             : 'bg-slate-800/60'
