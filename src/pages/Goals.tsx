@@ -1,12 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import GoalDialog from '../components/GoalDialog'
+import PlanDialog from '../components/PlanDialog'
+import PlanEntrySheet from '../components/PlanEntrySheet'
 import { InboxIcon, LinkIcon, PlusIcon } from '../components/icons'
 import { dayKey, db } from '../lib/db'
 import { completeGoal, goalProgress, goalTrend, reopenGoal, toggleStep, type GoalTrend } from '../lib/goals'
-import { areaLabel } from '../lib/habits'
+import { areaLabel, fmtQty } from '../lib/habits'
+import { planProgress } from '../lib/plans'
 import { GOAL_DONE_XP } from '../lib/progress'
-import type { Goal } from '../lib/types'
+import type { Goal, Plan } from '../lib/types'
 import { useToday } from '../lib/useToday'
 
 const fmt = (key: string) =>
@@ -28,6 +31,8 @@ export default function Goals() {
   const todayKey = dayKey(today)
   const [dialog, setDialog] = useState<{ goal?: Goal } | null>(null)
   const [archive, setArchive] = useState(false)
+  const [planDialog, setPlanDialog] = useState<{ plan?: Plan } | null>(null)
+  const [entrySheet, setEntrySheet] = useState<{ plan: Plan; date: string } | null>(null)
   const [tipHidden, setTipHidden] = useState(() => {
     try {
       return localStorage.getItem(TIP_KEY) === '1'
@@ -39,6 +44,9 @@ export default function Goals() {
   const goals = useLiveQuery(() => db.goals.filter((g) => !g.deleted).sortBy('createdAt'), [])
   const checks = useLiveQuery(() => db.checkIns.filter((c) => !c.deleted).toArray(), [])
   const allHabits = useLiveQuery(() => db.habits.filter((h) => !h.deleted).toArray(), [])
+
+  const plans = useLiveQuery(() => db.plans.filter((p) => !p.deleted).sortBy('createdAt'), [])
+  const planEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
 
   const open = (goals ?? []).filter((g) => !g.done)
   const done = (goals ?? []).filter((g) => g.done)
@@ -87,6 +95,87 @@ export default function Goals() {
             ✕
           </button>
         </div>
+      )}
+
+      {!archive && (
+        <section className="mt-6" aria-label="Pläne">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Pläne</h2>
+            <button
+              onClick={() => setPlanDialog({})}
+              className="rounded-full border border-slate-700 px-3.5 py-1.5 text-sm font-medium text-accent-400 active:bg-slate-800"
+            >
+              + Plan
+            </button>
+          </div>
+          {plans && plans.length === 0 && (
+            <p className="rounded-3xl border border-dashed border-slate-700 p-5 text-center text-sm text-slate-400">
+              Pläne sind Wochenpläne mit Gesamtziel, z. B. „100 km laufen“ mit Soll je Wochentag. Du trägst nach jeder Einheit den Ist-Wert ein.
+            </p>
+          )}
+          <ul className="flex flex-col gap-4">
+            {(plans ?? []).map((pl) => {
+              const mine = (planEntries ?? []).filter((e) => e.planId === pl.id)
+              const pr = planProgress(pl, mine, todayKey)
+              const recent = mine.filter((e) => e.date >= pl.startDate).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6)
+              return (
+                <li key={pl.id} className="rounded-3xl border border-slate-800 bg-slate-900 p-5">
+                  <button onClick={() => setPlanDialog({ plan: pl })} className="block w-full text-left">
+                    <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-3">
+                      <div className="min-w-0 max-w-full">
+                        <div className="text-[22px] font-bold leading-tight tracking-tight">
+                          {pl.icon} {pl.name}
+                        </div>
+                        <div className="mt-1 text-base text-slate-400">
+                          {pl.targetDate ? `Frist ${fmt(pl.targetDate)}` : areaLabel(pl.area)}
+                          {` · ${fmtQty(pl.schedule.reduce((a, b) => a + b, 0))} ${pl.unit}/Woche geplant`}
+                        </div>
+                      </div>
+                      <span className="glow-accent ml-auto shrink-0 rounded-full bg-accent-500 px-3.5 py-1.5 text-sm font-semibold text-black">
+                        {Math.round(pr.ratio * 100)} %
+                      </span>
+                    </div>
+                    <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-slate-700" role="progressbar" aria-valuenow={pr.total} aria-valuemax={pr.target}>
+                      <div className="h-full rounded-full bg-accent-500" style={{ width: `${pr.ratio * 100}%` }} />
+                    </div>
+                  </button>
+                  <div className="mt-3 flex items-center justify-between gap-3 text-[15px] text-slate-300">
+                    <span>
+                      {fmtQty(pr.total)} von {fmtQty(pr.target)} {pl.unit}
+                    </span>
+                    {pr.reached ? (
+                      <span className="text-done">✓ Ziel erreicht</span>
+                    ) : pr.onTrack === null ? (
+                      <span className="text-slate-500">noch {fmtQty(pr.remaining)} {pl.unit}</span>
+                    ) : pr.onTrack ? (
+                      <span className="text-done">↗ Auf Kurs</span>
+                    ) : (
+                      <span className="text-amber-400">↘ Plan reicht nicht</span>
+                    )}
+                  </div>
+                  {pr.daysLeft !== null && !pr.reached && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Noch {pr.daysLeft} {pr.daysLeft === 1 ? 'Tag' : 'Tage'} · nötig {pr.perWeekNeeded === null ? '–' : fmtQty(pr.perWeekNeeded)} {pl.unit}/Woche · laut Plan noch {fmtQty(pr.plannedLeft ?? 0)} {pl.unit}
+                    </p>
+                  )}
+                  {recent.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {recent.map((e) => (
+                        <button
+                          key={e.id}
+                          onClick={() => setEntrySheet({ plan: pl, date: e.date })}
+                          className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 active:bg-slate-800"
+                        >
+                          {new Date(`${e.date}T12:00:00`).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' })} · {fmtQty(e.value)} {pl.unit}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
       )}
 
       {goals && goals.length === 0 && (
@@ -205,6 +294,15 @@ export default function Goals() {
         </ul>
       )}
 
+      {planDialog && <PlanDialog plan={planDialog.plan} onClose={() => setPlanDialog(null)} />}
+      {entrySheet && (
+        <PlanEntrySheet
+          plan={entrySheet.plan}
+          date={entrySheet.date}
+          current={(planEntries ?? []).find((e) => e.planId === entrySheet.plan.id && e.date === entrySheet.date)?.value ?? 0}
+          onClose={() => setEntrySheet(null)}
+        />
+      )}
       {dialog && <GoalDialog goal={dialog.goal} onClose={() => setDialog(null)} />}
     </div>
   )

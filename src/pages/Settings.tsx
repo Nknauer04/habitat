@@ -94,7 +94,7 @@ export default function Settings() {
       }
       setBackupMsg({
         ok: true,
-        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele, ${backup.reviews?.length ?? 0} Rückblicke.`,
+        text: `Exportiert: ${backup.habits.length} Gewohnheiten, ${backup.checkIns.length} Check-ins, ${backup.goals.length} Ziele, ${backup.reviews?.length ?? 0} Rückblicke, ${backup.plans?.length ?? 0} Pläne.`,
       })
     } catch (e) {
       setBackupMsg({ ok: false, text: `Export fehlgeschlagen: ${e instanceof Error ? e.message : String(e)}` })
@@ -110,7 +110,7 @@ export default function Settings() {
       const r = await mergeBackup(parseBackup(await f.text()))
       setBackupMsg({
         ok: true,
-        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele, ${r.reviews} Rückblicke übernommen, ${r.skipped} unverändert übersprungen.`,
+        text: `Importiert: ${r.habits} Gewohnheiten, ${r.checkIns} Check-ins, ${r.goals} Ziele, ${r.reviews} Rückblicke, ${r.plans} Pläne, ${r.planEntries} Plan-Einträge übernommen, ${r.skipped} unverändert übersprungen.`,
       })
     } catch (err) {
       setBackupMsg({ ok: false, text: `Import abgebrochen: ${err instanceof Error ? err.message : String(err)}` })

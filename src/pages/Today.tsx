@@ -5,6 +5,7 @@ import CoachCard from '../components/CoachCard'
 import HabitDialog from '../components/HabitDialog'
 import { PlusIcon } from '../components/icons'
 import LevelCard from '../components/LevelCard'
+import PlanEntrySheet from '../components/PlanEntrySheet'
 import QuantitySheet from '../components/QuantitySheet'
 import { TIER_ICONS } from '../lib/badges'
 import { dayKey, db } from '../lib/db'
@@ -20,6 +21,7 @@ import {
   toggleMini,
   weekRange,
 } from '../lib/habits'
+import { isUnitDone, planProgress, plannedOn } from '../lib/plans'
 import type { HabitProgress } from '../lib/progress'
 import { isoWeek, isReviewDay, reviewId, reviewWeekFor } from '../lib/review'
 import { computeDayScores } from '../lib/stats'
@@ -88,6 +90,7 @@ export default function Today() {
 
   const [dialog, setDialog] = useState<{ habit?: Habit } | null>(null)
   const [sheetId, setSheetId] = useState<string | null>(null)
+  const [planSheetId, setPlanSheetId] = useState<string | null>(null)
   const progress = useProgress(today)
   const coachOn = useCoachEnabled()
   const coachDismissed = useCoachDismissedDay()
@@ -115,6 +118,21 @@ export default function Today() {
     [weekStart, weekEnd],
   )
 
+  const plans = useLiveQuery(() => db.plans.filter((p) => !p.deleted).sortBy('createdAt'), [])
+  const planEntries = useLiveQuery(() => db.planEntries.filter((e) => !e.deleted).toArray(), [])
+
+  // Pläne: am geplanten Wochentag (oder bei vorhandenem Eintrag) anzeigen
+  const planRows = (plans ?? [])
+    .map((p) => {
+      const mine = (planEntries ?? []).filter((e) => e.planId === p.id)
+      const entry = mine.find((e) => e.date === viewKey)
+      const soll = plannedOn(p, viewKey)
+      const prog = planProgress(p, mine, todayKey)
+      const show = p.startDate <= viewKey && (!!entry || (soll > 0 && !prog.reached))
+      return { p, entry, soll, prog, done: !!entry && isUnitDone(p, entry), show }
+    })
+    .filter((r) => r.show)
+
   const rows = (habits ?? [])
     .map((h) => {
       const mine = (checks ?? []).filter((c) => c.habitId === h.id)
@@ -138,7 +156,8 @@ export default function Today() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habits, checks, weekStart, weekEnd, todayKey])
 
-  const done = rows.filter((r) => r.doneToday).length
+  const done = rows.filter((r) => r.doneToday).length + planRows.filter((r) => r.done).length
+  const dueCount = rows.length + planRows.length
   const viewScore = weekScores.get(viewKey) ?? null
   const dateText = viewDate.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
   const title = isToday ? 'Heute' : viewDate.toLocaleDateString('de-DE', { weekday: 'long' })
@@ -151,7 +170,7 @@ export default function Today() {
           <h1 className="text-4xl font-bold tracking-tight text-accent-400">{title}</h1>
           <p className="mt-1.5 text-sm text-slate-400">
             {dateText}
-            {rows.length > 0 && !isFuture && ` · ${done} von ${rows.length} erledigt`}
+            {dueCount > 0 && !isFuture && ` · ${done} von ${dueCount} erledigt`}
             {viewScore !== null && !isFuture && ` · Score ${viewScore} %`}
           </p>
         </div>
@@ -253,7 +272,7 @@ export default function Today() {
 
       {progress && habits && habits.length > 0 && isToday && <LevelCard progress={progress} />}
 
-      {habits && habits.length === 0 && (
+      {habits && habits.length === 0 && plans && plans.length === 0 && (
         <div className="mt-8 rounded-3xl border border-dashed border-slate-700 p-6 text-center text-slate-400">
           Noch keine Gewohnheiten.
           <br />
@@ -261,7 +280,7 @@ export default function Today() {
         </div>
       )}
 
-      {habits && habits.length > 0 && rows.length === 0 && (
+      {habits && habits.length > 0 && rows.length === 0 && planRows.length === 0 && (
         <p className="mt-8 text-center text-slate-400">{isFuture ? 'Hier ist noch nichts zu sehen.' : 'Heute ist nichts fällig. 🎉'}</p>
       )}
 
@@ -347,7 +366,53 @@ export default function Today() {
         )
       })}
 
+      {planRows.length > 0 && (
+        <section className="mt-7">
+          <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Pläne</h2>
+          <ul className="flex flex-col gap-3">
+            {planRows.map(({ p, entry, soll, prog, done: unitDone }) => (
+              <li
+                key={p.id}
+                className={`flex items-center gap-3 rounded-3xl border bg-slate-900 py-4 pl-5 pr-4 ${unitDone ? 'border-done/25' : 'border-slate-800'}`}
+              >
+                <Link to="/ziele" className="flex min-w-0 flex-1 items-center gap-4 text-left">
+                  <span className="text-[2rem] leading-none">{p.icon}</span>
+                  <span className="min-w-0">
+                    <span className={`block truncate text-[19px] font-semibold ${unitDone ? 'text-slate-300' : ''}`}>{p.name}</span>
+                    <span className="mt-0.5 block text-sm text-slate-400">
+                      {soll > 0 ? `Soll ${fmtQty(soll)} ${p.unit}` : 'Zusatz-Einheit'}
+                      {entry && ` · Ist ${fmtQty(entry.value)} ${p.unit}`}
+                      {` · gesamt ${fmtQty(prog.total)}/${fmtQty(p.target)} ${p.unit}`}
+                    </span>
+                  </span>
+                </Link>
+                <button
+                  onClick={() => setPlanSheetId(p.id)}
+                  disabled={disabled}
+                  aria-label={`${p.name}: Ist-Wert eintragen`}
+                  aria-pressed={unitDone}
+                  className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-40 ${
+                    unitDone
+                      ? 'border-2 border-done bg-done text-black'
+                      : entry
+                        ? 'border-2 border-amber-400/70 text-[11px] font-medium text-amber-300'
+                        : 'border-2 border-slate-600 text-lg text-slate-300 active:border-done'
+                  }`}
+                >
+                  {unitDone ? <CheckSvg /> : entry ? `${Math.round((entry.value / soll) * 100)}%` : '+'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {dialog && <HabitDialog habit={dialog.habit} onClose={() => setDialog(null)} />}
+      {planSheetId &&
+        (() => {
+          const r = planRows.find((x) => x.p.id === planSheetId)
+          return r ? <PlanEntrySheet plan={r.p} date={viewKey} current={r.entry?.value ?? 0} onClose={() => setPlanSheetId(null)} /> : null
+        })()}
       {sheetId &&
         (() => {
           const r = rows.find((x) => x.h.id === sheetId)

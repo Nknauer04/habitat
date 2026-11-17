@@ -54,6 +54,26 @@ export interface Goal extends Syncable {
   createdAt: string
 }
 
+// Plan: Wochenplan mit Soll je Wochentag und Gesamtziel (z. B. 100 km laufen). Eingetragen wird der Ist-Wert je Tag.
+export interface Plan extends Syncable {
+  name: string
+  icon: string // Emoji
+  area: Area
+  unit: string // km, h, Seiten …
+  target: number // Gesamtziel in Einheiten
+  startDate: string // Zählen ab (YYYY-MM-DD)
+  targetDate?: string // Frist (YYYY-MM-DD)
+  schedule: number[] // Soll je Wochentag, Index 0 = Montag … 6 = Sonntag; 0 = frei
+  createdAt: string
+}
+
+// Ist-Wert eines Plans an einem Tag (höchstens ein aktiver Eintrag je Plan und Tag).
+export interface PlanEntry extends Syncable {
+  planId: string
+  date: string // YYYY-MM-DD
+  value: number // > 0
+}
+
 // Wochenrückblick: eine Notiz pro Woche (weekStart = Montag, YYYY-MM-DD).
 // Die id ist aus weekStart abgeleitet, damit zwei Geräte dieselbe Woche zusammenführen (siehe lib/review.ts).
 export interface Review extends Syncable {

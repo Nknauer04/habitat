@@ -349,4 +349,36 @@ eq('Tipp: 11:00 = morning-plan', coach(two, [], [], at(TUE, 11))[0].id, 'morning
 eq('Tipp: 17:00 = day-open, 18:00 = evening-open', [coach(two, [], [], at(TUE, 17))[0].id, coach(two, [], [], at(TUE, 18))[0].id], ['day-open', 'evening-open'])
 eq('Tipp: Lücke geschlossen, zu jeder Stunde bei offener Gewohnheit mindestens ein Tipp', Array.from({ length: 24 }, (_, h) => coach(two, [], [], at(TUE, h)).length).every((n) => n >= 1), true)
 eq('Tipp: alles erledigt zu jeder Stunde ein Tipp', Array.from({ length: 24 }, (_, h) => coach(two, [c1('a', TUE), c1('b', TUE)], [], at(TUE, h)).length).every((n) => n >= 1), true)
+// --- Pläne (Wochenplan mit Soll/Ist)
+import { isUnitDone, planProgress, planTotal, planXp, plannedOn } from '../src/lib/plans'
+import { computeProgress as computeProgressP } from '../src/lib/progress'
+import type { Plan, PlanEntry } from '../src/lib/types'
+const plan: Plan = { id: 'p1', name: 'Laufen', icon: '🏃', area: 'sport', unit: 'km', target: 100, startDate: '2026-11-02', targetDate: '2026-11-30', schedule: [0, 5, 0, 8, 0, 12, 0], createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
+const pe = (date: string, value: number, extra: Partial<PlanEntry> = {}): PlanEntry => ({ id: 'e' + date + value, planId: 'p1', date, value, updatedAt: '', deleted: false, ...extra })
+const entries: PlanEntry[] = [
+  pe('2026-11-01', 4), // vor dem Start
+  pe('2026-11-03', 5), pe('2026-11-04', 3), pe('2026-11-05', 8), pe('2026-11-07', 10), pe('2026-11-10', 6),
+  pe('2026-11-12', 8), pe('2026-11-14', 12), pe('2026-11-17', 4.5),
+  pe('2026-11-18', 9), // Zukunft
+  pe('2026-11-13', 7, { deleted: true }), // gelöscht
+  { ...pe('2026-11-03', 99), planId: 'andere' }, // anderer Plan
+]
+eq('Plan: Soll am Dienstag/Mittwoch', [plannedOn(plan, '2026-11-17'), plannedOn(plan, '2026-11-18')], [5, 0])
+eq('Plan: Summe ohne Start-davor, Zukunft, gelöscht, fremd', planTotal(plan, entries, '2026-11-17'), 56.5)
+eq('Plan: Soll erreicht = erledigt', isUnitDone(plan, pe('2026-11-03', 5)), true)
+eq('Plan: unter Soll = nicht erledigt', isUnitDone(plan, pe('2026-11-07', 10)), false)
+eq('Plan: Zusatz an freiem Tag zählt', isUnitDone(plan, pe('2026-11-04', 3)), true)
+eq('Plan: gelöschter Eintrag zählt nicht', isUnitDone(plan, pe('2026-11-03', 5, { deleted: true })), false)
+const pr = planProgress(plan, entries, '2026-11-17')
+eq('Plan: Fortschritt', { total: pr.total, remaining: pr.remaining, ratio: pr.ratio, reached: pr.reached }, { total: 56.5, remaining: 43.5, ratio: 0.565, reached: false })
+eq('Plan: Frist, nötig/Woche, geplant', { d: pr.daysLeft, w: pr.perWeekNeeded, pl: pr.plannedLeft, ok: pr.onTrack }, { d: 14, w: 21.8, pl: 45, ok: true })
+eq('Plan: Ziel zu hoch = nicht auf Kurs', planProgress({ ...plan, target: 120 }, entries, '2026-11-17').onTrack, false)
+eq('Plan: heute ohne Eintrag zählt als noch geplant', planProgress(plan, entries.filter((e) => e.date !== '2026-11-17'), '2026-11-17').plannedLeft, 50)
+eq('Plan: erreicht → keine Frist-Prognose', (() => { const r = planProgress({ ...plan, target: 50 }, entries, '2026-11-17'); return [r.reached, r.ratio, r.remaining, r.onTrack, r.daysLeft] })(), [true, 1, 0, null, null])
+eq('Plan: ohne Frist keine Prognose', (() => { const r = planProgress({ ...plan, targetDate: undefined }, entries, '2026-11-17'); return [r.daysLeft, r.onTrack] })(), [null, null])
+eq('Plan: Frist vorbei', planProgress({ ...plan, targetDate: '2026-11-10' }, entries, '2026-11-17').daysLeft, 0)
+eq('Plan-XP: 6 erledigte Einheiten × 10', planXp([plan], entries, '2026-11-17'), { areaXp: { sport: 60 }, total: 60 })
+eq('Plan-XP: gelöschter Plan zählt nicht', planXp([{ ...plan, deleted: true }], entries, '2026-11-17').total, 0)
+eq('Plan-XP in Gesamt-Fortschritt', computeProgressP([], [], new Date(2026, 10, 17), [], { plans: [plan], entries }).totalXp, 60)
+eq('Plan-XP: ohne Plandaten unverändert', computeProgressP([], [], new Date(2026, 10, 17)).totalXp, 0)
 process.exit(fail ? 1 : 0)

@@ -1,11 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { CheckIn, Goal, Habit, Review } from './types'
+import type { CheckIn, Goal, Habit, Plan, PlanEntry, Review } from './types'
 
 export const db = new Dexie('habitat') as Dexie & {
   habits: EntityTable<Habit, 'id'>
   checkIns: EntityTable<CheckIn, 'id'>
   goals: EntityTable<Goal, 'id'>
   reviews: EntityTable<Review, 'id'>
+  plans: EntityTable<Plan, 'id'>
+  planEntries: EntityTable<PlanEntry, 'id'>
   meta: EntityTable<{ key: string; value: string }, 'key'>
 }
 
@@ -20,6 +22,12 @@ db.version(2).stores({ meta: 'key' })
 
 // Wochenrückblick-Notizen
 db.version(3).stores({ reviews: 'id, weekStart, updatedAt' })
+
+// Pläne mit Wochenplan und Ist-Einträgen
+db.version(4).stores({
+  plans: 'id, updatedAt',
+  planEntries: 'id, planId, date, [planId+date], updatedAt',
+})
 
 export const newId = () => crypto.randomUUID()
 export const now = () => new Date().toISOString()

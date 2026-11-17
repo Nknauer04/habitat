@@ -7,6 +7,7 @@ import Heatmap from '../components/Heatmap'
 import HeatmapAll from '../components/HeatmapAll'
 import { ChevronDownIcon, MedalIcon, PenIcon } from '../components/icons'
 import InsightsCard from '../components/InsightsCard'
+import PlansStatsCard from '../components/PlansStatsCard'
 import QuantitySheet from '../components/QuantitySheet'
 import ReviewLinksCard from '../components/ReviewLinksCard'
 import StatsCard from '../components/StatsCard'
@@ -149,6 +150,8 @@ export default function History() {
           <div className="mt-1 text-xs text-slate-500">Tage mit Haken, 30 Tage</div>
         </div>
       </div>
+
+      <PlansStatsCard today={today} />
 
       {habits && habits.length === 0 && (
         <div className="mt-5 rounded-3xl border border-dashed border-slate-700 p-6 text-center text-slate-400">

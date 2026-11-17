@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { AREAS, TIMES, WEEKDAYS, archiveHabit, saveHabit } from '../lib/habits'
+import { AREAS, TIMES, WEEKDAYS, archiveHabit, deleteHabit, saveHabit } from '../lib/habits'
 import type { Area, Frequency, Habit, TimeOfDay } from '../lib/types'
 
 const EMOJIS = ['🏃', '💪', '🧘', '🚴', '📚', '🎓', '🎹', '🎸', '🎧', '😴', '🌅', '💧', '✍️', '🥗', '🧠', '✅']
@@ -28,6 +28,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
   const [unit, setUnit] = useState(habit?.unit ?? 'min')
   const [target, setTarget] = useState(String(habit?.dailyTarget ?? 30).replace('.', ','))
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -66,6 +67,12 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
   async function archive() {
     if (!habit) return
     await archiveHabit(habit.id)
+    onClose()
+  }
+
+  async function remove() {
+    if (!habit) return
+    await deleteHabit(habit.id)
     onClose()
   }
 
@@ -233,22 +240,41 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
         </label>
 
         {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+        {confirmDelete && (
+          <p className="mt-4 text-sm text-red-300">
+            „{habit?.name}“ wird samt allen Check-ins gelöscht (auch auf deinem anderen Gerät). Das lässt sich nicht rückgängig machen.
+          </p>
+        )}
 
-        <div className="mt-6 flex items-center gap-2">
-          {habit && (
-            <button
-              type="button"
-              onClick={archive}
-              className="rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-slate-800"
-            >
-              Archivieren
-            </button>
+        <div className="mt-6 flex flex-wrap items-center gap-x-2 gap-y-3">
+          {habit && !confirmDelete && (
+            <>
+              <button type="button" onClick={archive} className="rounded-lg px-2 py-2 text-sm text-slate-400 hover:bg-slate-800">
+                Archivieren
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(true)} className="rounded-lg px-2 py-2 text-sm text-red-400 hover:bg-slate-800">
+                Löschen
+              </button>
+            </>
           )}
-          <div className="flex-1" />
-          <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
-            Abbrechen
-          </button>
-          <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+          {confirmDelete && (
+            <>
+              <button type="button" onClick={remove} className="rounded-full bg-red-500 px-4 py-2 text-sm font-medium text-white">
+                Endgültig löschen
+              </button>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="rounded-lg px-3 py-2 text-sm text-slate-300 hover:bg-slate-800">
+                Zurück
+              </button>
+            </>
+          )}
+          {!confirmDelete && (
+            <div className="ml-auto flex items-center gap-2">
+              <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800">
+                Abbrechen
+              </button>
+              <button className="rounded-full bg-accent-500 px-4 py-2 font-medium text-black">Speichern</button>
+            </div>
+          )}
         </div>
       </form>
     </div>

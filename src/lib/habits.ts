@@ -93,6 +93,16 @@ export async function saveHabit(input: HabitInput, id?: string) {
 
 export const archiveHabit = (id: string) => db.habits.update(id, { archived: true, updatedAt: now() })
 
+// Löschen: Gewohnheit und alle ihre Check-ins werden weich gelöscht (damit der Sync es auf dem anderen Gerät nachzieht).
+export async function deleteHabit(id: string) {
+  const t = now()
+  await db.transaction('rw', db.habits, db.checkIns, async () => {
+    const mine = await db.checkIns.where('habitId').equals(id).filter((c) => !c.deleted).toArray()
+    if (mine.length) await db.checkIns.bulkPut(mine.map((c) => ({ ...c, deleted: true, updatedAt: t })))
+    await db.habits.update(id, { deleted: true, updatedAt: t })
+  })
+}
+
 // Abhaken/Zurücknehmen. Check-ins werden nur weich gelöscht, damit der Sync sie erkennt.
 // Auf einem Mini-Tag stuft der Tipp zur vollen Version hoch (statt zurückzunehmen).
 export async function toggleCheckIn(habitId: string, date: string) {
