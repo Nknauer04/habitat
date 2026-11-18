@@ -260,7 +260,7 @@ export default function Goals() {
                       {states.map(({ m, reached, overdue }) => (
                         <span
                           key={m.id}
-                          title={`${fmtQty(m.value)}${unit} bis ${fmt(m.date)}`}
+                          title={`${fmtQty(m.value)}${unit}${m.date ? ` bis ${fmt(m.date)}` : ''}`}
                           className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-slate-900"
                           style={{ left: `${Math.min(100, (m.value / p.total) * 100)}%`, background: reached ? 'var(--color-done)' : overdue ? '#fbbf24' : '#8e8e93' }}
                         />
@@ -285,7 +285,8 @@ export default function Goals() {
                           >
                             <IconGlyph name="flag" size={13} />
                             {fmtQty(m.value)}
-                            {unit} bis {fmt(m.date)}
+                            {unit}
+                            {m.date ? ` bis ${fmt(m.date)}` : ''}
                           </li>
                         ))}
                       </ul>

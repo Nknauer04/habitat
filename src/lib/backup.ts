@@ -115,7 +115,7 @@ function checkGoal(r: Row): string | null {
     (r.activityIds !== undefined && !(Array.isArray(r.activityIds) && r.activityIds.every(isStr)) ? 'activityIds ungültig' : null) ??
     (r.unit !== undefined && typeof r.unit !== 'string' ? 'unit ungültig' : null) ??
     (r.milestones !== undefined &&
-    !(Array.isArray(r.milestones) && r.milestones.every((m) => isObj(m) && isStr(m.id) && isDay(m.date) && typeof m.value === 'number' && m.value > 0))
+    !(Array.isArray(r.milestones) && r.milestones.every((m) => isObj(m) && isStr(m.id) && (m.date === undefined || isDay(m.date)) && typeof m.value === 'number' && m.value > 0))
       ? 'milestones ungültig'
       : null) ??
     (r.startDate !== undefined && !isDay(r.startDate) ? 'startDate ungültig' : null) ??

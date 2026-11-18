@@ -161,7 +161,7 @@ export function dailyTips(input: CoachInput, limit = 2): Tip[] {
       text:
         g.kind === 'amount'
           ? overdue
-            ? `Bei „${g.title}“ ist die Etappe ${fmtQty(overdue.m.value)}${unit} (bis ${fmtDate(overdue.m.date)}) noch offen: es fehlen ${fmtQty(overdue.m.value - p.value)}${unit}.`
+            ? `Bei „${g.title}“ ist die Etappe ${fmtQty(overdue.m.value)}${unit} (bis ${fmtDate(overdue.m.date!)}) noch offen: es fehlen ${fmtQty(overdue.m.value - p.value)}${unit}.`
             : `Dein Ziel „${g.title}“ liegt hinter dem Zeitplan: noch ${fmtQty(rest)}${unit} bis ${fmtDate(g.targetDate!)}.`
           : `Dein Ziel „${g.title}“ liegt hinter dem Zeitplan: noch ${rest} ${g.kind === 'steps' ? plural(rest, 'Schritt', 'Schritte') : plural(rest, 'Haken', 'Haken')} bis ${fmtDate(g.targetDate!)}.`,
     })

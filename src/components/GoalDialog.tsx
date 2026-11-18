@@ -24,7 +24,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
   const [activityIds, setActivityIds] = useState<string[]>(goal?.activityIds ?? [])
   const [amountTarget, setAmountTarget] = useState(goal?.kind === 'amount' && goal.target ? fmtInput(goal.target) : '')
   const [milestones, setMilestones] = useState<{ id: string; date: string; value: string }[]>(
-    (goal?.milestones ?? []).map((m) => ({ id: m.id, date: m.date, value: fmtInput(m.value) })),
+    (goal?.milestones ?? []).map((m) => ({ id: m.id, date: m.date ?? '', value: fmtInput(m.value) })),
   )
   const [habitIds, setHabitIds] = useState<string[]>(goal?.habitIds ?? [])
   const [target, setTarget] = useState(goal?.target ?? 20)
@@ -70,14 +70,14 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
       if (targetDate && targetDate < startDate) return setError('Die Frist liegt vor dem Start.')
       cleanMilestones = []
       for (const [i, m] of milestones.entries()) {
-        if (!m.date && !m.value.trim()) continue // leere Zeile ignorieren
+        if (!m.date && !m.value.trim()) continue // leere Zeile ignorieren (Datum ist optional)
         const v = num(m.value)
-        if (!m.date || !(v > 0)) return setError(`Etappe ${i + 1}: bitte Datum und Wert (größer 0) angeben.`)
-        if (m.date < startDate) return setError(`Etappe ${i + 1} liegt vor dem Start.`)
+        if (!(v > 0)) return setError(`Etappe ${i + 1}: bitte einen Wert (größer 0) angeben.`)
+        if (m.date && m.date < startDate) return setError(`Etappe ${i + 1} liegt vor dem Start.`)
         if (v > amount) return setError(`Etappe ${i + 1}: der Zwischenstand darf das Soll nicht übersteigen.`)
-        cleanMilestones.push({ id: m.id, date: m.date, value: v })
+        cleanMilestones.push({ id: m.id, ...(m.date ? { date: m.date } : {}), value: v })
       }
-      cleanMilestones.sort((a, b) => a.date.localeCompare(b.date))
+      cleanMilestones.sort((a, b) => a.value - b.value)
     }
     await saveGoal(
       {
@@ -190,6 +190,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
             </div>
 
             <span className={`${label} mt-5`}>Etappenziele (optional)</span>
+            <p className="-mt-1 text-xs text-slate-500">Das Datum ist freiwillig. Ohne Datum gibt es keine Frist.</p>
             <div className="flex flex-col gap-2">
               {milestones.map((m, i) => (
                 <div key={m.id} className="grid grid-cols-[minmax(0,1fr)_5.5rem_2.5rem] items-center gap-2">
@@ -197,7 +198,7 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
                     type="date"
                     value={m.date}
                     onChange={(e) => setMilestones((l) => l.map((x) => (x.id === m.id ? { ...x, date: e.target.value } : x)))}
-                    aria-label={`Etappe ${i + 1} Datum`}
+                    aria-label={`Etappe ${i + 1} Datum (optional)`}
                     className={`${field} min-w-0`}
                   />
                   <input

@@ -87,7 +87,7 @@ const utcDay = (k: string) => {
   return Date.UTC(y, m - 1, d)
 }
 
-// Etappenziele eines Mengen-Ziels: erreicht, überfällig (Datum vorbei, Wert fehlt) oder noch offen; nach Datum sortiert.
+// Etappenziele eines Mengen-Ziels: erreicht, überfällig (Datum vorbei, Wert fehlt) oder noch offen; nach Wert sortiert (Zwischenstände wachsen).
 export interface MilestoneState {
   m: Milestone
   reached: boolean
@@ -97,20 +97,20 @@ export interface MilestoneState {
 export function milestoneStates(g: Goal, value: number, todayKey: string): MilestoneState[] {
   if (g.kind !== 'amount') return []
   return [...(g.milestones ?? [])]
-    .sort((a, b) => a.date.localeCompare(b.date) || a.value - b.value)
+    .sort((a, b) => a.value - b.value || (a.date ?? '9').localeCompare(b.date ?? '9'))
     .map((m) => {
       const reached = value + 1e-9 >= m.value
-      return { m, reached, overdue: !reached && m.date < todayKey }
+      return { m, reached, overdue: !reached && !!m.date && m.date < todayKey }
     })
 }
 
-// Nächste offene Etappe (die früheste, die noch nicht erreicht ist)
+// Nächste offene Etappe (die kleinste, die noch nicht erreicht ist)
 export const nextMilestone = (states: MilestoneState[]) => states.find((s) => !s.reached) ?? null
 
 export function goalTrend(g: Goal, ratio: number, todayKey: string): GoalTrend {
   if (g.done) return 'none'
-  // Mengen-Ziel mit Etappen: überfällige Etappe = Rückstand, sonst auf Kurs
-  if (g.kind === 'amount' && g.milestones?.length) {
+  // Mengen-Ziel mit datierten Etappen: überfällige Etappe = Rückstand, sonst auf Kurs (Etappen ohne Datum zählen nicht)
+  if (g.kind === 'amount' && g.milestones?.some((m) => m.date)) {
     const states = milestoneStates(g, ratio * (g.target ?? 0), todayKey)
     return states.some((s) => s.overdue) ? 'behind' : 'ahead'
   }

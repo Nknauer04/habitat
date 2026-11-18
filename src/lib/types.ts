@@ -72,10 +72,10 @@ export interface AreaRow extends Syncable {
   createdAt: string
 }
 
-// Etappenziel: Zwischenstand (kumuliert) bis zu einem Datum, z. B. 100 km bis 30.11.
+// Etappenziel: Zwischenstand (kumuliert), optional bis zu einem Datum, z. B. 100 km bis 30.11.
 export interface Milestone {
   id: string
-  date: string // YYYY-MM-DD
+  date?: string // YYYY-MM-DD, optional (ohne Datum nie überfällig)
   value: number // kumulativer Wert in der Einheit des Ziels
 }
 

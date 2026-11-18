@@ -36,7 +36,8 @@ export default function GoalAmountStats({ today }: { today: Date }) {
               {next && (
                 <p className="mt-1 text-center text-xs text-slate-500">
                   Nächste Etappe: {fmtQty(next.m.value)}
-                  {unit} bis {fmtDate(next.m.date)} ·{' '}
+                  {unit}
+                  {next.m.date ? ` bis ${fmtDate(next.m.date)}` : ''} ·{' '}
                   <span className={next.overdue ? 'text-amber-400' : 'text-done'}>
                     {next.overdue ? 'überfällig' : `noch ${fmtQty(Math.max(0, next.m.value - p.value))}${unit}`}
                   </span>

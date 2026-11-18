@@ -142,7 +142,7 @@ export function buildReport(i: ReportInput): string {
     const trend = { ahead: 'auf Kurs', behind: 'im Rückstand', none: '' }[goalTrend(g, p.ratio, todayKey)]
     const frist = g.targetDate ? `, Frist ${fmt(g.targetDate)}` : ''
     const ms = milestoneStates(g, p.value, todayKey)
-    const msText = ms.length ? `, Etappen: ${ms.map((s) => `${fmtQty(s.m.value)}${g.unit ? ` ${g.unit}` : ''} bis ${fmtShort(s.m.date)} ${s.reached ? '✓' : s.overdue ? '(überfällig)' : '(offen)'}`).join('; ')}` : ''
+    const msText = ms.length ? `, Etappen: ${ms.map((s) => `${fmtQty(s.m.value)}${g.unit ? ` ${g.unit}` : ''}${s.m.date ? ` bis ${fmtShort(s.m.date)}` : ''} ${s.reached ? '✓' : s.overdue ? '(überfällig)' : '(offen)'}`).join('; ')}` : ''
     goalLines.push(`- ${g.title} (${areaLabel(g.area)}): ${fmtQty(p.value)} von ${fmtQty(p.total)}${unit} (${Math.round(p.ratio * 100)} %)${frist}${trend ? `, ${trend}` : ''}${msText}`)
   }
   if (goalLines.length) add('', '## Ziele', ...goalLines)

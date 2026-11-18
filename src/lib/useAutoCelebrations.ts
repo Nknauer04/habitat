@@ -31,7 +31,7 @@ export function useAutoCelebrations() {
       seen.add(r.key)
       changed = true
       const unit = r.goal.unit ? ` ${r.goal.unit}` : ''
-      celebrate({ id: r.key, title: 'Etappe geschafft!', text: `${r.goal.title}: ${fmtQty(r.m.value)}${unit} bis ${fmtDate(r.m.date)}`, glyph: 'flag', color: '#2b6bff' })
+      celebrate({ id: r.key, title: 'Etappe geschafft!', text: `${r.goal.title}: ${fmtQty(r.m.value)}${unit}${r.m.date ? ` bis ${fmtDate(r.m.date)}` : ''}`, glyph: 'flag', color: '#2b6bff' })
     }
     if (level > highestSeenLevel(seen) && !seen.has(`level:${level}`)) {
       seen.add(`level:${level}`)

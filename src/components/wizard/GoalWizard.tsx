@@ -271,14 +271,14 @@ export default function GoalWizard({ onClose }: { onClose: () => void }) {
       list.push({
         key: 'milestones',
         question: 'Möchtest du Etappenziele setzen?',
-        hint: `Zwischenstände, z. B. ${unit ? `100 ${unit}` : '100'} bis Ende November. Optional.`,
+        hint: `Zwischenstände, z. B. ${unit ? `100 ${unit}` : '100'}, wenn du magst bis Ende November. Datum und Etappen sind optional.`,
         optional: true,
         validate: () => {
           for (const [i, m] of milestones.entries()) {
             if (!m.date && !m.value.trim()) continue
             const v = num(m.value)
-            if (!m.date || !(v > 0)) return `Etappe ${i + 1}: bitte Datum und Wert angeben.`
-            if (m.date <= today) return `Etappe ${i + 1} muss in der Zukunft liegen.`
+            if (!(v > 0)) return `Etappe ${i + 1}: bitte einen Wert angeben.`
+            if (m.date && m.date <= today) return `Etappe ${i + 1} muss in der Zukunft liegen.`
             if (v > total) return `Etappe ${i + 1}: der Zwischenstand darf das Gesamtziel nicht übersteigen.`
           }
           return null
@@ -329,7 +329,7 @@ export default function GoalWizard({ onClose }: { onClose: () => void }) {
       ...(k === 'steps' ? ([['Schritte', String(steps.filter((s) => s.text.trim()).length)]] as [string, string][]) : []),
       ['Bereich', areaLabel(area)],
       ['Frist', targetDate ? `${fmtDate(targetDate)}${dl && dl.days > 0 ? ` (${dl.days} Tage)` : ''}` : 'keine'],
-      ...(k === 'amount' ? ([['Etappen', String(milestones.filter((m) => m.date && num(m.value) > 0).length)]] as [string, string][]) : []),
+      ...(k === 'amount' ? ([['Etappen', String(milestones.filter((m) => num(m.value) > 0).length)]] as [string, string][]) : []),
     ]
     list.push({
       key: 'summary',
@@ -353,9 +353,9 @@ export default function GoalWizard({ onClose }: { onClose: () => void }) {
     if (!kind) return 'Bitte eine Art wählen.'
     const cleanSteps = steps.filter((s) => s.text.trim()).map((s) => ({ ...s, text: s.text.trim() }))
     const ms: Milestone[] = milestones
-      .filter((m) => m.date && num(m.value) > 0)
-      .map((m) => ({ id: m.id, date: m.date, value: num(m.value) }))
-      .sort((a, b) => a.date.localeCompare(b.date))
+      .filter((m) => num(m.value) > 0)
+      .map((m) => ({ id: m.id, ...(m.date ? { date: m.date } : {}), value: num(m.value) }))
+      .sort((a, b) => a.value - b.value)
     await saveGoal({
       title: title.trim(),
       area,
