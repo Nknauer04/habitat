@@ -28,8 +28,15 @@ const setFlag = (on: boolean) => {
   }
 }
 
-export const authorizeUrl = () =>
-  `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${location.origin}/strava`)}&response_type=code&approval_prompt=auto&scope=activity:read_all`
+const authorizeUrl = (state: string) =>
+  `https://www.strava.com/oauth/authorize?client_id=${STRAVA_CLIENT_ID}&redirect_uri=${encodeURIComponent(`${location.origin}/strava`)}&response_type=code&approval_prompt=auto&scope=activity:read_all&state=${encodeURIComponent(state)}`
+
+// Adresse für „Mit Strava verbinden“. Der signierte Code kommt von der Funktion (nur mit Login); er sorgt dafür, dass der Rücksprung
+// auch in einem Fenster ohne Login (iPhone: Safari-Fenster statt installierter App) die Verbindung deinem Konto zuordnen kann.
+export async function startStravaConnect(): Promise<string> {
+  const r = await call<{ state: string }>('prepare')
+  return authorizeUrl(r.state)
+}
 
 export interface StravaStatus {
   connected: boolean
@@ -65,8 +72,8 @@ export async function getStravaStatus(): Promise<StravaStatus> {
   return s
 }
 
-export async function connectStrava(code: string, scope: string): Promise<StravaStatus> {
-  const r = await call<{ connected: boolean; athleteName: string | null }>('connect', { code, scope })
+export async function connectStrava(code: string, scope: string, state: string): Promise<StravaStatus> {
+  const r = await call<{ connected: boolean; athleteName: string | null }>('connect', { code, scope, state })
   setFlag(true)
   return { connected: r.connected, athleteName: r.athleteName, lastSync: null }
 }

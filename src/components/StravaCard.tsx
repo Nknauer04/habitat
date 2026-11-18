@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useState } from 'react'
 import { db } from '../lib/db'
-import { authorizeUrl, autoMapKinds, disconnectStrava, foundKinds, getStravaStatus, setKindMapping, stravaConfigured, syncStrava, type StravaStatus } from '../lib/strava'
+import { autoMapKinds, disconnectStrava, foundKinds, getStravaStatus, setKindMapping, startStravaConnect, stravaConfigured, syncStrava, type StravaStatus } from '../lib/strava'
 import { STRAVA_KINDS } from '../lib/stravaCore'
 import { supabase } from '../lib/supabase'
 
@@ -23,6 +23,13 @@ export default function StravaCard() {
   useEffect(() => {
     void foundKinds().then(setFound)
   }, [stravaCount])
+  // Zurück aus dem Strava-Fenster (iPhone): Status neu lesen
+  useEffect(() => {
+    if (!stravaConfigured()) return
+    const onVisible = () => document.visibilityState === 'visible' && getStravaStatus().then(setStatus).catch(() => {})
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
 
   async function run<T>(fn: () => Promise<T>, ok: (r: T) => string) {
     setBusy(true)
@@ -56,9 +63,22 @@ export default function StravaCard() {
       {!status?.connected ? (
         <>
           <p className="mt-2 text-sm text-slate-400">Holt Strecke, Tempo, Höhenmeter und Herzfrequenz deiner Läufe, Fahrten und mehr automatisch und trägt die Kilometer in deine Einheiten ein.</p>
-          <a href={authorizeUrl()} className="mt-4 inline-block rounded-full bg-[#fc4c02] px-5 py-3 font-semibold text-white">
-            Mit Strava verbinden
-          </a>
+          <button
+            onClick={async () => {
+              setBusy(true)
+              setMsg(null)
+              try {
+                window.location.href = await startStravaConnect()
+              } catch (e) {
+                setMsg({ ok: false, text: (e as Error).message })
+                setBusy(false)
+              }
+            }}
+            disabled={busy}
+            className="mt-4 rounded-full bg-[#fc4c02] px-5 py-3 font-semibold text-white disabled:opacity-50"
+          >
+            {busy ? 'Einen Moment …' : 'Mit Strava verbinden'}
+          </button>
         </>
       ) : (
         <>

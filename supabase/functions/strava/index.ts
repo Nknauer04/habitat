@@ -49,6 +49,30 @@ function toActivityData(a: StravaApiActivity, nowIso: string) {
     deleted: false,
   }
 }
+
+// ---------- Signierter Verbindungs-Code (state) ----------
+// Die App (angemeldet) holt ihn mit „prepare“. Strava reicht ihn beim Rücksprung zurück; dort ist man auf dem iPhone oft NICHT
+// angemeldet (anderes Safari-Fenster). Die Signatur (HMAC mit dem Strava-Geheimnis) beweist, dass der Code von deiner App kommt.
+const b64url = (buf: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+async function hmac(secret: string, payload: string) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+  return b64url(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)))
+}
+
+async function makeState(secret: string, userId: string, expiresAtMs: number) {
+  const payload = `${userId}.${expiresAtMs}`
+  return `${payload}.${await hmac(secret, payload)}`
+}
+
+// Gibt die Nutzer-ID zurück, wenn Signatur stimmt und der Code noch gültig ist, sonst null
+async function verifyState(secret: string, state: string, nowMs: number): Promise<string | null> {
+  const parts = state.split('.')
+  if (parts.length !== 3) return null
+  const [userId, exp, sig] = parts
+  if (!/^[0-9a-f-]{36}$/.test(userId) || !(Number(exp) > nowMs)) return null
+  return sig === (await hmac(secret, `${userId}.${exp}`)) ? userId : null
+}
 // --- logic:end -----------------------------------------------------------------
 
 const corsHeaders = {
@@ -95,14 +119,27 @@ async function handle(req: Request): Promise<Response> {
   if (missing.length) return json({ error: `Fehlende Geheimnisse in Supabase: ${missing.join(', ')}` }, 500)
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-  const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
-  const { data: userData } = await supabase.auth.getUser(token)
-  const user = userData?.user
-  if (!user) return json({ error: 'nicht angemeldet' }, 401)
-
   const body = await req.json().catch(() => ({}))
   const action = body?.action as string
+  const secret = Deno.env.get('STRAVA_CLIENT_SECRET')!
+
+  // Wer ruft auf? „connect“ mit signiertem Code funktioniert auch ohne Login (Rücksprung von Strava im Safari-Fenster).
+  let user: { id: string } | null = null
+  if (action === 'connect' && body?.state) {
+    const id = await verifyState(secret, String(body.state), Date.now())
+    if (!id) return json({ error: 'Der Verbindungs-Code ist abgelaufen oder ungültig. Starte „Mit Strava verbinden“ bitte neu.' }, 400)
+    user = { id }
+  } else {
+    const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
+    const { data: userData } = await supabase.auth.getUser(token)
+    user = userData?.user ?? null
+  }
+  if (!user) return json({ error: 'nicht angemeldet' }, 401)
   const loadConn = async () => (await supabase.from('strava_connection').select('*').eq('user_id', user.id).maybeSingle()).data as Conn | null
+
+  if (action === 'prepare') {
+    return json({ state: await makeState(secret, user.id, Date.now() + 15 * 60_000) })
+  }
 
   if (action === 'status') {
     const c = await loadConn()

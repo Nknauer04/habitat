@@ -28,6 +28,10 @@ Einstellungen → Strava → **Mit Strava verbinden** → bei Strava „Autorisi
 Die App lädt die letzten 90 Tage, legt für Läufe/Fahrten/… passende Einheiten in km an und trägt die Kilometer ein.
 Danach holt sie neue Aktivitäten beim Öffnen (höchstens alle 15 Minuten) oder per „Jetzt abrufen“.
 
+## Hinweis iPhone
+Der Rücksprung von Strava öffnet auf dem iPhone ein Safari-Fenster, in dem du nicht angemeldet bist. Das ist gewollt abgesichert: Die App holt vor dem Wechsel zu Strava einen signierten, 15 Minuten gültigen Code von der Funktion, damit die Verbindung auch dort deinem Konto zugeordnet wird.
+Nach „Strava ist verbunden“ schließt du das Fenster, öffnest Be Happy und tippst in den Einstellungen bei Strava auf „Jetzt abrufen“.
+
 ## Wie es funktioniert
 - Das Geheimnis bleibt in Supabase. Die Zugangsdaten liegen in `strava_connection`, die App kann sie nicht lesen.
 - Aktivitäten (Strecke, Zeit, Tempo, Höhenmeter, mittlere/maximale Herzfrequenz) liegen in `strava_activities` und synchronisieren wie alles andere.

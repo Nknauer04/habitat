@@ -3,8 +3,8 @@ import { stripTypeScriptTypes } from 'node:module'
 // Die Logik steht in der Edge Function (Deno) und wird hier zwischen den Markern herausgelöst und getestet.
 const src = readFileSync(new URL('../supabase/functions/strava/index.ts', import.meta.url), 'utf8')
 const block = src.slice(src.indexOf('// --- logic:start'), src.indexOf('// --- logic:end'))
-const js = stripTypeScriptTypes(block) + '\nexport { stravaUuid, toActivityData }\n'
-const { stravaUuid, toActivityData } = (await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'))) as { stravaUuid: (id: number) => string; toActivityData: (a: any, now: string) => any }
+const js = stripTypeScriptTypes(block) + '\nexport { stravaUuid, toActivityData, makeState, verifyState }\n'
+const { stravaUuid, toActivityData, makeState, verifyState } = (await import('data:text/javascript;base64,' + Buffer.from(js).toString('base64'))) as { stravaUuid: (id: number) => string; toActivityData: (a: any, now: string) => any; makeState: (s: string, u: string, e: number) => Promise<string>; verifyState: (s: string, st: string, n: number) => Promise<string | null> }
 let fail = 0
 const eq = (n: string, got: unknown, want: unknown) => { const ok = JSON.stringify(got) === JSON.stringify(want); if (!ok) fail++; console.log(ok ? 'OK  ' : 'FAIL', n, ok ? '' : `got ${JSON.stringify(got)} want ${JSON.stringify(want)}`) }
 const NOW = '2026-11-18T08:00:00.000Z'
@@ -15,4 +15,14 @@ eq('Aktivität: Sync-Felder', [full.id, full.updatedAt, full.deleted], ['0000000
 const bare = toActivityData({ id: 5, type: 'Ride', start_date: '2026-11-16T10:00:00Z' }, NOW)
 eq('Aktivität ohne Puls/Strecke: keine Herzfrequenz, Nullen', [bare.avgHr, 'maxHr' in bare, bare.distance, bare.sportType, bare.date], [undefined, false, 0, 'Ride', '2026-11-16'])
 eq('Aktivität mit Puls-Flag, aber ohne Wert: kein Puls', 'avgHr' in toActivityData({ id: 6, has_heartrate: true, start_date_local: '2026-11-16T10:00:00Z' }, NOW), false)
+
+// Signierter Verbindungs-Code
+const USER = '11111111-2222-4333-8444-555555555555'
+const st = await makeState('geheim', USER, 2_000_000)
+eq('Code: gültig → liefert Nutzer', await verifyState('geheim', st, 1_000_000), USER)
+eq('Code: abgelaufen → null', await verifyState('geheim', st, 2_000_001), null)
+eq('Code: falsches Geheimnis → null', await verifyState('anderes', st, 1_000_000), null)
+eq('Code: manipulierte Nutzer-ID → null', await verifyState('geheim', st.replace('11111111', '99999999'), 1_000_000), null)
+eq('Code: manipulierter Ablauf → null', await verifyState('geheim', st.replace('.2000000.', '.9999999.'), 1_000_000), null)
+eq('Code: Müll → null', [await verifyState('geheim', 'abc', 1), await verifyState('geheim', '', 1), await verifyState('geheim', 'a.b.c', 1)], [null, null, null])
 process.exit(fail ? 1 : 0)
