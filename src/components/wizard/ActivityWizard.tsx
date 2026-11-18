@@ -45,7 +45,7 @@ export default function ActivityWizard({ onClose }: { onClose: () => void }) {
         <div>
           <BigInput value={unit} onChange={setUnit} placeholder="km" />
           <div className="mt-5 flex flex-wrap gap-2">
-            {['km', 'h', 'min', 'Seiten', 'Einheiten'].map((u) => (
+            {['km', 'h', 'min', 'Seiten', 'Schritte', 'Einheiten'].map((u) => (
               <Chip key={u} active={unit === u} onClick={() => setUnit(u)}>
                 {u}
               </Chip>

@@ -1,4 +1,5 @@
 import { computeProgress, levelFor } from '../src/lib/progress'
+import { fmtInput, fmtQty } from '../src/lib/habits'
 import type { CheckIn, Habit } from '../src/lib/types'
 
 const today = new Date(2026, 10, 17) // Dienstag
@@ -516,4 +517,6 @@ eq('Strava: von dir gelöschter Strava-Eintrag kommt nicht zurück', planStravaE
 eq('Strava: gelöschter Hand-Eintrag wird durch Strava ersetzt (gleiche ID)', planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [{ id: 'h', planId: runAct.id, date: '2026-11-17', value: 4, deleted: true, updatedAt: '' }], NOW).map((e) => [e.id, e.deleted, e.source]), [['h', false, 'strava']])
 eq('Strava: gelöschte Aktivität zählt nicht', planStravaEntries([sa(1, '2026-11-17', 5000, 'Run', { deleted: true })], [runAct], [], NOW).length, 0)
 eq('Strava: Tempo', [paceText(3.333), paceText(0), paceText(2.5)], ['5:00 /km', '–', '6:40 /km'])
+eq('Menge: Tausenderpunkt und Komma', [fmtQty(8432), fmtQty(1250000), fmtQty(999), fmtQty(1234.5), fmtQty(0), fmtQty(8.4)], ['8.432', '1.250.000', '999', '1.234,5', '0', '8,4'])
+eq('Menge: Eingabeformat ohne Punkt', [fmtInput(8432), fmtInput(8.4)], ['8432', '8,4'])
 process.exit(fail ? 1 : 0)

@@ -2,12 +2,12 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect } from 'react'
 import { celebrate, highestSeenLevel, readSeen, reachedMilestones, writeSeen } from './celebrate'
 import { dayKey, db } from './db'
+import { fmtQty } from './habits'
 import { levelFor } from './progress'
 import { useProgress } from './useProgress'
 import { useToday } from './useToday'
 
 const fmtDate = (k: string) => new Date(`${k}T12:00:00`).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })
-const fmtQty = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
 
 // Feiert neue Level und Etappen auf jeder Seite. Beim allerersten Start auf einem Gerät gilt alles Bestehende als schon gefeiert.
 export function useAutoCelebrations() {

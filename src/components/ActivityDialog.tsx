@@ -11,7 +11,7 @@ import EditShell, { editChip, editFooter, editLabel, primaryBtn } from './wizard
 import { setKindMapping, stravaConfigured } from '../lib/strava'
 import { STRAVA_KINDS } from '../lib/stravaCore'
 
-const UNITS = ['km', 'h', 'min', 'Seiten', 'Einheiten']
+const UNITS = ['km', 'h', 'min', 'Seiten', 'Schritte', 'Einheiten']
 
 const chip = editChip
 const field = 'w-full rounded-2xl border border-slate-800 bg-slate-900 px-4 py-3.5 text-lg outline-none focus:border-accent-500'

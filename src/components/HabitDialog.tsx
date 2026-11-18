@@ -179,7 +179,7 @@ export default function HabitDialog({ habit, onClose }: { habit?: Habit; onClose
         {qty && (
           <div className="mt-3">
             <div className="flex flex-wrap gap-2">
-              {['min', 'h', 'Seiten', 'Wdh.'].map((u) => (
+              {['min', 'h', 'Seiten', 'Schritte', 'Wdh.'].map((u) => (
                 <button type="button" key={u} onClick={() => setUnit(u)} className={chip(unit === u)}>
                   {u}
                 </button>

@@ -42,7 +42,14 @@ export const isCheckInDone = (h: Habit, c: CheckIn) => isFull(h, c) || isMini(h,
 export const isPartial = (h: Habit, c: CheckIn) =>
   !c.deleted && !c.mini && !!h.dailyTarget && c.value !== undefined && c.value > 0 && c.value < h.dailyTarget
 
-export const fmtQty = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
+// Eingabe-Format (ohne Tausenderpunkt, damit das Feld wieder lesbar ist)
+export const fmtInput = (n: number) => String(Math.round(n * 100) / 100).replace('.', ',')
+// Anzeige-Format: Komma als Dezimalzeichen, Punkt als Tausendertrenner (8.432)
+export const fmtQty = (n: number) => {
+  const [int, dec] = fmtInput(n).split(',')
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return dec ? `${grouped},${dec}` : grouped
+}
 
 // Tagesmenge einer Gewohnheit; alte Check-ins ohne Wert zählen als volles Tagesziel.
 export const checkInValue = (h: Habit, c: CheckIn) => c.value ?? h.dailyTarget ?? 0

@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { dayKey, db, newId } from '../lib/db'
 import { deleteGoal, saveGoal } from '../lib/goals'
 import { pickableAreas } from '../lib/areas'
-import { fmtQty } from '../lib/habits'
+import { fmtInput } from '../lib/habits'
 import type { Area, Goal, GoalStep, Milestone } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import EditShell, { editChip, editField, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
@@ -22,9 +22,9 @@ export default function GoalDialog({ goal, onClose }: { goal?: Goal; onClose: ()
   const [kind, setKind] = useState<Goal['kind']>(goal?.kind ?? 'steps')
   const [steps, setSteps] = useState<GoalStep[]>(goal?.steps ?? [])
   const [activityIds, setActivityIds] = useState<string[]>(goal?.activityIds ?? [])
-  const [amountTarget, setAmountTarget] = useState(goal?.kind === 'amount' && goal.target ? fmtQty(goal.target) : '')
+  const [amountTarget, setAmountTarget] = useState(goal?.kind === 'amount' && goal.target ? fmtInput(goal.target) : '')
   const [milestones, setMilestones] = useState<{ id: string; date: string; value: string }[]>(
-    (goal?.milestones ?? []).map((m) => ({ id: m.id, date: m.date, value: fmtQty(m.value) })),
+    (goal?.milestones ?? []).map((m) => ({ id: m.id, date: m.date, value: fmtInput(m.value) })),
   )
   const [habitIds, setHabitIds] = useState<string[]>(goal?.habitIds ?? [])
   const [target, setTarget] = useState(goal?.target ?? 20)

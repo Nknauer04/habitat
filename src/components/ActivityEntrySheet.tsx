@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { dayKey } from '../lib/db'
-import { fmtQty } from '../lib/habits'
+import { fmtInput, fmtQty } from '../lib/habits'
 import { setActivityEntry } from '../lib/activities'
 import type { Activity } from '../lib/types'
 import ItemIcon from './ItemIcon'
@@ -18,7 +18,7 @@ export default function ActivityEntrySheet({
   onClose: () => void
 }) {
   const step = activity.unit === 'h' || activity.unit === 'km' ? 0.5 : 1
-  const [amount, setAmount] = useState(current > 0 ? fmtQty(current) : '')
+  const [amount, setAmount] = useState(current > 0 ? fmtInput(current) : '')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -27,8 +27,9 @@ export default function ActivityEntrySheet({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const parsed = Number(amount.replace(',', '.'))
-  const bump = (d: number) => setAmount(fmtQty(Math.max(0, (Number.isFinite(parsed) ? parsed : 0) + d)))
+  const isSteps = activity.unit === 'Schritte' // nur Zahlenfeld, ganze Zahlen
+  const parsed = Number(isSteps ? amount.replace(/\./g, '') : amount.replace(',', '.'))
+  const bump = (d: number) => setAmount(fmtInput(Math.max(0, (Number.isFinite(parsed) ? parsed : 0) + d)))
   const dateText =
     date === dayKey()
       ? 'Heute'
@@ -37,7 +38,7 @@ export default function ActivityEntrySheet({
   async function submit(e: FormEvent) {
     e.preventDefault()
     if (!Number.isFinite(parsed) || parsed <= 0) return setError('Bitte einen Wert größer 0 eingeben.')
-    await setActivityEntry(activity.id, date, parsed)
+    await setActivityEntry(activity.id, date, isSteps ? Math.round(parsed) : parsed)
     onClose()
   }
 
@@ -65,21 +66,25 @@ export default function ActivityEntrySheet({
         <label className="mt-5 block text-sm text-slate-400">
           Wie viel? ({activity.unit})
           <div className="mt-2 flex items-center gap-2">
-            <button type="button" onClick={() => bump(-step)} aria-label="Weniger" className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 text-lg">
-              −
-            </button>
+            {!isSteps && (
+              <button type="button" onClick={() => bump(-step)} aria-label="Weniger" className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 text-lg">
+                −
+              </button>
+            )}
             <input
               autoFocus
               onFocus={(e) => e.target.select()}
               placeholder={activity.unit}
-              inputMode="decimal"
+              inputMode={isSteps ? 'numeric' : 'decimal'}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               className="min-w-0 flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-center text-xl outline-none focus:border-accent-500"
             />
-            <button type="button" onClick={() => bump(step)} aria-label="Mehr" className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 text-lg">
-              +
-            </button>
+            {!isSteps && (
+              <button type="button" onClick={() => bump(step)} aria-label="Mehr" className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 text-lg">
+                +
+              </button>
+            )}
           </div>
         </label>
 

@@ -116,7 +116,7 @@ export default function HabitWizard({ onClose }: { onClose: () => void }) {
             <div className="mt-6">
               <BigInput value={target} onChange={setTarget} inputMode="decimal" autoFocus={false} placeholder="30" suffix={unit} />
               <div className="mt-4 flex flex-wrap gap-2">
-                {['min', 'h', 'Seiten', 'km', 'Gläser'].map((u) => (
+                {['min', 'h', 'Seiten', 'km', 'Schritte', 'Gläser'].map((u) => (
                   <Chip key={u} active={unit === u} onClick={() => setUnit(u)}>
                     {u}
                   </Chip>

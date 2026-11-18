@@ -111,7 +111,7 @@ export default function GoalWizard({ onClose }: { onClose: () => void }) {
               <div className="rounded-3xl border border-slate-700 bg-slate-900 p-4">
                 <BigInput value={newName} onChange={setNewName} placeholder="Name, z. B. Laufen" />
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {['km', 'h', 'min', 'Seiten'].map((u) => (
+                  {['km', 'h', 'min', 'Seiten', 'Schritte'].map((u) => (
                     <Chip key={u} active={newUnit === u} onClick={() => setNewUnit(u)}>
                       {u}
                     </Chip>
