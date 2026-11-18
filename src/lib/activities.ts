@@ -6,7 +6,7 @@ import type { Activity, ActivityEntry, Area, Goal } from './types'
 // Speicherung unter den Namen `plans` / `planEntries` (siehe types.ts).
 export const XP_PER_ACTIVITY_ENTRY = 10 // je Eintrag (Tag)
 
-export type ActivityInput = Pick<Activity, 'name' | 'icon' | 'area' | 'unit' | 'days'>
+export type ActivityInput = Pick<Activity, 'name' | 'icon' | 'area' | 'unit' | 'days' | 'stravaKinds'>
 
 const parse = (k: string) => {
   const [y, m, d] = k.split('-').map(Number)
@@ -64,7 +64,7 @@ export async function setActivityEntry(activityId: string, date: string, value: 
     if (value > 0) {
       if (active.length) {
         await db.planEntries.bulkPut([
-          { ...active[0], value, updatedAt: t },
+          { ...active[0], value, source: undefined, updatedAt: t }, // von Hand geändert: Strava überschreibt nicht mehr
           ...active.slice(1).map((e) => ({ ...e, deleted: true, updatedAt: t })), // Dubletten von zwei Geräten bereinigen
         ])
       } else if (existing.length) await db.planEntries.put({ ...existing[0], deleted: false, value, updatedAt: t })

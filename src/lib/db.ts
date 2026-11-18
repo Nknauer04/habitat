@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { Activity, ActivityEntry, AreaRow, CheckIn, Goal, Habit, Review } from './types'
+import type { Activity, ActivityEntry, AreaRow, CheckIn, Goal, Habit, Review, StravaActivity } from './types'
 
 export const db = new Dexie('habitat') as Dexie & {
   habits: EntityTable<Habit, 'id'>
@@ -9,6 +9,7 @@ export const db = new Dexie('habitat') as Dexie & {
   plans: EntityTable<Activity, 'id'> // Einheiten (Name aus der ersten Version)
   planEntries: EntityTable<ActivityEntry, 'id'> // Ist-Werte der Einheiten
   areas: EntityTable<AreaRow, 'id'>
+  stravaActivities: EntityTable<StravaActivity, 'id'>
   meta: EntityTable<{ key: string; value: string }, 'key'>
 }
 
@@ -32,6 +33,9 @@ db.version(4).stores({
 
 // Eigene Bereiche und Überschreibungen der Standard-Bereiche
 db.version(5).stores({ areas: 'id, key, updatedAt' })
+
+// Strava-Aktivitäten (nur gelesen)
+db.version(6).stores({ stravaActivities: 'id, date, updatedAt' })
 
 export const newId = () => crypto.randomUUID()
 export const now = () => new Date().toISOString()

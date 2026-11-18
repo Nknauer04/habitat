@@ -9,6 +9,7 @@ import { backupFileName, buildBackup, mergeBackup, parseBackup } from '../lib/ba
 import { getSyncStatus, subscribeSync, syncNow, type SyncStatus } from '../lib/sync'
 import { supabase } from '../lib/supabase'
 import { useSession } from '../lib/useSession'
+import StravaCard from '../components/StravaCard'
 
 function syncText(s: SyncStatus) {
   switch (s.state) {
@@ -139,6 +140,8 @@ export default function Settings() {
           />
         </label>
       </section>
+
+      <StravaCard />
 
       <Link to="/bereiche" className="mt-4 flex items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-900 p-5 active:bg-slate-800">
         <span>

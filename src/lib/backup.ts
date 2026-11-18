@@ -137,6 +137,7 @@ function checkActivity(r: Row): string | null {
     (!isStr(r.area) ? 'area ungültig' : null) ??
     (typeof r.unit !== 'string' ? 'unit fehlt' : null) ??
     (r.sortOrder !== undefined && typeof r.sortOrder !== 'number' ? 'sortOrder ungültig' : null) ??
+    (r.stravaKinds !== undefined && !(Array.isArray(r.stravaKinds) && r.stravaKinds.every(isStr)) ? 'stravaKinds ungültig' : null) ??
     (r.days !== undefined && !(Array.isArray(r.days) && r.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6))
       ? 'days ungültig'
       : null) ??
@@ -161,7 +162,8 @@ function checkActivityEntry(r: Row): string | null {
     checkSync(r) ??
     (!isStr(r.planId) ? 'planId fehlt' : null) ??
     (!isDay(r.date) ? 'date ungültig' : null) ??
-    (!(typeof r.value === 'number' && r.value > 0) ? 'value ungültig' : null)
+    (!(typeof r.value === 'number' && r.value > 0) ? 'value ungültig' : null) ??
+    (r.source !== undefined && r.source !== 'strava' ? 'source ungültig' : null)
   )
 }
 

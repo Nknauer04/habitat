@@ -44,6 +44,24 @@ export interface GoalStep {
   done: boolean
 }
 
+// Strava-Aktivität (von der Edge Function geschrieben, hier nur gelesen; Tabelle strava_activities)
+export interface StravaActivity extends Syncable {
+  stravaId: number
+  name: string
+  type: string
+  sportType: string
+  date: string // lokaler Tag YYYY-MM-DD
+  startDate: string
+  distance: number // m
+  movingTime: number // s
+  elapsedTime: number // s
+  elevation: number // m
+  avgSpeed: number // m/s
+  maxSpeed: number // m/s
+  avgHr?: number // mittlere Herzfrequenz (nur mit Pulsmessung)
+  maxHr?: number
+}
+
 // Bereich (synchron): überschreibt einen Standard-Bereich (key = 'sport' …) oder ist ein eigener Bereich (key = id)
 export interface AreaRow extends Syncable {
   key: string
@@ -87,6 +105,7 @@ export interface Activity extends Syncable {
   area: Area
   unit: string // km, h, Seiten …
   sortOrder?: number // eigene Reihenfolge in „Heute“
+  stravaKinds?: string[] // Strava-Arten ('run' | 'ride' | 'swim' | 'walk'), deren Strecke automatisch in diese Einheit zählt
   days?: number[] // Erinnerungs-Wochentage, 0 = Montag … 6 = Sonntag (optional; ohne Soll)
   createdAt: string
   // Altdaten der ersten Version („Plan“ mit Soll) – werden ignoriert
@@ -102,6 +121,7 @@ export interface ActivityEntry extends Syncable {
   planId: string // = Activity.id
   date: string // YYYY-MM-DD
   value: number // > 0
+  source?: 'strava' // automatisch aus Strava; von Hand geändert = Feld fällt weg
 }
 
 // Wochenrückblick: eine Notiz pro Woche (weekStart = Montag, YYYY-MM-DD).

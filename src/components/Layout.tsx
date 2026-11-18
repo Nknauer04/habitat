@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAreaRegistry } from '../lib/useAreaRegistry'
 import { useAutoCelebrations } from '../lib/useAutoCelebrations'
+import { useStravaImport } from '../lib/useStravaImport'
 import CelebrationHost from './CelebrationHost'
 import { BarsIcon, CalendarIcon, PersonIcon, TrendIcon } from './icons'
 
@@ -17,6 +18,7 @@ const items: Item[] = [
 export default function Layout() {
   const { pathname } = useLocation()
   useAutoCelebrations()
+  useStravaImport()
   const areaVersion = useAreaRegistry() // Seiten laden neu, wenn sich Bereiche ändern (Name, Farbe, Symbol)
 
   return (

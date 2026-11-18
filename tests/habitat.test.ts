@@ -499,4 +499,21 @@ eq('Vermeiden: Score heute 100, wenn kein Rückfall', dayScoresA([av], withClean
 eq('Vermeiden: Score am Rückfalltag 0', dayScoresA([av], withCleanDays([av], [slip('2026-11-13')], '2026-11-17'), D('2026-11-13'), D('2026-11-14')).map((d) => d.score), [0, 100])
 const goalA: Goal = { id: 'ga', title: '7 Tage sauber', area: 'sport', kind: 'count', steps: [], habitIds: ['a'], target: 7, startDate: '2026-11-01', done: false, createdAt: '2026-11-01T10:00:00', updatedAt: '', deleted: false }
 eq('Vermeiden: Zählziel zählt saubere Tage ohne heute', gp2(goalA, withCleanDays([av], [], '2026-11-17'), '2026-11-17', [av], []).value, 7)
+// Strava → Einheiten
+import { kindOf, paceText, planStravaEntries, stravaEntryId } from '../src/lib/stravaCore'
+import type { StravaActivity } from '../src/lib/types'
+const sa = (id: number, date: string, distance: number, type = 'Run', extra: Partial<StravaActivity> = {}): StravaActivity => ({ id: String(id), stravaId: id, name: 'x', type, sportType: type, date, startDate: date, distance, movingTime: 1800, elapsedTime: 1900, elevation: 10, avgSpeed: 3, maxSpeed: 4, updatedAt: '', deleted: false, ...extra }) as StravaActivity
+const runAct: Activity = { ...act, id: 'aaaaaaaa-0000-4000-8000-0000000000a1', stravaKinds: ['run'] }
+const NOW = '2026-11-18T08:00:00.000Z'
+eq('Strava: Arten erkannt', [kindOf({ type: 'Run', sportType: 'TrailRun' }), kindOf({ type: 'Ride', sportType: 'GravelRide' }), kindOf({ type: 'Swim', sportType: 'Swim' }), kindOf({ type: 'Hike', sportType: 'Hike' }), kindOf({ type: 'Workout', sportType: 'WeightTraining' })], ['run', 'ride', 'swim', 'walk', null])
+eq('Strava: Summe je Tag, km auf 2 Stellen', planStravaEntries([sa(1, '2026-11-17', 5234), sa(2, '2026-11-17', 3001)], [runAct], [], NOW).map((e) => [e.date, e.value, e.source]), [['2026-11-17', 8.24, 'strava']])
+eq('Strava: andere Arten und nicht zugeordnete werden ignoriert', planStravaEntries([sa(1, '2026-11-17', 5000, 'Ride'), sa(2, '2026-11-17', 5000, 'Workout')], [runAct], [], NOW).length, 0)
+eq('Strava: ohne Zuordnung nichts', planStravaEntries([sa(1, '2026-11-17', 5000)], [{ ...runAct, stravaKinds: undefined }], [], NOW).length, 0)
+eq('Strava: Eintrag-ID fest und eindeutig je Einheit und Tag', [stravaEntryId(runAct.id, '2026-11-17'), stravaEntryId(runAct.id, '2026-11-17') === planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [], NOW)[0].id], ['20261117-0000-4000-8000-0000000000a1', true])
+eq('Strava: Hand-Eintrag bleibt unberührt', planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [{ id: 'm', planId: runAct.id, date: '2026-11-17', value: 4, deleted: false, updatedAt: '' }], NOW).length, 0)
+eq('Strava: vorhandener Strava-Eintrag wird aktualisiert, gleicher bleibt', [planStravaEntries([sa(1, '2026-11-17', 6000)], [runAct], [{ id: 's', planId: runAct.id, date: '2026-11-17', value: 5, source: 'strava', deleted: false, updatedAt: '' }], NOW).map((e) => e.value), planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [{ id: 's', planId: runAct.id, date: '2026-11-17', value: 5, source: 'strava', deleted: false, updatedAt: '' }], NOW).length], [[6], 0])
+eq('Strava: von dir gelöschter Strava-Eintrag kommt nicht zurück', planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [{ id: 's', planId: runAct.id, date: '2026-11-17', value: 5, source: 'strava', deleted: true, updatedAt: '' }], NOW).length, 0)
+eq('Strava: gelöschter Hand-Eintrag wird durch Strava ersetzt (gleiche ID)', planStravaEntries([sa(1, '2026-11-17', 5000)], [runAct], [{ id: 'h', planId: runAct.id, date: '2026-11-17', value: 4, deleted: true, updatedAt: '' }], NOW).map((e) => [e.id, e.deleted, e.source]), [['h', false, 'strava']])
+eq('Strava: gelöschte Aktivität zählt nicht', planStravaEntries([sa(1, '2026-11-17', 5000, 'Run', { deleted: true })], [runAct], [], NOW).length, 0)
+eq('Strava: Tempo', [paceText(3.333), paceText(0), paceText(2.5)], ['5:00 /km', '–', '6:40 /km'])
 process.exit(fail ? 1 : 0)

@@ -8,6 +8,8 @@ import type { Activity, Area } from '../lib/types'
 import ItemIcon from './ItemIcon'
 import { IconGrid } from './wizard/parts'
 import EditShell, { editChip, editFooter, editLabel, primaryBtn } from './wizard/EditShell'
+import { setKindMapping, stravaConfigured } from '../lib/strava'
+import { STRAVA_KINDS } from '../lib/stravaCore'
 
 const UNITS = ['km', 'h', 'min', 'Seiten', 'Einheiten']
 
@@ -22,6 +24,7 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
   const [area, setArea] = useState<Area>(activity?.area ?? 'sport')
   const [unit, setUnit] = useState(activity?.unit ?? 'km')
   const [days, setDays] = useState<number[]>(activity ? activityDays(activity) : [])
+  const [kinds, setKinds] = useState<string[]>(activity?.stravaKinds ?? [])
   const [linked, setLinked] = useState<string[] | null>(null) // null = unverändert (aus den Zielen abgeleitet)
   const [error, setError] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -44,6 +47,13 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
     if (!name.trim()) return setError('Bitte einen Namen eingeben.')
     if (!unit.trim()) return setError('Bitte eine Einheit angeben.')
     const id = await saveActivity({ name: name.trim(), icon: icon || 'i:run', area, unit: unit.trim(), days: [...days].sort() }, activity?.id)
+    if (stravaConfigured())
+      for (const k of STRAVA_KINDS) {
+        const was = (activity?.stravaKinds ?? []).includes(k.key)
+        const wants = kinds.includes(k.key)
+        if (wants && !was) await setKindMapping(k.key, id) // Art gehört danach nur zu dieser Einheit
+        else if (!wants && was) await setKindMapping(k.key, null)
+      }
     if (linked !== null && goals) await setActivityGoalLinks(id, unit.trim(), linked, goals)
     onClose()
   }
@@ -93,6 +103,20 @@ export default function ActivityDialog({ activity, onClose }: { activity?: Activ
             </button>
           ))}
         </div>
+
+        {stravaConfigured() && (
+          <>
+            <span className={`${label} mt-5`}>Aus Strava übernehmen (optional)</span>
+            <div className="flex flex-wrap gap-2">
+              {STRAVA_KINDS.map((k) => (
+                <button type="button" key={k.key} onClick={() => setKinds((l) => (l.includes(k.key) ? l.filter((x) => x !== k.key) : [...l, k.key]))} aria-pressed={kinds.includes(k.key)} className={chip(kinds.includes(k.key))}>
+                  {k.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-slate-500">Die Strecke dieser Strava-Sportarten wird automatisch als Eintrag in km gezählt.</p>
+          </>
+        )}
 
         <span className={`${label} mt-5`}>Erinnerung in „Heute“ an diesen Tagen (optional)</span>
         <div className="flex flex-wrap gap-2">
