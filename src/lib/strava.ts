@@ -46,6 +46,9 @@ export interface StravaStatus {
 
 async function call<T>(action: string, body: object = {}): Promise<T> {
   if (!supabase) throw new Error('Nicht konfiguriert.')
+  // Ohne Login schickt die App nur den öffentlichen Schlüssel mit; die Funktion kennt dich dann nicht
+  if (action !== 'connect' && !(await supabase.auth.getSession()).data.session)
+    throw new Error('Du bist in der App nicht angemeldet. Melde dich weiter unten bei „Konto & Sync“ an und versuche es dann nochmal.')
   const { data, error } = await supabase.functions.invoke('strava', { body: { action, ...body } })
   if (error) {
     if (error instanceof FunctionsHttpError) {

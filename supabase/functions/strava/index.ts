@@ -131,8 +131,9 @@ async function handle(req: Request): Promise<Response> {
     user = { id }
   } else {
     const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '')
-    const { data: userData } = await supabase.auth.getUser(token)
+    const { data: userData, error: userError } = await supabase.auth.getUser(token)
     user = userData?.user ?? null
+    if (!user) return json({ error: `nicht angemeldet (${userError?.message ?? 'kein gültiger Login-Token'})` }, 401)
   }
   if (!user) return json({ error: 'nicht angemeldet' }, 401)
   const loadConn = async () => (await supabase.from('strava_connection').select('*').eq('user_id', user.id).maybeSingle()).data as Conn | null
